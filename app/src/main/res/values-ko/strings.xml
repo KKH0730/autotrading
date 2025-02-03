@@ -1,0 +1,75 @@
+<resources>
+    <string name="app_name">autotrading</string>
+
+    <!--common-->
+    <string name="network_request_error">"네트워크 요청을 실패했습니다. 다시 시도해주세요."</string>
+    <string name="view_more">View more</string>
+    <string name="confirm">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="d_won">%d KRW</string>
+    <string name="s_won">%s KRW</string>
+    <string name="s_s_won">%s %s</string>
+    <string name="d_percent">%d%%</string>
+    <string name="s_percent">%s%%</string>
+    <string name="KRW">KRW</string>
+    <string name="BTC">BTC</string>
+    <string name="USDT">USDT</string>
+    <string name="quantity">Quantity</string>
+
+    <!--dialog-->
+    <string name="network_error_title">네트워크 오류</string>
+    <string name="network_error">네트워크 연결 상태를 확인해 주세요.</string>
+    <string name="alert_dialog_restart">재시작</string>
+    <string name="unknown_error_title">작업 요청 실패</string>
+    <string name="unknown_error_content">네트워크 상태나 api 요청 한도를 확인하고 다시 시도해 주세요.</string>
+
+    <!--bottom navigator-->
+    <string name="bottom_navigator_dashboard">Dashboard</string>
+    <string name="bottom_navigator_market">Market</string>
+    <string name="bottom_navigator_auto_trading">Auto Trading</string>
+    <string name="bottom_navigator_setting">Settings</string>
+
+    <!--home-->
+    <string name="home_my_portfolio">My portfolio</string>
+    <string name="home_total_Portfolio_value">Total Portfolio Value</string>
+    <string name="home_total_value">Total Value</string>
+    <string name="home_my_portfolio_avg_price">Avg price</string>
+    <string name="home_top_gainers">Top gainers</string>
+    <string name="home_top_losers">Top Losers</string>
+    <string name="home_favorite">Favorite</string>
+    <string name="home_favorite_empty">You have no favorites.\nTap the ⭐ to add your favorite crypto!</string>
+
+    <!--asset overview-->
+    <string name="assets_overview_title">My Portfolio</string>
+    <string name="assets_overview_pnl">PnL</string>
+    <string name="assets_overview_roi">ROI</string>
+    <string name="assets_overview_assets">Assets</string>
+
+    <!-- market overview -->
+    <string name="market_overview_title">Market overview</string>
+
+    <!--market-->
+    <string name="market_tab_1">KRW</string>
+    <string name="market_tab_2">BTC</string>
+    <string name="market_tab_3">USDT</string>
+    <string name="market_tab_4">Favorites</string>
+
+    <!--auto trading-->
+    <string name="auto_trading_dashboard_trade_status">Trade status</string>
+    <string name="auto_trading_dashboard_trade_history">Trade history</string>
+    <string name="auto_trading_status_on">Active</string>
+    <string name="auto_trading_status_off">Inactive</string>
+    <string name="auto_trading_start_setting">Start auto trading</string>
+    <string name="auto_trading_stop">Stop</string>
+    <string name="auto_trading_view">View trade</string>
+    <string name="auto_trading_not_found_trade_history">No trade history found.\nPlease check the selected date range</string>
+    <string name="auto_trading_filter_apply">Apply</string>
+    <string name="auto_trading_ask">Ask</string>
+    <string name="auto_trading_bid">Bid</string>
+    <string name="auto_trading_order_done">Done</string>
+    <string name="auto_trading_order_cancel">Cancel</string>
+    <string name="auto_trading_setting_title">Trading Settings</string>
+    <string name="auto_trading_available_krw">Current available KRW</string>
+    <string name="auto_trading_crypto_drop_down_menu_title">Select cryptocurrency (only tradable with KRW, not USDT or BTC)</string>
+    <string name="auto_trading_crypto_drop_down_menu_title_additonal">(only tradable with KRW)</string>
+</resources>

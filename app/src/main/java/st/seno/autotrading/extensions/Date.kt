@@ -12,7 +12,7 @@ fun Long.toDate(pattern: String): String {
     val calendar = Calendar.getInstance().apply {
         timeInMillis  = this@toDate
     }
-    return simpleDateFormat.format(Date().time.apply { calendar.timeInMillis })
+    return simpleDateFormat.format(Date().apply { time = calendar.timeInMillis })
 }
 
 fun String.parseDateFormat(
@@ -20,12 +20,8 @@ fun String.parseDateFormat(
     targetFormat: SimpleDateFormat = SimpleDateFormat("yyyy-MM.dd HH:mm", Locale.getDefault())
 ): String {
     return try {
-        // 문자열을 Date 객체로 변환
         val date = originalFormat.parse(this)
-
-        // 원하는 형식으로 변환
         val formattedDate = targetFormat.format(date!!)
-
         formattedDate
     } catch (e: Exception) {
         e.printStackTrace()

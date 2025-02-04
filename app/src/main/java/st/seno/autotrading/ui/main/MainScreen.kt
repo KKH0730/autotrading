@@ -47,7 +47,6 @@ fun MainScreen() {
                     tabs = bottomTabs,
                     selectedTab = bottomTabPosition,
                     onTabSelected = { position ->
-                        Timber.e("onTabSelected -> $position")
                         bottomTabPosition = position
                         navController.navigate(getString(bottomTabs[position].name)) {
                             navController.graph.startDestinationRoute?.let {

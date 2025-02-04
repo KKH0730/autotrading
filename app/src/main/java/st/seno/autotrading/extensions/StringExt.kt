@@ -3,9 +3,13 @@ package st.seno.autotrading.extensions
 import android.text.Html
 import android.text.Spanned
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import st.seno.autotrading.App
 import java.math.BigDecimal
+import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.contracts.ExperimentalContracts
@@ -45,7 +49,14 @@ fun Double.formatPrice(): String {
     }
 }
 
-//fun Double.formatWithCommas(): String {
-//    val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
-//    return numberFormat.format(this.truncateToXDecimalPlaces(x = 2.0))
-//}
+fun String.numberWithCommas(): String {
+    val decimalFormat = DecimalFormat("#,###")
+    return decimalFormat.format(this.toInt())
+}
+
+fun Float.numberWithCommas(): String {
+    val decimalFormat = DecimalFormat("#,###")
+    return decimalFormat.format(this)
+}
+
+fun String.filterDigit(): String = this.filter { it.isDigit() }

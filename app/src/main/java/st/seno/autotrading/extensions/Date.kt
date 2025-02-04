@@ -12,7 +12,7 @@ fun Long.toDate(pattern: String): String {
     val calendar = Calendar.getInstance().apply {
         timeInMillis  = this@toDate
     }
-    return simpleDateFormat.format(Date().time.apply { calendar.timeInMillis })
+    return simpleDateFormat.format(Date().apply { time = calendar.timeInMillis })
 }
 
 fun String.parseDateFormat(

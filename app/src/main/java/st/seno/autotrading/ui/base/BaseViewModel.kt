@@ -20,7 +20,8 @@ abstract class BaseViewModel : ViewModel() {
     private val _message = MutableSharedFlow<String>()
     val message get() = _message.asSharedFlow()
 
-
+    private val _finish =  MutableSharedFlow<Any>()
+    val finish get() = _finish.asSharedFlow()
 
     protected val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         hideLoading()
@@ -37,6 +38,10 @@ abstract class BaseViewModel : ViewModel() {
 
     open fun showMessage(message: String) {
         vmScopeJob { _message.emit(message) }
+    }
+
+    open fun finish() {
+        vmScopeJob { _finish.emit(Any()) }
     }
 
     fun vmScopeJob(

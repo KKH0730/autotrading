@@ -114,19 +114,12 @@ fun AutoTradingStatus(isActivated: Boolean) {
                 composition = composition,
                 iterations = Int.MAX_VALUE
             )
-        } else {
-            Box(
-                modifier = Modifier
-                    .clip(shape = CircleShape)
-                    .background(color = Color.Red)
-                    .size(size = 8.dp)
-            )
         }
         8.WidthSpacer()
         Text(
             if (isActivated) stringResource(R.string.auto_trading_status_on) else stringResource(R.string.auto_trading_status_off),
             style = TextStyle(
-                fontSize = 16.textDp,
+                fontSize = 12.textDp,
                 fontWeight = FontWeight.Medium,
                 color = FF000000
             ),
@@ -195,7 +188,7 @@ fun AutoTradingControlButton(
         colors = ButtonDefaults.buttonColors(
             backgroundColor = backgroundColor,
         ),
-        modifier = modifier
+        modifier = modifier.height(height = 40.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -211,7 +204,7 @@ fun AutoTradingControlButton(
             Text(
                 name,
                 style = TextStyle(
-                    fontSize = 14.textDp,
+                    fontSize = 12.textDp,
                     fontWeight = FontWeight.Medium,
                     color = textColor
                 ),

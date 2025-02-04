@@ -1,9 +1,7 @@
 package st.seno.autotrading.ui.main.home.market_overview.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,8 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +37,6 @@ import st.seno.autotrading.extensions.getCryptoEnName
 import st.seno.autotrading.extensions.gson
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.extensions.truncateToXDecimalPlaces
-import st.seno.autotrading.model.HomeContentsType
 import st.seno.autotrading.theme.FF000000
 import st.seno.autotrading.theme.FF16A34A
 import st.seno.autotrading.theme.FF4B5563
@@ -49,6 +44,7 @@ import st.seno.autotrading.theme.FF6B7280
 import st.seno.autotrading.theme.FFDC2626
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.theme.FFFFFFFF
+import st.seno.autotrading.ui.common.LeadingCandleChart
 
 @Composable
 fun FavoritesOverview(tickers: List<Ticker>) {
@@ -122,10 +118,13 @@ fun CryptoOverviewChangeRate(ticker: Ticker) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(vertical = 22.dp, horizontal = 16.dp)
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_bitcoin_default),
-                contentDescription = null,
-                modifier = Modifier.size(size = 32.dp)
+            LeadingCandleChart(
+                openingPrice = ticker.openingPrice,
+                highPrice = ticker.highPrice,
+                lowPrice = ticker.lowPrice,
+                tradePrice = ticker.tradePrice,
+                candleWidth = 7,
+                candleHeight = 30
             )
             12.WidthSpacer()
             Column {

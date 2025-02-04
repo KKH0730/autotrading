@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,12 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import st.seno.autotrading.R
 import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.WidthSpacer
@@ -44,6 +41,7 @@ import st.seno.autotrading.theme.FF6B7280
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.theme.FFFFFFFF
 import st.seno.autotrading.theme.SHIMMER
+import st.seno.autotrading.ui.common.LeadingCandleChartShimmer
 
 @Composable
 fun HomeModuleShimmer() {
@@ -173,11 +171,10 @@ fun MyCryptoShimmer(shimmerBrush: Brush) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.height(height = 64.dp)
     ) {
-        Image(
-            painter = painterResource(R.drawable.ic_bitcoin_default),
-            contentDescription = null,
-            alpha = 0f,
-            modifier = Modifier.size(size = 32.dp).background(brush = shimmerBrush)
+        LeadingCandleChartShimmer(
+            candleWidth = 7,
+            candleHeight = 30,
+            shimmerBrush = shimmerBrush
         )
         12.WidthSpacer()
         Column {
@@ -278,11 +275,10 @@ fun CryptoChangeRateShimmer(shimmerBrush: Brush) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.height(height = 56.dp)
     ) {
-        Image(
-            painter = painterResource(R.drawable.ic_bitcoin_default),
-            contentDescription = null,
-            alpha = 0f,
-            modifier = Modifier.size(size = 32.dp).background(brush = shimmerBrush)
+        LeadingCandleChartShimmer(
+            candleWidth = 7,
+            candleHeight = 30,
+            shimmerBrush = shimmerBrush
         )
         12.WidthSpacer()
         Text(

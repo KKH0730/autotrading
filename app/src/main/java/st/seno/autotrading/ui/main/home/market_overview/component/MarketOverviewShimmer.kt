@@ -49,6 +49,7 @@ import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.theme.FFFFFFFF
 import st.seno.autotrading.theme.SHIMMER
 import st.seno.autotrading.ui.common.CommonToolbar
+import st.seno.autotrading.ui.common.LeadingCandleChartShimmer
 import st.seno.autotrading.ui.main.home.market_overview.marketOverviewTabs
 
 @Composable
@@ -175,13 +176,10 @@ fun CryptoOverviewChangeRateShimmer(shimmerBrush: Brush) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(vertical = 22.dp, horizontal = 16.dp)
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_bitcoin_default),
-                contentDescription = null,
-                alpha = 0f,
-                modifier = Modifier
-                    .size(size = 32.dp)
-                    .background(brush = shimmerBrush)
+            LeadingCandleChartShimmer(
+                candleWidth = 7,
+                candleHeight = 30,
+                shimmerBrush = shimmerBrush
             )
             12.WidthSpacer()
             Text(

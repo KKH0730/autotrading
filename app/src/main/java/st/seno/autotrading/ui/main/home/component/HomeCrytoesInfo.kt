@@ -1,6 +1,5 @@
 package st.seno.autotrading.ui.main.home.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,8 +48,8 @@ import st.seno.autotrading.theme.FF6B7280
 import st.seno.autotrading.theme.FFDC2626
 import st.seno.autotrading.theme.FFFACC15
 import st.seno.autotrading.theme.FFFFFFFF
+import st.seno.autotrading.ui.common.LeadingCandleChart
 import st.seno.autotrading.ui.main.home.market_overview.MarketOverviewActivity
-import timber.log.Timber
 
 @Composable
 fun HomeCrytoesInfo(data: HomeContentsType) {
@@ -181,10 +180,13 @@ fun CryptoChangeRate(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.height(height = 56.dp)
     ) {
-        Image(
-            painter = painterResource(R.drawable.ic_bitcoin_default),
-            contentDescription = null,
-            modifier = Modifier.size(size = 32.dp)
+        LeadingCandleChart(
+            openingPrice = ticker.openingPrice,
+            highPrice = ticker.highPrice,
+            lowPrice = ticker.lowPrice,
+            tradePrice = ticker.tradePrice,
+            candleWidth = 7,
+            candleHeight = 30
         )
         12.WidthSpacer()
         Column {

@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,8 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +42,7 @@ import st.seno.autotrading.theme.FF4B5563
 import st.seno.autotrading.theme.FFFFFFFF
 import st.seno.autotrading.theme.SHIMMER
 import st.seno.autotrading.ui.common.CommonToolbar
+import st.seno.autotrading.ui.common.LeadingCandleChartShimmer
 
 @Composable
 fun MyAssetOverviewShimmer(onClickBack: () -> Unit) {
@@ -246,15 +244,11 @@ fun CryptoShimmer(shimmerBrush: Brush) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp)
     ) {
-        Image(
-            painter = painterResource(R.drawable.ic_bitcoin_default),
-            contentDescription = null,
-            alpha = 0f,
-            modifier = Modifier
-                .size(size = 32.dp)
-                .background(brush = shimmerBrush)
+        LeadingCandleChartShimmer(
+            candleWidth = 7,
+            candleHeight = 30,
+            shimmerBrush = shimmerBrush
         )
-        12.WidthSpacer()
         Column {
             Text(
                 "",

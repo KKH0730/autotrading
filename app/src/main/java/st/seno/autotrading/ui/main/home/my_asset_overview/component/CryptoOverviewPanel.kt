@@ -1,6 +1,5 @@
 package st.seno.autotrading.ui.main.home.my_asset_overview.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -95,14 +93,7 @@ fun Crypto(asset: Asset) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp)
     ) {
-        Image(
-            painter = painterResource(R.drawable.ic_bitcoin_default),
-            contentDescription = null,
-            modifier = Modifier.size(size = 32.dp)
-        )
-        12.WidthSpacer()
-        val cryptoName =
-            gson.getCryptoEnName(key = "${stringResource(R.string.KRW)}-${asset.currency}")
+        val cryptoName = gson.getCryptoEnName(key = "${stringResource(R.string.KRW)}-${asset.currency}")
         Column {
             Text(
                 cryptoName.ifEmpty { asset.currency },

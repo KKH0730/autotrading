@@ -317,7 +317,7 @@ fun FilterApplyButton(
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(height = 50.dp)
+            .height(height = 40.dp)
             .padding(horizontal = 24.dp)
     ) {
         Text(

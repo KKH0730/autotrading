@@ -1,6 +1,5 @@
 package st.seno.autotrading.ui.main.market.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,7 +42,6 @@ import st.seno.autotrading.extensions.gson
 import st.seno.autotrading.extensions.noRippleClickable
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.extensions.truncateToXDecimalPlaces
-import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.theme.FF000000
 import st.seno.autotrading.theme.FF16A34A
 import st.seno.autotrading.theme.FF4B5563
@@ -53,7 +50,7 @@ import st.seno.autotrading.theme.FFDC2626
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.theme.FFFACC15
 import st.seno.autotrading.theme.FFFFFFFF
-import timber.log.Timber
+import st.seno.autotrading.ui.common.LeadingCandleChart
 
 @Composable
 fun MarketFavoritesView(
@@ -130,10 +127,13 @@ fun MarketCryptoView(
             modifier = Modifier.height(height = 76.dp)
         ) {
             16.WidthSpacer()
-            Image(
-                painter = painterResource(R.drawable.ic_bitcoin_default),
-                contentDescription = null,
-                modifier = Modifier.size(size = 32.dp)
+            LeadingCandleChart(
+                openingPrice = ticker.openingPrice,
+                highPrice = ticker.highPrice,
+                lowPrice = ticker.lowPrice,
+                tradePrice = ticker.tradePrice,
+                candleWidth = 7,
+                candleHeight = 30
             )
             12.WidthSpacer()
             Column {

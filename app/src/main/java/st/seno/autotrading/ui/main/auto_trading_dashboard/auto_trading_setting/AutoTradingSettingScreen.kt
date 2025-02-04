@@ -149,10 +149,10 @@ fun StartAutoTradingButton(
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(height = 50.dp)
+            .height(height = 40.dp)
             .padding(horizontal = 24.dp)
     ) {
-        androidx.compose.material.Text(
+        Text(
             stringResource(R.string.start),
             style = TextStyle(
                 fontSize = 14.textDp,

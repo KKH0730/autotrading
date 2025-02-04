@@ -59,9 +59,9 @@
     <!--auto trading-->
     <string name="auto_trading_dashboard_trade_status">Trade status</string>
     <string name="auto_trading_dashboard_trade_history">Trade history</string>
-    <string name="auto_trading_status_on">Active</string>
-    <string name="auto_trading_status_off">Inactive</string>
-    <string name="auto_trading_start_setting">Start auto trading</string>
+    <string name="auto_trading_status_on">Auto Trading in Progress…</string>
+    <string name="auto_trading_status_off">Auto Trading Stopped</string>
+    <string name="auto_trading_start_setting">Auto Trading Settings</string>
     <string name="auto_trading_stop">Stop</string>
     <string name="auto_trading_view">View trade</string>
     <string name="auto_trading_not_found_trade_history">No trade history found.\nPlease check the selected date range</string>

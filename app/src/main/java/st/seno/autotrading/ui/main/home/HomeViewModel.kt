@@ -64,10 +64,19 @@ class HomeViewModel @Inject constructor(
                                 else -> (asset.evaluatedPrice - avgEvaluatedPrice) / avgEvaluatedPrice
                             }
                         }
+
+                        if (asset.currency.lowercase() == getString(R.string.krw)) {
+                            asset.balance = asset.balance.toDouble().truncateToXDecimalPlaces(x = 2.0).toString()
+                        }
+
                         asset
                     }
                     val myTotalEvaluatedPrice = assets.fold(0.0) { total, asset ->
-                        total + asset.evaluatedPrice
+                        if (asset.currency.lowercase() == getString(R.string.krw)) {
+                            total + asset.balance.toDouble()
+                        } else {
+                            total + asset.evaluatedPrice
+                        }
                     }
 
                     _homeContents.value = listOf(

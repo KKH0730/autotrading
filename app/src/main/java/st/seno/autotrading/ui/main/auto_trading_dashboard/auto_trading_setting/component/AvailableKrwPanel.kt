@@ -22,7 +22,7 @@ import st.seno.autotrading.theme.FF4B5563
 import st.seno.autotrading.theme.FFFFFFFF
 
 @Composable
-fun AvailableKrwPanel() {
+fun AvailableKrwPanel(myKrw: Double) {
     Card(
         elevation = 2.dp,
         shape = RoundedCornerShape(size = 8.dp),
@@ -47,7 +47,7 @@ fun AvailableKrwPanel() {
                 )
                 4.HeightSpacer()
                 Text(
-                    "0 KRW",
+                    "$myKrw KRW",
                     style = TextStyle(
                         fontSize = 20.textDp,
                         fontWeight = FontWeight.Bold,

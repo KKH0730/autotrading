@@ -15,6 +15,8 @@
     <string name="BTC">BTC</string>
     <string name="USDT">USDT</string>
     <string name="quantity">Quantity</string>
+    <string name="start">Start</string>
+    <string name="krw">krw</string>
 
     <!--dialog-->
     <string name="network_error_title">네트워크 오류</string>
@@ -78,4 +80,13 @@
     <string name="auto_trading_available_krw">Current available KRW</string>
     <string name="auto_trading_crypto_drop_down_menu_title">Select cryptocurrency</string>
     <string name="auto_trading_crypto_drop_down_menu_title_additonal">(only tradable with KRW)</string>
+    <string name="auto_trading_quantity_balance_s">%s of total balance</string>
+    <string name="auto_trading_trading_mode_title">Trading mode</string>
+    <string name="auto_trading_trading_mode_manual">Manual</string>
+    <string name="auto_trading_trading_mode_ai">Ai trading</string>
+    <string name="auto_trading_strategy_title">Trading strategy</string>
+    <string name="auto_trading_strategy_menu_1">변동성 돌파 전략</string>
+    <string name="auto_trading_stop_loss_title">Stop loss(%)</string>
+    <string name="auto_trading_take_profit_title">Take Profit(%)</string>
+    <string name="auto_trading_date_alert">The end date must be set after the start date.</string>
 </resources>

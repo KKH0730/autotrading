@@ -4,15 +4,31 @@ import com.keytalkai.lewis.di.Qualifiers
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import st.seno.autotrading.data.network.model.ClosedOrder
+import st.seno.autotrading.data.network.model.Order
 import st.seno.autotrading.data.network.model.Result
 import st.seno.autotrading.data.network.repository.OrderRepository
+import st.seno.autotrading.data.network.response_model.IndividualOrder
 import st.seno.autotrading.extensions.catchError
 import javax.inject.Inject
 
 class OrderUseCase @Inject constructor(
     private val orderRepository: OrderRepository,
-    @Qualifiers.IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @Qualifiers.IoDispatcher val ioDispatcher: CoroutineDispatcher
 ) {
+    suspend fun reqOrder(
+        marketId: String,
+        side: String,
+        volume: String?,
+        price: String?,
+        ordType: String,
+    ): Flow<Result<Order>> = orderRepository.reqOrder(
+        marketId = marketId,
+        side = side,
+        volume = volume,
+        price = price,
+        ordType = ordType
+    ).catchError(dispatcher = ioDispatcher)
+
     suspend fun reqClosedOrders(
         marketId: String,
         states: Array<String>,
@@ -26,4 +42,8 @@ class OrderUseCase @Inject constructor(
         endTime = endTime,
         limit = limit
     ).catchError(dispatcher = ioDispatcher)
+
+    suspend fun reqIndividualOrders(
+        uuid: String,
+    ): Flow<Result<List<IndividualOrder>>> = orderRepository.reqIndividualOrder(uuid = uuid).catchError(dispatcher = ioDispatcher)
 }

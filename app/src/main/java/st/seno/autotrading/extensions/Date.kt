@@ -2,6 +2,9 @@ package st.seno.autotrading.extensions
 
 import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -27,4 +30,16 @@ fun String.parseDateFormat(
         e.printStackTrace()
         ""
     }
+}
+
+fun Calendar.calendarToLocalDateTime(zoneId: ZoneId): LocalDateTime {
+    val instant = this.toInstant()
+    return LocalDateTime.ofInstant(instant, zoneId)
+}
+
+
+fun String.formatedDate(): String {
+    val localNow = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
+    val formatter = DateTimeFormatter.ofPattern(this)
+    return localNow.format(formatter)
 }

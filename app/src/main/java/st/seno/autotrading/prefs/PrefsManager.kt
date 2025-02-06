@@ -1,9 +1,14 @@
 package st.seno.autotrading.prefs
 
 import com.pixplicity.easyprefs.library.Prefs
-import timber.log.Timber
 
 object PrefsManager {
+    var isCompleteRequestNotification: Boolean
+        get() = Prefs.getBoolean("notification", false)
+        set(isComplete) {
+            Prefs.putBoolean("notification", isComplete)
+        }
+
     var marketAll: String
         get() = Prefs.getString("marketAll", "")
         set(value) {

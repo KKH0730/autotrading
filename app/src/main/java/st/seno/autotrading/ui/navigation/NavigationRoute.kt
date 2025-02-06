@@ -1,19 +1,16 @@
 package st.seno.autotrading.ui.navigation
 
 import android.annotation.SuppressLint
-import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import st.seno.autotrading.ui.main.home.HomeScreen
-import st.seno.autotrading.ui.main.MainScreen
 import st.seno.autotrading.ui.main.auto_trading_dashboard.AutoTradingDashboardScreen
+import st.seno.autotrading.ui.main.home.HomeScreen
 import st.seno.autotrading.ui.main.market.MarketScreen
 
 enum class NavigationRoute(val routeName: String) {
-    MAIN("MAIN"),
     DASHBOARD("Dashboard"),
     MARKET("MARKET"),
     AUTO_TRADING("Auto Trading"),
@@ -26,9 +23,6 @@ fun NavigationGraph(startRoute: NavigationRoute = NavigationRoute.DASHBOARD, nav
     val routeAction = remember(navController) { RouteAction(navController) }
 
     NavHost(navController = navController, startDestination = startRoute.routeName) {
-        composable(NavigationRoute.MAIN.routeName) {
-            MainScreen()
-        }
         composable(NavigationRoute.DASHBOARD.routeName) {
             HomeScreen()
         }

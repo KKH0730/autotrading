@@ -4,6 +4,9 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.components.SingletonComponent
+import st.seno.autotrading.data.network.repository.CandleImpl
+import st.seno.autotrading.data.network.repository.CandleRepository
 import st.seno.autotrading.data.network.repository.MarketImpl
 import st.seno.autotrading.data.network.repository.MarketRepository
 import st.seno.autotrading.data.network.repository.MyAssetsImpl
@@ -17,12 +20,21 @@ import st.seno.autotrading.data.network.repository.OrderRepository
 @Module
 @InstallIn(ViewModelComponent::class)
 abstract class RepositoryModule {
+
+    @Binds
+    abstract fun bindMarketRepository(marketImpl: MarketImpl): MarketRepository
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class SingletonRepositoryModule {
+
     @Binds
     abstract fun bindMyAssetsRepository(myAssetsImpl: MyAssetsImpl): MyAssetsRepository
 
     @Binds
-    abstract fun bindMarketRepository(marketImpl: MarketImpl): MarketRepository
+    abstract fun bindOrderRepository(orderImpl: OrderImpl): OrderRepository
 
     @Binds
-    abstract fun bindOrderRepository(orderImpl: OrderImpl): OrderRepository
+    abstract fun bindCandleRepository(candleImpl: CandleImpl) : CandleRepository
 }

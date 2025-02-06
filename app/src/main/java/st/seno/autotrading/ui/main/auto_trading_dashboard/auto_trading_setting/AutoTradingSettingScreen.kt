@@ -48,7 +48,8 @@ import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.c
 fun AutoTradingSettingScreen(
     autoTradingSettingViewModel: AutoTradingSettingViewModel,
     myKrw: Double,
-    onClickBack: () -> Unit
+    onClickBack: () -> Unit,
+    onClickStartAutoTrading: (AutoTradingSettingState) -> Unit
 ) {
     val todayCal = Calendar.getInstance()
     val endCal = Calendar.getInstance().apply {
@@ -130,7 +131,13 @@ fun AutoTradingSettingScreen(
                         }
                     )
                     30.HeightSpacer()
-                    StartAutoTradingButton(onClick = {})
+                    StartAutoTradingButton(onClickStartAutoTrading = {
+                        if (myKrw < 5000.0) {
+                            autoTradingSettingState.showSnackBar(text = getString(R.string.auto_trading_not_enough))
+                        } else {
+                            onClickStartAutoTrading.invoke(autoTradingSettingState)
+                        }
+                    })
                     30.HeightSpacer()
                 }
             }
@@ -140,10 +147,10 @@ fun AutoTradingSettingScreen(
 
 @Composable
 fun StartAutoTradingButton(
-    onClick: () -> Unit
+    onClickStartAutoTrading: () -> Unit
 ) {
     Button(
-        onClick = onClick,
+        onClick = onClickStartAutoTrading,
         colors = ButtonDefaults.buttonColors(
             backgroundColor = FF2563EB,
         ),

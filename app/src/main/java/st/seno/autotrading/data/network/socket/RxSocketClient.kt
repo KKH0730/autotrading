@@ -112,7 +112,7 @@ class RxSocketClient {
         }
     }
 
-    fun send(
+    fun sendMessageAboutTotalCrypto(
         cryptos: List<String> // ex, KRW-BTC, KRW-ETH, KRW-XRP
     ) {
         val cryptoCodes = cryptos.joinToString(separator = ",", prefix = "[", postfix = "]") { "\"$it\"" }

@@ -1,5 +1,7 @@
 package st.seno.autotrading.ui.main.auto_trading_dashboard
 
+import android.content.Context
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import st.seno.autotrading.AutoTradingService
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.ui.main.MainActivity
@@ -24,11 +27,17 @@ import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.A
 import st.seno.autotrading.ui.main.auto_trading_dashboard.component.AutoTradingStatusPanel
 import st.seno.autotrading.ui.main.auto_trading_dashboard.component.TradingHistoryPanel
 import java.util.Calendar
+import kotlin.math.min
 
 @Composable
 fun AutoTradingDashboardScreen() {
     val context = LocalContext.current
     val autoTradingDashboardViewModel = hiltViewModel<AutoTradingDashboardViewModel>()
+    val isRunningAutoTradingService = AutoTradingService.isRunningAutoTradingService.collectAsStateWithLifecycle(
+        initialValue = false,
+        lifecycleOwner = LocalContext.current as MainActivity,
+        minActiveState = Lifecycle.State.STARTED
+    ).value
     val selectedCrypto = autoTradingDashboardViewModel.selectedCryptoToTradingHistory.collectAsStateWithLifecycle(
         initialValue = "KRW-BTC",
         lifecycleOwner = LocalContext.current as MainActivity,
@@ -68,7 +77,8 @@ fun AutoTradingDashboardScreen() {
     ) {
         35.HeightSpacer()
         AutoTradingStatusPanel(
-            onClickStopTrading = {},
+            isRunningAutoTradingService = isRunningAutoTradingService,
+            onClickStopTrading = { stopService(context = context as MainActivity) },
             onClickViewTrading = {},
             onClickStartAutoTrading = { AutoTradingSettingActivity.start(context = context) }
         )
@@ -83,4 +93,9 @@ fun AutoTradingDashboardScreen() {
         )
         24.HeightSpacer()
     }
+}
+
+private fun stopService(context: Context) {
+    val serviceIntent = Intent(context, AutoTradingService::class.java)
+    context.stopService(serviceIntent)
 }

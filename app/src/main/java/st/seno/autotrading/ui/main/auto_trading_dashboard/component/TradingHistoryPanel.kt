@@ -366,7 +366,7 @@ fun TradeHistoryList(tradingHistories: List<ClosedOrder>) {
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             contentPadding = PaddingValues(vertical = 24.dp),
             userScrollEnabled = false,
-            modifier = Modifier.height(height = height).background(Color.Blue)
+            modifier = Modifier.height(height = height)
         ) {
             items(
                 count = tradingHistories.size,

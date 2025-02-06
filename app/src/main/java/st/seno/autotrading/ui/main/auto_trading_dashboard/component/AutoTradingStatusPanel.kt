@@ -2,14 +2,12 @@ package st.seno.autotrading.ui.main.auto_trading_dashboard.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -20,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -49,6 +46,7 @@ import st.seno.autotrading.theme.FFFFFFFF
 
 @Composable
 fun AutoTradingStatusPanel(
+    isRunningAutoTradingService: Boolean,
     onClickStopTrading: () -> Unit,
     onClickViewTrading: () -> Unit,
     onClickStartAutoTrading: () -> Unit
@@ -67,9 +65,9 @@ fun AutoTradingStatusPanel(
         ) {
             16.HeightSpacer()
             AutoTradingStatusTitle()
-            AutoTradingStatus(isActivated = false)
+            AutoTradingStatus(isActivated = isRunningAutoTradingService)
             AutoTradingControlPanel(
-                isActivated = false,
+                isRunningAutoTradingService = isRunningAutoTradingService,
                 onClickStopTrading = onClickStopTrading,
                 onClickViewTrading = onClickViewTrading,
                 onClickStartAutoTrading = onClickStartAutoTrading
@@ -130,14 +128,15 @@ fun AutoTradingStatus(isActivated: Boolean) {
 
 @Composable
 fun AutoTradingControlPanel(
-    isActivated: Boolean,
+    isRunningAutoTradingService: Boolean,
     onClickStopTrading: () -> Unit,
     onClickViewTrading: () -> Unit,
     onClickStartAutoTrading: () -> Unit
 ) {
-    if (isActivated) {
+    if (isRunningAutoTradingService) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
             modifier = Modifier.height(height = 50.dp)
         ) {
             AutoTradingControlButton(
@@ -165,7 +164,7 @@ fun AutoTradingControlPanel(
             name = stringResource(R.string.auto_trading_start_setting),
             backgroundColor = FFCCF5DA,
             textColor = FF16A34A,
-            image = painterResource(R.drawable.ic_play),
+            image = painterResource(R.drawable.ic_setting_lines),
             iconTint = FF16A34A,
             modifier = Modifier.fillMaxWidth(),
             onClick = onClickStartAutoTrading
@@ -198,7 +197,7 @@ fun AutoTradingControlButton(
                 painter = image,
                 contentDescription = null,
                 tint = iconTint,
-                modifier = Modifier.size(size = 20.dp)
+                modifier = Modifier.size(size = 14.dp)
             )
             12.WidthSpacer()
             Text(

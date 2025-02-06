@@ -4,7 +4,9 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import okhttp3.Interceptor
 import okhttp3.Response
+import org.json.JSONObject
 import st.seno.autotrading.data.network.model.Asset
+import timber.log.Timber
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.Base64
@@ -29,11 +31,23 @@ class DefaultParamsInterceptor @Inject constructor() : Interceptor {
         val url = originalRequest.url
         val queryElements = ArrayList<String>()
 
-        url.queryParameterNames.forEach { key ->
-            queryElements.add((key + "=" + url.queryParameter(key)))
-        }
         // 정렬된 쿼리 문자열 생성
-        val queryString = java.lang.String.join("&", *queryElements.toTypedArray<String>())
+        val queryString = if (originalRequest.method.lowercase() == "get") {
+            url.queryParameterNames.forEach { key ->
+                Timber.e("key - >$key, value : ${url.queryParameter(key)}")
+                queryElements.add((key + "=" + url.queryParameter(key)))
+            }
+            java.lang.String.join("&", *queryElements.toTypedArray<String>())
+        } else {
+            originalRequest.body?.let { body ->
+                val buffer = okio.Buffer()
+                body.writeTo(buffer)
+                val requestBodyString = buffer.readUtf8()
+                jsonToQueryString(jsonString = requestBodyString)
+            } ?: ""
+        }
+
+        Timber.e("queryString : $queryString")
 
         val md = MessageDigest.getInstance("SHA-512")
         md.update(queryString.toByteArray(charset("UTF-8")))
@@ -74,5 +88,14 @@ class DefaultParamsInterceptor @Inject constructor() : Interceptor {
         ).apply {
 
         }
+    }
+
+    private fun jsonToQueryString(jsonString: String): String {
+        val jsonObject = JSONObject(jsonString)
+        val keys = jsonObject.keys()
+
+        return keys.asSequence()
+            .map { key -> "${key}=${jsonObject.getString(key)}" }
+            .joinToString("&")
     }
 }

@@ -11,9 +11,14 @@ import st.seno.autotrading.BuildConfig
 import st.seno.autotrading.data.network.model.Crypto
 import st.seno.autotrading.data.network.model.isSuccess
 import st.seno.autotrading.data.network.model.successData
+import st.seno.autotrading.domain.CandleUseCase
 import st.seno.autotrading.domain.MarketUseCase
 import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.ui.base.BaseViewModel
+import timber.log.Timber
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel

@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import st.seno.autotrading.extensions.truncateToXDecimalPlaces
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.component.tradeModes
 import timber.log.Timber
 
@@ -43,7 +44,7 @@ class AutoTradingSettingState(
 ) {
     fun showSnackBar(text: String) {
         coroutineScope.launch {
-            val result = snackbarHostState.showSnackbar(
+            snackbarHostState.showSnackbar(
                 message = text,
                 duration = SnackbarDuration.Short
             )

@@ -23,14 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import st.seno.autotrading.R
 import st.seno.autotrading.extensions.FullWidthSpacer
@@ -46,8 +44,6 @@ import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.ui.common.CircleRippleButton
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.TradeDate
 import st.seno.autotrading.ui.main.auto_trading_dashboard.component.CalendarPicker
-import st.seno.autotrading.ui.main.auto_trading_dashboard.component.SelectDateTextPanel
-import timber.log.Timber
 
 @Composable
 fun ManualModePanel(
@@ -76,13 +72,8 @@ fun ManualModePanel(
                 onTakeProfitChanged = onTakeProfitChanged
             )
             TradingDate(
-                date = startDateValue,
-                title = "Start date",
-                onClickDatePicker = onClickStartDatePicker
-            )
-            TradingDate(
                 date = endDateValue,
-                title = "End date",
+                title = stringResource(R.string.auto_trading_end_date),
                 onClickDatePicker = onClickEndDatePicker
             )
             24.HeightSpacer()

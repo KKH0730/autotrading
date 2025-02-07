@@ -63,6 +63,7 @@
 
     <!--auto trading-->
     <string name="auto_trading_dashboard_trade_status">Trade status</string>
+    <string name="auto_trading_dashboard_back_test">"Trading Backtest Button</string>
     <string name="auto_trading_dashboard_trade_history">Trade history</string>
     <string name="auto_trading_status_on">Auto Trading in Progress…</string>
     <string name="auto_trading_status_off">Auto Trading Stopped</string>
@@ -95,4 +96,24 @@
     <string name="auto_trading_end_date">End date</string>
     <string name="auto_trading_date_alert">The end date must be set after the start date.</string>
     <string name="auto_trading_not_enough">A minimum amount of 5,000 KRW is required</string>
+    <string name="auto_trading_back_test_setting">Backtest settings</string>
+    <string name="auto_trading_back_test_price">Initial investment</string>
+    <string name="auto_trading_back_test_sample_count">Sample count(3 ~ 200)</string>
+    <string name="auto_trading_back_test_block_stop_loss">If you set a take profit, you cannot set a stop loss.</string>
+    <string name="auto_trading_back_test_block_take_profit">If you set a stop loss, you cannot set a take profit.</string>
+    <string name="auto_trading_back_test_sample_count_helper_text">Using the data for the entered days from today</string>
+    <string name="auto_trading_back_test_correction_value">Correction value(0.0 ~ 0.9)</string>
+    <string name="auto_trading_back_test_result_total_profit">Total profit</string>
+    <string name="auto_trading_back_test_result_total_fee">Total fee</string>
+    <string name="auto_trading_back_test_result_trade_count">Trade count</string>
+    <string name="auto_trading_back_test_result_total_return_rate">Total return rate</string>
+    <string name="auto_trading_back_test_result_win_rate">Win rate</string>
+    <string name="auto_trading_back_test_result_max_profit">Maximum profit rate</string>
+    <string name="auto_trading_back_test_result_max_loss">Maximum loss rate</string>
+    <string name="auto_trading_back_test_check_initial_investment">Please check the \'Initial Investment\' input field</string>
+    <string name="auto_trading_back_test_check_sample_count">Please check the \'Sample count\' input field</string>
+    <string name="auto_trading_back_test_check_stop_loss">Please check the \'Stop loss\' input field</string>
+    <string name="auto_trading_back_test_check_take_profit">Please check the \'Take profit\' input field</string>
+    <string name="auto_trading_back_test_check_correction_value">Please check the \'Correction value\' input field</string>
+    <string name="auto_trading_back_test_progress">Backtesting in progress…</string>
 </resources>

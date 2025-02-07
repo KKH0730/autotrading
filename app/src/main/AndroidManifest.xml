@@ -22,6 +22,11 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <activity android:name=".ui.main.auto_trading_dashboard.auto_trading_backtest.BackTestActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="fullSensor" />
+
         <activity android:name=".ui.main.auto_trading_dashboard.auto_trading_setting.AutoTradingSettingActivity"
             android:exported="false"
             android:screenOrientation="fullSensor" />

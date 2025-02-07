@@ -20,7 +20,6 @@ val FF2563EB = Color(0xFF2563EB)
 val FF6B7280 = Color(0xFF6B7280)
 val FF626975 = Color(0xFF626975)
 val FF16A34A = Color(0xFF16A34A)
-val FFCCF5DA = Color(0xFFCCF5DA)
 val FFDC2626 = Color(0xFFDC2626)
 val FFF8F8F8 = Color(0xFFF8F8F8) // divider
 val FFE5E7EB = Color(0xFFE5E7EB)
@@ -32,5 +31,3 @@ val FFF3F4F6 = Color(0xFFF3F4F6)
 val FFE7E9EA = Color(0xFFE7E9EA)
 val FF9CA3AF = Color(0xFF9CA3AF)
 val FF3B82F6 = Color(0xFF3B82F6)
-
-

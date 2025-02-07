@@ -34,7 +34,6 @@ class DefaultParamsInterceptor @Inject constructor() : Interceptor {
         // 정렬된 쿼리 문자열 생성
         val queryString = if (originalRequest.method.lowercase() == "get") {
             url.queryParameterNames.forEach { key ->
-                Timber.e("key - >$key, value : ${url.queryParameter(key)}")
                 queryElements.add((key + "=" + url.queryParameter(key)))
             }
             java.lang.String.join("&", *queryElements.toTypedArray<String>())

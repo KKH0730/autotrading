@@ -23,11 +23,12 @@ import st.seno.autotrading.AutoTradingService
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.ui.main.MainActivity
+import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest.BackTestActivity
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.AutoTradingSettingActivity
 import st.seno.autotrading.ui.main.auto_trading_dashboard.component.AutoTradingStatusPanel
+import st.seno.autotrading.ui.main.auto_trading_dashboard.component.BackTestPanel
 import st.seno.autotrading.ui.main.auto_trading_dashboard.component.TradingHistoryPanel
 import java.util.Calendar
-import kotlin.math.min
 
 @Composable
 fun AutoTradingDashboardScreen() {
@@ -76,13 +77,15 @@ fun AutoTradingDashboardScreen() {
             .nestedScroll(connection = nestedScrollConnection)
     ) {
         35.HeightSpacer()
+        BackTestPanel(onClickBackTestSetting = { BackTestActivity.start(context = context) })
+        16.HeightSpacer()
         AutoTradingStatusPanel(
             isRunningAutoTradingService = isRunningAutoTradingService,
             onClickStopTrading = { stopService(context = context as MainActivity) },
-            onClickViewTrading = {},
+            onClickViewTrading = {  }  ,
             onClickStartAutoTrading = { AutoTradingSettingActivity.start(context = context) }
         )
-        24.HeightSpacer()
+        16.HeightSpacer()
         TradingHistoryPanel(
             selectedCrypto = selectedCrypto,
             selectedDate = selectedDate,

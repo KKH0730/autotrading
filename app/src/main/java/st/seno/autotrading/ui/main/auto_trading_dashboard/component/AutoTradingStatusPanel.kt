@@ -35,9 +35,7 @@ import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.WidthSpacer
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.theme.FF000000
-import st.seno.autotrading.theme.FF16A34A
 import st.seno.autotrading.theme.FF2563EB
-import st.seno.autotrading.theme.FFCCF5DA
 import st.seno.autotrading.theme.FFDC2626
 import st.seno.autotrading.theme.FFEFF6FF
 import st.seno.autotrading.theme.FFF9FAFB
@@ -162,10 +160,10 @@ fun AutoTradingControlPanel(
     } else {
         AutoTradingControlButton(
             name = stringResource(R.string.auto_trading_start_setting),
-            backgroundColor = FFCCF5DA,
-            textColor = FF16A34A,
+            backgroundColor = FF2563EB,
+            textColor = FFFFFFFF,
             image = painterResource(R.drawable.ic_setting_lines),
-            iconTint = FF16A34A,
+            iconTint = FFFFFFFF,
             modifier = Modifier.fillMaxWidth(),
             onClick = onClickStartAutoTrading
         )

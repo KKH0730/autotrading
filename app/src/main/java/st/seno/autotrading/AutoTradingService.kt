@@ -183,20 +183,22 @@ class AutoTradingService : Service() {
 
                 if (isBidTime(now = now) && bidOrder == null && !isAlreadyExecuteStopLoss && !isAlreadyExecuteTakeProfit) {
                     Timber.e("bid")
-                    bidOrder = buyCrypto(marketId = marketId, quantityRatio = quantityRatio)
+                    bidOrder = buyCrypto(marketId = marketId, quantityRatio = quantityRatio, coroutineScope = this)
                     bidPrice = MainViewModel.tickersMap.value[marketId]?.tradePrice
                     Timber.e("bid : $bidOrder")
                 }
 
                 if (bidOrder != null && bidPrice != null && stopLoss != 0 && takeProfit != 0) {
-                    if (isStopLossOrTakeProfitTime(now = now) && isExecuteStopLoss(marketId = marketId, bidPrice = bidPrice, stopLoss = stopLoss)) {
+                    if (isStopLossOrTakeProfitTime(now = now)
+                        && isExecuteStopLoss(marketId = marketId, bidPrice = bidPrice, stopLoss = stopLoss, coroutineScope = this)) {
                         Timber.e("stopLoss")
                         bidOrder = null
                         bidPrice = null
                         isAlreadyExecuteStopLoss = true
                     }
 
-                    if (isStopLossOrTakeProfitTime(now = now) && isExecuteTakeProfit(marketId = marketId, bidPrice = bidPrice, takeProfit = takeProfit)) {
+                    if (isStopLossOrTakeProfitTime(now = now)
+                        && isExecuteTakeProfit(marketId = marketId, bidPrice = bidPrice, takeProfit = takeProfit, coroutineScope = this)) {
                         Timber.e("takeProfit")
                         bidOrder = null
                         bidPrice = null
@@ -207,7 +209,7 @@ class AutoTradingService : Service() {
                 if (isAskTime(now = now)) {
                     if (bidOrder != null && !isAlreadyExecuteStopLoss && !isAlreadyExecuteTakeProfit) {
                         Timber.e("ask")
-                        val askOrder = sellCrypto(marketId = marketId)
+                        val askOrder = sellCrypto(marketId = marketId, coroutineScope = this)
                         Timber.e("ask : $askOrder")
                         if (askOrder != null) {
                             bidOrder = null
@@ -244,11 +246,12 @@ class AutoTradingService : Service() {
 
     private suspend fun buyCrypto(
         marketId: String,
-        quantityRatio: Int
+        quantityRatio: Int,
+        coroutineScope: CoroutineScope
     ): Order? {
-        val myAssets = getMyAssets()
+        val myAssets = getMyAssets(coroutineScope = coroutineScope)
         val krwAsset = myAssets?.firstOrNull { asset -> asset.currency.lowercase() == getString(R.string.krw) }
-        val dayCandles = getDayCandles(marketId = marketId)
+        val dayCandles = getDayCandles(marketId = marketId, coroutineScope = coroutineScope)
 
         return if (krwAsset == null || dayCandles == null || dayCandles.size < 2) {
             null
@@ -257,14 +260,15 @@ class AutoTradingService : Service() {
 
             // 변동성 돌파 전략 -> 오늘 시가 + (전일 고가와 저가 변동폭 * 보정계수) 도달 시 상승 신호로 판단하여 매수 진행
             val breakoutPrice = dayCandles[0].openingPrice + ((dayCandles[1].highPrice - dayCandles[1].lowPrice) * k)
-            if (breakoutPrice >= dayCandles[0].tradePrice) {
+            if (breakoutPrice <= dayCandles[0].tradePrice) {
                 Timber.e("breakoutPrice : $breakoutPrice")
                 reqOrder(
                     marketId = marketId,
                     side = Side.BID.value,
                     volume = null,
                     price = (krwAsset.balance.toDouble() * ((quantityRatio - fee ) / 100)).truncateToXDecimalPlaces(x = 2.0).toString(),
-                    ordType = OrderType.PRICE.value
+                    ordType = OrderType.PRICE.value,
+                    coroutineScope = coroutineScope
                 )
             } else {
                 null
@@ -272,12 +276,15 @@ class AutoTradingService : Service() {
         }
     }
 
-    private suspend fun sellCrypto(marketId: String): Order? {
+    private suspend fun sellCrypto(
+        marketId: String,
+        coroutineScope: CoroutineScope
+    ): Order? {
         if (marketId.split("-").size != 2) {
             return null
         }
 
-        val myAssets = getMyAssets()
+        val myAssets = getMyAssets(coroutineScope = coroutineScope)
         val cryptoAsset = myAssets?.firstOrNull { asset -> asset.currency.lowercase() == marketId.split("-")[1].lowercase() }
         return if (cryptoAsset == null) {
             null
@@ -288,7 +295,8 @@ class AutoTradingService : Service() {
                 side = Side.ASK.value,
                 volume = cryptoAsset.balance,
                 price = null,
-                ordType = OrderType.MARKET.value
+                ordType = OrderType.MARKET.value,
+                coroutineScope = coroutineScope
             )
         }
     }
@@ -296,12 +304,13 @@ class AutoTradingService : Service() {
     private suspend fun isExecuteStopLoss(
         marketId: String,
         bidPrice: Double?,
-        stopLoss: Int
+        stopLoss: Int,
+        coroutineScope: CoroutineScope
     ): Boolean {
         Timber.e("isExecuteStopLoss stopLoss : $stopLoss")
         val currentTradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice
         if (currentTradePrice != null && bidPrice != null && currentTradePrice <= (bidPrice * ((100 - stopLoss) / 100.0))) {
-            val askOrder = sellCrypto(marketId = marketId)
+            val askOrder = sellCrypto(marketId = marketId, coroutineScope = coroutineScope)
             return askOrder != null
         }
         return false
@@ -310,35 +319,37 @@ class AutoTradingService : Service() {
     private suspend fun isExecuteTakeProfit(
         marketId: String,
         bidPrice: Double?,
-        takeProfit: Int
+        takeProfit: Int,
+        coroutineScope: CoroutineScope
     ): Boolean {
         Timber.e("isExecuteTakeProfit")
         val currentTradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice
         if (currentTradePrice != null && bidPrice != null && currentTradePrice >= (bidPrice * (1 + (takeProfit / 100.0)))) {
-            val askOrder = sellCrypto(marketId = marketId)
+            val askOrder = sellCrypto(marketId = marketId, coroutineScope = coroutineScope)
             return askOrder != null
         }
         return false
     }
 
-    private suspend fun getDayCandles(marketId: String): List<Candle>? {
+    private suspend fun getDayCandles(
+        marketId: String,
+        coroutineScope: CoroutineScope
+    ): List<Candle>? {
         return candleUseCase.reqDayCandle(
             market = marketId,
             to = "yyyy-MM-dd HH:mm:ss".formatedDate(),
             count = 2,
             convertingPriceUnit = "KRW"
         )
-            .flowOn(ioDispatcher)
-            .stateIn(CoroutineScope(ioDispatcher))
+            .stateIn(coroutineScope)
             .value
             .takeIf { it.isSuccess() }
             ?.successData()
     }
 
-    private suspend fun getMyAssets(): List<Asset>? {
+    private suspend fun getMyAssets(coroutineScope: CoroutineScope): List<Asset>? {
         return myAssetUseCase.reqMyAssets()
-            .flowOn(ioDispatcher)
-            .stateIn(CoroutineScope(ioDispatcher))
+            .stateIn(coroutineScope)
             .value
             .takeIf { it.isSuccess() }
             ?.successData()
@@ -349,7 +360,8 @@ class AutoTradingService : Service() {
         side: String,
         volume: String?,
         price: String?,
-        ordType: String
+        ordType: String,
+        coroutineScope: CoroutineScope
     ): Order? {
         return orderUseCase.reqOrder(
             marketId = marketId,
@@ -358,8 +370,7 @@ class AutoTradingService : Service() {
             price = price,
             ordType = ordType
         )
-            .flowOn(ioDispatcher)
-            .stateIn(CoroutineScope(ioDispatcher))
+            .stateIn(coroutineScope)
             .value
             .takeIf { it.isSuccess() }
             ?.successData()

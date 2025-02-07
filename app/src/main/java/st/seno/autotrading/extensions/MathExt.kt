@@ -7,3 +7,8 @@ fun Double.truncateToXDecimalPlaces(x: Double): Double {
     val factor = 10.0.pow(x) // 10^2 = 100
     return floor(this * factor) / factor
 }
+
+fun Float.truncateToXDecimalPlaces(x: Float): Float {
+    val factor = 10f.pow(x) // 10^2 = 100
+    return floor(this * factor) / factor
+}

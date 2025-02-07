@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.stringResource
 import st.seno.autotrading.App
 import java.math.BigDecimal
@@ -50,9 +51,23 @@ fun Double.formatPrice(): String {
 }
 
 fun String.numberWithCommas(): String {
-    val decimalFormat = DecimalFormat("#,###")
-    return decimalFormat.format(this.toInt())
+    return if (this.isEmpty()) {
+        this
+    } else {
+        val decimalFormat = DecimalFormat("#,###")
+        decimalFormat.format(this.toInt())
+    }
 }
+
+fun String.doubleWithCommas(): String {
+    return if (this.isEmpty()) {
+        this
+    } else {
+        val decimalFormat = DecimalFormat("#,###")
+        decimalFormat.format(this.toDouble())
+    }
+}
+
 
 fun Float.numberWithCommas(): String {
     val decimalFormat = DecimalFormat("#,###")

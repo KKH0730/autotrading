@@ -107,8 +107,8 @@ fun AutoTradingSettingScreen(
                         onClickCryptoDropdownMenuItem = { autoTradingSettingState.selectedAutoTradingCryptoState.update(value = it) },
                         onClickQuantityRatio = { autoTradingSettingState.quantityRatioIndexState.update(value = it) },
                         onClickTradingMode = { autoTradingSettingState.currentTradingModeState.update(value = it) },
-                        onStopLossChanged = { autoTradingSettingState.stopLossState.update(value = TextFieldValue(text = if (it.text.length > 2) it.text.substring(0, 2) else it.text, selection = TextRange(index = it.text.length))) },
-                        onTakeProfitChanged = { autoTradingSettingState.takeProfitState.update(value = TextFieldValue(text = if (it.text.length > 2) it.text.substring(0, 2) else it.text, selection = TextRange(index = it.text.length))) },
+                        onStopLossChanged = { autoTradingSettingState.stopLossState.update(value = it) },
+                        onTakeProfitChanged = { autoTradingSettingState.takeProfitState.update(value = it) },
                         onClickStartDatePicker = { autoTradingSettingState.tradeDateState.update(value = TradeDate(isShowDatePicker = true, tradeDateType = TradeDateType.START, selectedDate = it)) },
                         onClickEndDatePicker = { autoTradingSettingState.tradeDateState.update(value = TradeDate(isShowDatePicker = true, tradeDateType = TradeDateType.END, selectedDate = it)) },
                         onChangeDate = { tradeDate ->

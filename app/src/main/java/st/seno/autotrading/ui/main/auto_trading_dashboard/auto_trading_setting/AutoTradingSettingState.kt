@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -58,8 +59,8 @@ fun rememberAutoTradingSettingState(
     currentTradingModeState: MutableState<String> = mutableStateOf(tradeModes[0]),
     expandCryptoDropDownMenuState: MutableState<Boolean> = mutableStateOf(false),
     quantityRatioIndexState: MutableState<Int> = mutableIntStateOf(0),
-    stopLossState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue("0")),
-    takeProfitState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue("0")),
+    stopLossState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "0", selection = TextRange(index = "0".length))),
+    takeProfitState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "0", selection = TextRange(index = "0".length))),
     startDateState: MutableLongState,
     endDateState: MutableLongState,
     tradeDateState: MutableState<TradeDate>,

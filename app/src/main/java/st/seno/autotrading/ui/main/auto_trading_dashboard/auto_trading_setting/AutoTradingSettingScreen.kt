@@ -24,13 +24,12 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import st.seno.autotrading.R
+import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.getString
 import st.seno.autotrading.extensions.textDp
@@ -46,7 +45,7 @@ import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.c
 @SuppressLint("UnrememberedMutableState", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun AutoTradingSettingScreen(
-    autoTradingSettingViewModel: AutoTradingSettingViewModel,
+    bookmarkedTickers: List<String>,
     myKrw: Double,
     onClickBack: () -> Unit,
     onClickStartAutoTrading: (AutoTradingSettingState) -> Unit
@@ -95,6 +94,7 @@ fun AutoTradingSettingScreen(
                     AutoTradingSettingPanel(
                         selectedAutoTradingCrypto = autoTradingSettingState.selectedAutoTradingCryptoState.value,
                         isExpandCryptoDropDownMenu = autoTradingSettingState.expandCryptoDropDownMenuState.value,
+                        bookmarkedTickers = bookmarkedTickers,
                         quantityRatioIndex = autoTradingSettingState.quantityRatioIndexState.value,
                         currentTradingMode = autoTradingSettingState.currentTradingModeState.value,
                         stopLossValue = autoTradingSettingState.stopLossState.value,

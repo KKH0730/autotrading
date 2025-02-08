@@ -6,7 +6,6 @@ import com.google.gson.Gson
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -16,7 +15,6 @@ import okio.ByteString
 import st.seno.autotrading.data.network.ACCESS_KEY
 import st.seno.autotrading.data.network.SECRET_KEY
 import st.seno.autotrading.data.network.model.Ticker
-import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -113,7 +111,8 @@ class RxSocketClient {
     }
 
     fun sendMessageAboutTotalCrypto(
-        cryptos: List<String> // ex, KRW-BTC, KRW-ETH, KRW-XRP
+        cryptos: List<String>, // ex, KRW-BTC, KRW-ETH, KRW-XRP
+        isRealTime: Boolean
     ) {
         val cryptoCodes = cryptos.joinToString(separator = ",", prefix = "[", postfix = "]") { "\"$it\"" }
 
@@ -124,8 +123,8 @@ class RxSocketClient {
                 {
                     "type": "ticker",
                     "codes": $cryptoCodes,
-                    "is_only_snapshot": false,
-                    "is_only_realtime": true
+                    "is_only_snapshot": ${!isRealTime},
+                    "is_only_realtime": $isRealTime
                 },
                 { 
                     "format": "SIMPLE" 

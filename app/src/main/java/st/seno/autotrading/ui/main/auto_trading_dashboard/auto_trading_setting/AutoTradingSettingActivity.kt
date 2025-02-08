@@ -38,7 +38,7 @@ class AutoTradingSettingActivity : ComponentActivity() {
             AutotradingTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     AutoTradingSettingScreen(
-                        autoTradingSettingViewModel = autoTradingSettingViewModel,
+                        bookmarkedTickers = autoTradingSettingViewModel.bookmarkedTickers.collectAsStateWithLifecycle().value,
                         myKrw = autoTradingSettingViewModel.myKrw.collectAsStateWithLifecycle().value,
                         onClickBack = { finish() },
                         onClickStartAutoTrading = {

@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import st.seno.autotrading.R
+import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.getString
@@ -47,6 +48,7 @@ import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.T
 fun AutoTradingSettingPanel(
     selectedAutoTradingCrypto: String,
     isExpandCryptoDropDownMenu: Boolean,
+    bookmarkedTickers: List<String>,
     quantityRatioIndex: Int,
     currentTradingMode: String,
     stopLossValue: TextFieldValue,
@@ -80,6 +82,7 @@ fun AutoTradingSettingPanel(
             CryptoDropDown(
                 selectedCrypto = selectedAutoTradingCrypto,
                 isExpandCryptoDropDownMenu = isExpandCryptoDropDownMenu,
+                bookmarkedTickers = bookmarkedTickers,
                 onClickCryptoText = onClickCryptoText,
                 onClickCryptoDropdownMenu = onClickCryptoDropdownMenu,
                 onClickCryptoDropdownMenuItem = onClickCryptoDropdownMenuItem

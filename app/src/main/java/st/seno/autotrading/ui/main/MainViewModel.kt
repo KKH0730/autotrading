@@ -14,6 +14,7 @@ import st.seno.autotrading.data.network.socket.SockResponse
 import st.seno.autotrading.extensions.getString
 import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.ui.base.BaseViewModel
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,13 +30,22 @@ class MainViewModel @Inject constructor(
         _tabIndex.value = index
     }
 
-    fun connectSocket() {vmScopeJob {
+    fun connectSocket() {
+        var isFirstCall = true
+
+        vmScopeJob {
             rxSocketClient
                 .connect()
                 .collectLatest { socketResponse: SockResponse ->
                     when(socketResponse) {
-                        is SockResponse.Open -> { rxSocketClient.sendMessageAboutTotalCrypto(PrefsManager.marketIdList.split(",")) }
+                        is SockResponse.Open -> {
+                            rxSocketClient.sendMessageAboutTotalCrypto(
+                                cryptos = PrefsManager.marketIdList.split(","),
+                                isRealTime = !isFirstCall
+                            )
+                        }
                         is SockResponse.Message -> {
+                            Timber.e("data -> ${socketResponse.data}")
                             val ticker = Gson().fromJson(socketResponse.data, Ticker::class.java)
                             val mutableTickersMap = tickersMap.value.toMutableMap()
                             mutableTickersMap[ticker.code] = ticker
@@ -62,9 +72,13 @@ class MainViewModel @Inject constructor(
                             }
 
                             _tickersMap.value = mutableTickersMap.toMap()
+
+                            if (isFirstCall) {
+                                isFirstCall = false
+                                connectSocket()
+                            }
                         }
                         else -> { // Closing, Closed, Failure
-
                         }
                     }
                 }

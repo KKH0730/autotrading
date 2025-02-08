@@ -25,12 +25,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import st.seno.autotrading.R
+import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.WidthSpacer
 import st.seno.autotrading.extensions.textDp
@@ -41,12 +43,14 @@ import st.seno.autotrading.theme.FF626975
 import st.seno.autotrading.theme.FF9CA3AF
 import st.seno.autotrading.theme.FFE5E7EB
 import st.seno.autotrading.theme.FFF9FAFB
+import st.seno.autotrading.theme.FFFACC15
 
 //region(CryptoDropDown)
 @Composable
 fun CryptoDropDown(
     selectedCrypto: String,
     isExpandCryptoDropDownMenu: Boolean,
+    bookmarkedTickers: List<String>,
     onClickCryptoText: () -> Unit,
     onClickCryptoDropdownMenu: (Boolean) -> Unit,
     onClickCryptoDropdownMenuItem: (String) -> Unit
@@ -58,6 +62,7 @@ fun CryptoDropDown(
         )
         AutoTradingCryptoDropDownMenu(
             isExpandDropDownMenu = isExpandCryptoDropDownMenu,
+            bookmarkedTickers = bookmarkedTickers,
             onClickDropdownMenu = onClickCryptoDropdownMenu,
             onClickCryptoDropdownMenuItem = onClickCryptoDropdownMenuItem
         )
@@ -143,6 +148,7 @@ fun SelectedAutoTradingCryptoTextPanel(
 @Composable
 fun AutoTradingCryptoDropDownMenu(
     isExpandDropDownMenu: Boolean,
+    bookmarkedTickers: List<String>,
     onClickDropdownMenu: (Boolean) -> Unit,
     onClickCryptoDropdownMenuItem: (String) -> Unit
 ) {
@@ -159,17 +165,34 @@ fun AutoTradingCryptoDropDownMenu(
             .map { it.split("-")[0] to it.split("-")[1] }
             .filter { it.first.uppercase() == "KRW" }
             .sortedBy { it.second }
+            .sortedByDescending { it.second in bookmarkedTickers }
             .forEach { marketIdPair ->
                 DropdownMenuItem(
                     text = {
-                        Text(
-                            marketIdPair.second,
-                            style = TextStyle(
-                                fontSize = 14.textDp,
-                                fontWeight = FontWeight.Normal,
-                                color = FF000000
+                        val isBookmarked = bookmarkedTickers.find { it.lowercase() ==  "${marketIdPair.first}-${marketIdPair.second}".lowercase()} != null
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                marketIdPair.second,
+                                style = TextStyle(
+                                    fontSize = 14.textDp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = FF000000
+                                )
                             )
-                        )
+                            FullWidthSpacer()
+                            if (isBookmarked) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_full_star),
+                                    contentDescription = null,
+                                    tint = FFFACC15,
+                                    modifier = Modifier
+                                        .size(size = 16.dp)
+                                )
+                            }
+                        }
                     },
                     onClick = {
                         onClickDropdownMenu.invoke(false)

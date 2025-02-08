@@ -65,15 +65,10 @@ import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest.
 fun BacktestScreen(
     onClickBack: () -> Unit
 ) {
-
-    val context = LocalContext.current
     val backTestViewModel = hiltViewModel<BackTestViewModel>()
     val backTestState = rememberBackTestState()
-    val backTestResult = backTestViewModel.backTestResult.collectAsStateWithLifecycle(
-        initialValue = null,
-        lifecycleOwner = context as BackTestActivity,
-        minActiveState = Lifecycle.State.STARTED,
-    ).value
+    val backTestResult = backTestViewModel.backTestResult.collectAsStateWithLifecycle().value
+    val bookmarkedTickers = backTestViewModel.bookmarkedTickers.collectAsStateWithLifecycle().value
     val isLoading = backTestViewModel.isLoading.collectAsStateWithLifecycle().value
 
     if (backTestResult != null) {
@@ -130,6 +125,7 @@ fun BacktestScreen(
                         BackTestSettingsPanel(
                             selectedAutoTradingCrypto = backTestState.selectedBackTestCryptoState.value,
                             isExpandCryptoDropDownMenu = backTestState.expandCryptoDropDownMenuState.value,
+                            bookmarkedTickers = bookmarkedTickers,
                             initialInvestment = backTestState.initialInvestment.value,
                             sampleCountValue = backTestState.sampleCountState.value,
                             stopLossValue = backTestState.stopLossState.value,
@@ -186,52 +182,34 @@ fun BacktestScreen(
                     }
                 }
 
-                androidx.compose.material.Card(
-                    shape = RoundedCornerShape(size = 16.dp),
-                    elevation = 2.dp,
-                    modifier = Modifier
-                        .align(alignment = Alignment.Center),
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        LottieAnimation(
-                            composition = composition,
-                            iterations = Int.MAX_VALUE,
-                            speed = 2f,
-                            modifier = Modifier
-                                .height(height = 150.dp)
-                                .width(width = 300.dp)
-                        )
-                        Text(
-                            stringResource(R.string.auto_trading_back_test_progress),
-                            style = TextStyle(
-                                fontSize = 14.textDp,
-                                fontWeight = FontWeight.Medium,
-                                color = FF374151
-                            )
-                        )
-                        24.HeightSpacer()
-                    }
-                }
-
                 if (isLoading) {
                     androidx.compose.material.Card(
                         shape = RoundedCornerShape(size = 16.dp),
                         elevation = 2.dp,
                         modifier = Modifier
-                            .height(height = 120.dp)
-                            .width(width = 200.dp)
                             .align(alignment = Alignment.Center),
                     ) {
-                        LottieAnimation(
-                            composition = composition,
-                            iterations = Int.MAX_VALUE,
-                            speed = 2f,
-                            modifier = Modifier
-                                .height(height = 120.dp)
-                                .width(width = 200.dp)
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            LottieAnimation(
+                                composition = composition,
+                                iterations = Int.MAX_VALUE,
+                                speed = 2f,
+                                modifier = Modifier
+                                    .height(height = 150.dp)
+                                    .width(width = 300.dp)
+                            )
+                            Text(
+                                stringResource(R.string.auto_trading_back_test_progress),
+                                style = TextStyle(
+                                    fontSize = 14.textDp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = FF374151
+                                )
+                            )
+                            24.HeightSpacer()
+                        }
                     }
                 }
             }

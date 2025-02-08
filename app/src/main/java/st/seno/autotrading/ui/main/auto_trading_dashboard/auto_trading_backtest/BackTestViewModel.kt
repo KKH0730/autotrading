@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import st.seno.autotrading.R
+import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.data.network.model.isSuccess
 import st.seno.autotrading.data.network.model.successData
 import st.seno.autotrading.domain.CandleUseCase
@@ -15,6 +16,7 @@ import st.seno.autotrading.extensions.getString
 import st.seno.autotrading.extensions.truncateToXDecimalPlaces
 import st.seno.autotrading.model.BackTestResult
 import st.seno.autotrading.ui.base.BaseViewModel
+import st.seno.autotrading.util.BookmarkUtil
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.max
@@ -26,6 +28,15 @@ class BackTestViewModel @Inject constructor(
 ) : BaseViewModel() {
     private val _backTestResult: MutableStateFlow<BackTestResult?> = MutableStateFlow(null)
     val backTestResult: StateFlow<BackTestResult?> get() = _backTestResult.asStateFlow()
+
+    private val _bookmarkedTickers: MutableStateFlow<List<String>> = MutableStateFlow(listOf())
+    val bookmarkedTickers: StateFlow<List<String>> get() = _bookmarkedTickers.asStateFlow()
+
+    init {
+        _bookmarkedTickers.value = BookmarkUtil.convertSetToTickerList(bookmarkedTickerCodeSet = BookmarkUtil.bookmarkedTickers.value)
+            .filter { it.code.split("-").size == 2 }
+            .map { it.code }
+    }
 
     fun reqBackTestData(
         marketId: String,

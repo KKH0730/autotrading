@@ -12,15 +12,14 @@ import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.data.network.model.isSuccess
 import st.seno.autotrading.data.network.model.successData
 import st.seno.autotrading.domain.MyAssetsUseCase
-import st.seno.autotrading.extensions.getBookmarkInfo
 import st.seno.autotrading.extensions.getString
-import st.seno.autotrading.extensions.gson
 import st.seno.autotrading.extensions.truncateToXDecimalPlaces
 import st.seno.autotrading.model.HomeContentsType
 import st.seno.autotrading.model.TotalAsset
 import st.seno.autotrading.ui.base.BaseViewModel
 import st.seno.autotrading.ui.main.MainViewModel
-import timber.log.Timber
+import st.seno.autotrading.util.BookmarkUtil
+import st.seno.autotrading.util.BookmarkUtil.bookmarkedTickers
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,12 +34,10 @@ class HomeViewModel @Inject constructor(
     init {
         vmScopeJob {
             reqMyAssets()
-            combine(myAssets, MainViewModel.tickersMap) { a, b -> a to b }
+            combine(myAssets, MainViewModel.tickersMap, bookmarkedTickers) { a, b, c -> Triple(a, b, c) }
                 .collectLatest {
                     val myAssets = it.first
-                    val favorites = gson.getBookmarkInfo().entries
-                        .filter { it.value }
-                        .mapNotNull { (key, _) -> it.second[key] }
+                    val favorites =  BookmarkUtil.convertSetToTickerList(bookmarkedTickerCodeSet = it.third)
                     val topGainers: List<Ticker> = it.second.values
                         .sortedByDescending { it.signedChangeRate }
                         .toList()
@@ -86,7 +83,6 @@ class HomeViewModel @Inject constructor(
                         HomeContentsType.TopLosers(tickers = topLosers)
                     )
                 }
-
         }
     }
 

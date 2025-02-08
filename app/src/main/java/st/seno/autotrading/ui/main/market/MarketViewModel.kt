@@ -6,11 +6,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import st.seno.autotrading.extensions.getBookmarkInfo
-import st.seno.autotrading.extensions.gson
+import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.model.MarketTickers
 import st.seno.autotrading.ui.base.BaseViewModel
 import st.seno.autotrading.ui.main.MainViewModel
+import st.seno.autotrading.util.BookmarkUtil
+import st.seno.autotrading.util.BookmarkUtil.bookmarkedTickers
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,23 +25,20 @@ class MarketViewModel @Inject constructor() : BaseViewModel() {
                 MainViewModel.krwTickers,
                 MainViewModel.btcTickers,
                 MainViewModel.usdtTickers,
-
-            ) { a, b, c -> Triple(a, b, c) }
+                bookmarkedTickers
+            ) { a, b, c, d -> MarketDataModel(krwTickers = a, btcTickers = b, usdtTickers = c, bookmarkedTickers = d) }
                 .collectLatest {
-                    val tickersMap = MainViewModel.tickersMap.value
+                    val krwTickers = it.krwTickers.values
+                        .sortedBy { ticker -> ticker.code }
+                        .toList()
+                    val btcTickers = it.btcTickers.values
+                        .sortedBy { ticker -> ticker.code }
+                        .toList()
+                    val usdtTickers = it.usdtTickers.values
+                        .sortedBy { ticker -> ticker.code }
+                        .toList()
 
-                    val krwTickers = it.first.values
-                        .sortedBy { ticker -> ticker.code }
-                        .toList()
-                    val btcTickers = it.second.values
-                        .sortedBy { ticker -> ticker.code }
-                        .toList()
-                    val usdtTickers = it.third.values
-                        .sortedBy { ticker -> ticker.code }
-                        .toList()
-                    val favoriteTickers = gson.getBookmarkInfo().entries
-                        .filter { entries -> entries.value }
-                        .mapNotNull { (key, _) -> tickersMap[key] }
+                    val favoriteTickers = BookmarkUtil.convertSetToTickerList(bookmarkedTickerCodeSet = it.bookmarkedTickers)
 
                     _marketTickers.value = MarketTickers(
                         krwTickers = krwTickers,
@@ -52,3 +50,10 @@ class MarketViewModel @Inject constructor() : BaseViewModel() {
         }
     }
 }
+
+data class MarketDataModel(
+    val krwTickers: MutableMap<String, Ticker>,
+    val btcTickers: MutableMap<String, Ticker>,
+    val usdtTickers: MutableMap<String, Ticker>,
+    val bookmarkedTickers: Set<String>
+)

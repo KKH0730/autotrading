@@ -15,8 +15,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -32,9 +30,7 @@ import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.WidthSpacer
-import st.seno.autotrading.extensions.changeBookmarkStatus
 import st.seno.autotrading.extensions.formatPrice
-import st.seno.autotrading.extensions.getBookmarkInfo
 import st.seno.autotrading.extensions.getCryptoEnName
 import st.seno.autotrading.extensions.gson
 import st.seno.autotrading.extensions.noRippleClickable
@@ -52,7 +48,10 @@ import st.seno.autotrading.ui.common.LeadingCandleChart
 import st.seno.autotrading.ui.main.home.market_overview.MarketOverviewActivity
 
 @Composable
-fun HomeCrytoesInfo(data: HomeContentsType) {
+fun HomeCrytoesInfo(
+    data: HomeContentsType,
+    onClickBookmark: ((String) -> Unit)? = null
+) {
     val context = LocalContext.current
 
     val tickers = when (data) {
@@ -97,7 +96,7 @@ fun HomeCrytoesInfo(data: HomeContentsType) {
                     is HomeContentsType.TopLosers -> TopLosers(tickers = data.tickers)
                     is HomeContentsType.Favorites -> FavoritesCryptoes(
                         tickers = data.tickers,
-                        onClickBookmark = gson::changeBookmarkStatus
+                        onClickBookmark = onClickBookmark
                     )
                     else -> Box {}
                 }
@@ -144,7 +143,10 @@ fun TopLosers(tickers: List<Ticker>) {
 }
 
 @Composable
-fun FavoritesCryptoes(tickers: List<Ticker>, onClickBookmark: (String) -> Unit) {
+fun FavoritesCryptoes(
+    tickers: List<Ticker>,
+    onClickBookmark: ((String) -> Unit)?
+) {
     val list = if (tickers.size > 3) {
         tickers.slice(0..2)
     } else {
@@ -156,10 +158,9 @@ fun FavoritesCryptoes(tickers: List<Ticker>, onClickBookmark: (String) -> Unit) 
         modifier = Modifier.padding(horizontal = 30.dp)
     ) {
         list.forEach { ticker ->
-            val isAlreadyBookmarked = gson.getBookmarkInfo()[ticker.code] ?: false
             CryptoChangeRate(
                 ticker = ticker,
-                isAlreadyBookmarked = isAlreadyBookmarked,
+                isAlreadyBookmarked = true,
                 onClickBookmark = onClickBookmark
             )
         }
@@ -174,7 +175,6 @@ fun CryptoChangeRate(
 ) {
     val cryptoName = gson.getCryptoEnName(key = ticker.code)
     val currencyName = ticker.code.split("-").let { if (it.size == 2) it[0] else stringResource(R.string.KRW) }
-    val bookmarkStatus = remember { mutableStateOf(isAlreadyBookmarked) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -256,7 +256,7 @@ fun CryptoChangeRate(
             if (onClickBookmark != null) {
                 6.WidthSpacer()
                 Icon(
-                    painter = if (bookmarkStatus.value) {
+                    painter = if (isAlreadyBookmarked) {
                         painterResource(R.drawable.ic_full_star)
                     } else {
                         painterResource(R.drawable.ic_empty_star)
@@ -265,10 +265,7 @@ fun CryptoChangeRate(
                     tint = FFFACC15,
                     modifier = Modifier
                         .size(size = 16.dp)
-                        .noRippleClickable {
-                            onClickBookmark?.invoke(ticker.code)
-                            bookmarkStatus.value = !bookmarkStatus.value
-                        }
+                        .noRippleClickable { onClickBookmark.invoke(ticker.code) }
                 )
             }
         }

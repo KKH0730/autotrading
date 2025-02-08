@@ -25,6 +25,8 @@ import st.seno.autotrading.ui.main.MainActivity
 import st.seno.autotrading.ui.main.market.component.MarketFavoritesView
 import st.seno.autotrading.ui.main.market.component.MarketTabRow
 import st.seno.autotrading.ui.main.market.component.MarketView
+import st.seno.autotrading.util.BookmarkUtil
+import st.seno.autotrading.util.BookmarkUtil.bookmarkedTickers
 
 @Composable
 fun MarketScreen() {
@@ -72,19 +74,34 @@ fun MarketScreen() {
             when(page) {
                 0 -> MarketView(
                     tickers = marketTicker.krwTickers,
-                    onClickBookmark = { gson.changeBookmarkStatus(tickerCode = it) }
+                    bookmarkedTickers = marketTicker.favoriteTickers,
+                    onClickBookmark = {
+                        gson.changeBookmarkStatus(tickerCode = it)
+                        BookmarkUtil.editBookmarkedTickers(tickerCode = it)
+                    }
                 )
                 1 -> MarketView(
                     tickers = marketTicker.btcTickers,
-                    onClickBookmark = { gson.changeBookmarkStatus(tickerCode = it) }
+                    bookmarkedTickers = marketTicker.favoriteTickers,
+                    onClickBookmark = {
+                        gson.changeBookmarkStatus(tickerCode = it)
+                        BookmarkUtil.editBookmarkedTickers(tickerCode = it)
+                    }
                 )
                 2 -> MarketView(
                     tickers = marketTicker.usdtTickers,
-                    onClickBookmark = { gson.changeBookmarkStatus(tickerCode = it) }
+                    bookmarkedTickers = marketTicker.favoriteTickers,
+                    onClickBookmark = {
+                        gson.changeBookmarkStatus(tickerCode = it)
+                        BookmarkUtil.editBookmarkedTickers(tickerCode = it)
+                    }
                 )
                 else -> MarketFavoritesView(
                     tickers = marketTicker.favoriteTickers,
-                    onClickBookmark = { gson.changeBookmarkStatus(tickerCode = it) }
+                    onClickBookmark = {
+                        gson.changeBookmarkStatus(tickerCode = it)
+                        BookmarkUtil.editBookmarkedTickers(tickerCode = it)
+                    }
                 )
             }
         }

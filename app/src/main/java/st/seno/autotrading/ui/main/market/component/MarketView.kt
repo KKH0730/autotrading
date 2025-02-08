@@ -19,8 +19,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -36,7 +34,6 @@ import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.WidthSpacer
 import st.seno.autotrading.extensions.formatPrice
-import st.seno.autotrading.extensions.getBookmarkInfo
 import st.seno.autotrading.extensions.getCryptoEnName
 import st.seno.autotrading.extensions.gson
 import st.seno.autotrading.extensions.noRippleClickable
@@ -81,8 +78,7 @@ fun MarketFavoritesView(
             }
         } else {
             items(tickers.size) { index ->
-                val isAlreadyBookmarked = gson.getBookmarkInfo()[tickers[index].code] ?: false
-                MarketCryptoView(ticker = tickers[index], isAlreadyBookmarked = isAlreadyBookmarked, onClickBookmark = onClickBookmark)
+                MarketCryptoView(ticker = tickers[index], isAlreadyBookmarked = true, onClickBookmark = onClickBookmark)
             }
         }
     }
@@ -91,6 +87,7 @@ fun MarketFavoritesView(
 @Composable
 fun MarketView(
     tickers: List<Ticker>,
+    bookmarkedTickers: List<Ticker>,
     onClickBookmark: (String) -> Unit
 ) {
     LazyColumn(
@@ -99,8 +96,11 @@ fun MarketView(
         modifier = Modifier.fillMaxSize().background(color = FFF9FAFB)
     ) {
         items(tickers.size) { index ->
-            val isAlreadyBookmarked = gson.getBookmarkInfo()[tickers[index].code] ?: false
-            MarketCryptoView(ticker = tickers[index], isAlreadyBookmarked = isAlreadyBookmarked, onClickBookmark = onClickBookmark)
+            MarketCryptoView(
+                ticker = tickers[index],
+                isAlreadyBookmarked = bookmarkedTickers.firstOrNull{ it.code == tickers[index].code } != null,
+                onClickBookmark = onClickBookmark
+            )
         }
     }
 }
@@ -114,8 +114,6 @@ fun MarketCryptoView(
     val cryptoName = gson.getCryptoEnName(key = ticker.code)
     val tickerName = ticker.code.split("-").let { if (it.size == 2) it[1] else ticker.code }
     val currencyName = ticker.code.split("-").let { if (it.size == 2) it[0] else stringResource(R.string.KRW) }
-
-    val bookmarkStatus = remember { mutableStateOf(isAlreadyBookmarked) }
 
     Card(
         elevation = 1.dp,
@@ -218,7 +216,7 @@ fun MarketCryptoView(
                 }
                 6.WidthSpacer()
                 Icon(
-                    painter = if (bookmarkStatus.value) {
+                    painter = if (isAlreadyBookmarked) {
                         painterResource(R.drawable.ic_full_star)
                     } else {
                         painterResource(R.drawable.ic_empty_star)
@@ -227,10 +225,7 @@ fun MarketCryptoView(
                     tint = FFFACC15,
                     modifier = Modifier
                         .size(size = 16.dp)
-                        .noRippleClickable {
-                            onClickBookmark.invoke(ticker.code)
-                            bookmarkStatus.value = !bookmarkStatus.value
-                        }
+                        .noRippleClickable { onClickBookmark.invoke(ticker.code) }
                 )
             }
             16.WidthSpacer()

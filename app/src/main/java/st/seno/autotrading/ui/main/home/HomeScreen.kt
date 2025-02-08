@@ -1,5 +1,6 @@
 package st.seno.autotrading.ui.main.home
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,13 +15,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import st.seno.autotrading.extensions.changeBookmarkStatus
+import st.seno.autotrading.extensions.gson
 import st.seno.autotrading.model.HomeContentsType
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.ui.main.MainActivity
 import st.seno.autotrading.ui.main.home.component.HomeCrytoesInfo
 import st.seno.autotrading.ui.main.home.component.HomeModuleShimmer
 import st.seno.autotrading.ui.main.home.component.MyPortfolio
+import st.seno.autotrading.util.BookmarkUtil
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun HomeScreen() {
     val homeViewModel = hiltViewModel<HomeViewModel>(viewModelStoreOwner = LocalContext.current as MainActivity)
@@ -49,7 +54,13 @@ fun HomeScreen() {
                 items(homeData.size) { index ->
                     when(val data = homeData[index]) {
                         is HomeContentsType.Portfolio -> MyPortfolio(data = data)
-                        is HomeContentsType.Favorites -> HomeCrytoesInfo(data = data)
+                        is HomeContentsType.Favorites -> HomeCrytoesInfo(
+                            data = data,
+                            onClickBookmark = {
+                                gson.changeBookmarkStatus(tickerCode = it)
+                                BookmarkUtil.editBookmarkedTickers(tickerCode = it)
+                            }
+                        )
                         is HomeContentsType.TopGainers -> HomeCrytoesInfo(data = data)
                         is HomeContentsType.TopLosers -> HomeCrytoesInfo(data = data)
                     }

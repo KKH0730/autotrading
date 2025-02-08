@@ -153,13 +153,8 @@ fun BacktestScreen(
                                     return@StartBackTestButton
                                 }
 
-                                if (backTestState.stopLossState.value.isEmpty()) {
-                                    backTestState.showSnackBar(text = getString(R.string.auto_trading_back_test_check_stop_loss))
-                                    return@StartBackTestButton
-                                }
-
-                                if (backTestState.takeProfitState.value.isEmpty()) {
-                                    backTestState.showSnackBar(text = getString(R.string.auto_trading_back_test_check_take_profit))
+                                if (backTestState.stopLossState.value.isEmpty() && backTestState.takeProfitState.value.isEmpty()) {
+                                    backTestState.showSnackBar(text = getString(R.string.auto_trading_back_test_check_stop_loss_or_take_profit))
                                     return@StartBackTestButton
                                 }
 

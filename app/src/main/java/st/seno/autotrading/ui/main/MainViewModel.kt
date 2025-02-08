@@ -45,7 +45,6 @@ class MainViewModel @Inject constructor(
                             )
                         }
                         is SockResponse.Message -> {
-                            Timber.e("data -> ${socketResponse.data}")
                             val ticker = Gson().fromJson(socketResponse.data, Ticker::class.java)
                             val mutableTickersMap = tickersMap.value.toMutableMap()
                             mutableTickersMap[ticker.code] = ticker
@@ -79,6 +78,7 @@ class MainViewModel @Inject constructor(
                             }
                         }
                         else -> { // Closing, Closed, Failure
+                            Timber.e(socketResponse.toString())
                         }
                     }
                 }

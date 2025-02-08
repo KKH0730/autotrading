@@ -106,8 +106,7 @@
     <string name="auto_trading_back_test_result_max_loss">Maximum loss rate</string>
     <string name="auto_trading_back_test_check_initial_investment">Please check the \'Initial Investment\' input field</string>
     <string name="auto_trading_back_test_check_sample_count">Please check the \'Sample count\' input field</string>
-    <string name="auto_trading_back_test_check_stop_loss">Please check the \'Stop loss\' input field</string>
-    <string name="auto_trading_back_test_check_take_profit">Please check the \'Take profit\' input field</string>
+    <string name="auto_trading_back_test_check_stop_loss_or_take_profit">Please check the \'Stop loss\' or \'Take profit \' input field</string>
     <string name="auto_trading_back_test_check_correction_value">Please check the \'Correction value\' input field</string>
     <string name="auto_trading_back_test_progress">Backtesting in progress…</string>
 </resources>

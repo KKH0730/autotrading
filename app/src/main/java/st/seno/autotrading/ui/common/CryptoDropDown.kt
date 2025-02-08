@@ -164,12 +164,11 @@ fun AutoTradingCryptoDropDownMenu(
         PrefsManager.marketIdList.split(",")
             .map { it.split("-")[0] to it.split("-")[1] }
             .filter { it.first.uppercase() == "KRW" }
-            .sortedBy { it.second }
-            .sortedByDescending { it.second in bookmarkedTickers }
+            .sortedWith(comparator = compareByDescending<Pair<String, String>> { "${it.first}-${it.second}" in bookmarkedTickers }.thenBy { it.second })
             .forEach { marketIdPair ->
                 DropdownMenuItem(
                     text = {
-                        val isBookmarked = bookmarkedTickers.find { it.lowercase() ==  "${marketIdPair.first}-${marketIdPair.second}".lowercase()} != null
+                        val isBookmarked = bookmarkedTickers.find { it ==  "${marketIdPair.first}-${marketIdPair.second}"} != null
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()

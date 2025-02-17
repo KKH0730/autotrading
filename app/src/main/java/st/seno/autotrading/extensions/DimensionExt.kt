@@ -28,6 +28,8 @@ fun Int.toPixel(): Float {
 
 fun Int.dpToPx(): Int = toFloat().dpToPx()
 
+fun Double.dpToPx(): Int = toFloat().dpToPx()
+
 fun Float.dpToPx(): Int =
     TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_DIP,
@@ -36,6 +38,23 @@ fun Float.dpToPx(): Int =
     ).toInt()
 
 fun Float.pxToDp(): Int  {
+    var density =  App.getInstance().resources.displayMetrics.density
+
+    when (density) {
+        1.0f -> {
+            density *= 4.0f
+        }
+        1.5f -> {
+            density *= (8 / 3)
+        }
+        2.0f -> {
+            density *= 2.0f
+        }
+    }
+    return (this / density).toInt()
+}
+
+fun Double.pxToDp(): Int  {
     var density =  App.getInstance().resources.displayMetrics.density
 
     when (density) {

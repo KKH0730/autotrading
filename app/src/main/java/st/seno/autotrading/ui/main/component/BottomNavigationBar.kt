@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import st.seno.autotrading.extensions.HeightSpacer
+import st.seno.autotrading.extensions.noRippleClickable
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.extensions.toStr
 import st.seno.autotrading.theme.FF2563EB
@@ -43,11 +44,7 @@ fun BottomNavigationBar(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = { onTabSelected(index) }
-                    )
+                    .noRippleClickable { onTabSelected(index) }
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,

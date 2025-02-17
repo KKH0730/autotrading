@@ -23,13 +23,14 @@ import st.seno.autotrading.ui.main.MainActivity
 import st.seno.autotrading.ui.main.home.component.HomeCrytoesInfo
 import st.seno.autotrading.ui.main.home.component.HomeModuleShimmer
 import st.seno.autotrading.ui.main.home.component.MyPortfolio
+import st.seno.autotrading.ui.main.trading_view.TradingViewActivity
 import st.seno.autotrading.util.BookmarkUtil
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun HomeScreen() {
+    val context = LocalContext.current
     val homeViewModel = hiltViewModel<HomeViewModel>(viewModelStoreOwner = LocalContext.current as MainActivity)
-
     val homeData = homeViewModel.homeContents.collectAsStateWithLifecycle(
         initialValue = listOf(),
         lifecycleOwner = LocalContext.current as MainActivity,
@@ -56,13 +57,20 @@ fun HomeScreen() {
                         is HomeContentsType.Portfolio -> MyPortfolio(data = data)
                         is HomeContentsType.Favorites -> HomeCrytoesInfo(
                             data = data,
+                            onClickCryptoItem = { TradingViewActivity.start(context = context as MainActivity, tickerCode = it) },
                             onClickBookmark = {
                                 gson.changeBookmarkStatus(tickerCode = it)
                                 BookmarkUtil.editBookmarkedTickers(tickerCode = it)
                             }
                         )
-                        is HomeContentsType.TopGainers -> HomeCrytoesInfo(data = data)
-                        is HomeContentsType.TopLosers -> HomeCrytoesInfo(data = data)
+                        is HomeContentsType.TopGainers -> HomeCrytoesInfo(
+                            data = data,
+                            onClickCryptoItem = { TradingViewActivity.start(context = context as MainActivity, tickerCode = it) }
+                        )
+                        is HomeContentsType.TopLosers -> HomeCrytoesInfo(
+                            data = data,
+                            onClickCryptoItem = { TradingViewActivity.start(context = context as MainActivity, tickerCode = it) }
+                        )
                     }
                 }
             }

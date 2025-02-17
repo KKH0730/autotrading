@@ -22,6 +22,11 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <activity android:name=".ui.main.trading_view.TradingViewActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="fullSensor" />
+
         <activity android:name=".ui.main.auto_trading_dashboard.auto_trading_backtest.BackTestActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
@@ -56,7 +61,7 @@
 
 
         <service
-            android:name=".AutoTradingService"
+            android:name=".service.AutoTradingService"
             android:exported="false"
             android:enabled="true"
             android:foregroundServiceType="dataSync"/>

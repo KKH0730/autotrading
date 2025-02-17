@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import st.seno.autotrading.R
 import st.seno.autotrading.extensions.HeightSpacer
+import st.seno.autotrading.extensions.noRippleClickable
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.theme.FF374151
 import st.seno.autotrading.theme.FF3B82F6
@@ -98,10 +99,7 @@ fun RationQuantityItem(
         modifier = modifier
             .clip(shape = RoundedCornerShape(size = 8.dp))
             .background(color = if (value == selectedValue) FF3B82F6 else FFF3F4F6)
-            .clickable(
-                indication = null,
-                interactionSource = MutableInteractionSource()
-            ) { onClickQuantityRatio.invoke(index) }
+            .noRippleClickable { onClickQuantityRatio.invoke(index) }
     ) {
         Text(
             "$value%",

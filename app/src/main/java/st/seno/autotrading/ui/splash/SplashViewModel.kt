@@ -32,7 +32,7 @@ class SplashViewModel @Inject constructor(
         vmScopeJob(coroutineExceptionHandler = CoroutineExceptionHandler { _, _ ->
             vmScopeJob { _startMain.emit(false) }
         }) {
-            if (!BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
                 _startMain.emit(true)
                 return@vmScopeJob
             }

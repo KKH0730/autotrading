@@ -33,6 +33,7 @@ import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.getString
+import st.seno.autotrading.extensions.noRippleClickable
 import st.seno.autotrading.extensions.pxToDp
 import st.seno.autotrading.extensions.screenWidth
 import st.seno.autotrading.extensions.textDp
@@ -205,12 +206,7 @@ fun TradingModeItem(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .clickable(
-                indication = null,
-                interactionSource = MutableInteractionSource()
-            ) {
-                onClick.invoke(name)
-            }
+            .noRippleClickable { onClick.invoke(name) }
     ) {
         Text(
             name,

@@ -5,6 +5,7 @@ import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.extensions.getBookmarkInfo
 import st.seno.autotrading.extensions.gson
 import st.seno.autotrading.ui.main.MainViewModel
+import timber.log.Timber
 
 object BookmarkUtil {
     val bookmarkedTickers = MutableStateFlow<Set<String>>(setOf())

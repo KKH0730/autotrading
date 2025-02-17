@@ -1,4 +1,4 @@
-package st.seno.autotrading
+package st.seno.autotrading.service
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -19,10 +19,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.Asset
 import st.seno.autotrading.data.network.model.Candle
 import st.seno.autotrading.data.network.model.Order
@@ -39,15 +38,12 @@ import st.seno.autotrading.model.OrderType
 import st.seno.autotrading.model.Side
 import st.seno.autotrading.ui.main.MainActivity
 import st.seno.autotrading.ui.main.MainViewModel
-import st.seno.autotrading.ui.main.home.market_overview.marketOverviewTabs
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import javax.inject.Inject
-import kotlin.random.Random
 
 @AndroidEntryPoint
 class AutoTradingService : Service() {
@@ -335,7 +331,7 @@ class AutoTradingService : Service() {
         marketId: String,
         coroutineScope: CoroutineScope
     ): List<Candle>? {
-        return candleUseCase.reqDayCandle(
+        return candleUseCase.reqDaysCandle(
             market = marketId,
             to = "yyyy-MM-dd HH:mm:ss".formatedDate(),
             count = 2,

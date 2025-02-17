@@ -35,6 +35,7 @@ import st.seno.autotrading.R
 import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.WidthSpacer
+import st.seno.autotrading.extensions.noRippleClickable
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.theme.FF000000
@@ -111,11 +112,7 @@ fun SelectedAutoTradingCryptoTextPanel(
             shape = RoundedCornerShape(size = 8.dp),
             modifier = Modifier
                 .padding(horizontal = 18.dp)
-                .clickable(
-                    indication = null,
-                    interactionSource = MutableInteractionSource(),
-                    onClick = onClickCryptoText
-                )
+                .noRippleClickable { onClickCryptoText.invoke() }
         ) {
             Box(
                 modifier = Modifier

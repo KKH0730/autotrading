@@ -30,6 +30,7 @@ import st.seno.autotrading.ui.main.home.market_overview.component.MarketOverview
 import st.seno.autotrading.ui.main.home.market_overview.component.MarketOverviewTabRow
 import st.seno.autotrading.ui.main.home.market_overview.component.TopGainersOverview
 import st.seno.autotrading.ui.main.home.market_overview.component.TopLosersOverview
+import st.seno.autotrading.ui.main.trading_view.TradingViewActivity
 import timber.log.Timber
 
 val marketOverviewTabs = listOf(
@@ -43,6 +44,7 @@ fun MarketOverviewScreen(
     initialPosition: Int,
     onClickBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val marketOverviewViewModel = hiltViewModel<MarketOverviewViewModel>()
     val marketTickerOverview = marketOverviewViewModel.marketTickerOverview.collectAsStateWithLifecycle(
         lifecycleOwner = LocalContext.current as MarketOverviewActivity,
@@ -93,9 +95,18 @@ fun MarketOverviewScreen(
                         }
 
                         when(page) {
-                            0 -> FavoritesOverview(tickers = marketTickerOverview.favorites)
-                            1 -> TopGainersOverview(tickers = marketTickerOverview.topGainers)
-                            else -> TopLosersOverview(tickers = marketTickerOverview.topLosers)
+                            0 -> FavoritesOverview(
+                                tickers = marketTickerOverview.favorites,
+                                onClickCryptoItem = { TradingViewActivity.start(context = context, tickerCode = it) }
+                            )
+                            1 -> TopGainersOverview(
+                                tickers = marketTickerOverview.topGainers,
+                                onClickCryptoItem = { TradingViewActivity.start(context = context, tickerCode = it) }
+                            )
+                            else -> TopLosersOverview(
+                                tickers = marketTickerOverview.topLosers,
+                                onClickCryptoItem = { TradingViewActivity.start(context = context, tickerCode = it) }
+                            )
                         }
                     }
                 }

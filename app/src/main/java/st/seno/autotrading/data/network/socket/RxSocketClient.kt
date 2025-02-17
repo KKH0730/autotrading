@@ -24,7 +24,6 @@ class RxSocketClient {
     private val client: OkHttpClient = OkHttpClient()
     private var webSocket: WebSocket? = null
     val isConnected: Boolean get() = webSocket != null
-    val tickersMap: MutableMap<String, Ticker> = mutableMapOf()
 
     fun connect(): Flow<SockResponse> {
         return channelFlow {
@@ -68,8 +67,6 @@ class RxSocketClient {
                     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
                         super.onMessage(webSocket, bytes)
                         val message = bytes.utf8()
-                        val ticker = Gson().fromJson(message, Ticker::class.java)
-                        tickersMap[ticker.code] = ticker
                         trySend(SockResponse.Message(data = message))
                     }
 
@@ -110,12 +107,11 @@ class RxSocketClient {
         }
     }
 
-    fun sendMessageAboutTotalCrypto(
+    fun sendMessageDaysTicker(
         cryptos: List<String>, // ex, KRW-BTC, KRW-ETH, KRW-XRP
         isRealTime: Boolean
     ) {
         val cryptoCodes = cryptos.joinToString(separator = ",", prefix = "[", postfix = "]") { "\"$it\"" }
-
         val message = """[
                 {
                     "ticket": "ticker"
@@ -129,6 +125,29 @@ class RxSocketClient {
                 { 
                     "format": "SIMPLE" 
                 } 
+            ]"""
+        webSocket?.send(message)
+    }
+
+    fun sendMessageCandle(
+        marketId: String, // ex, KRW-BTC, KRW-ETH, KRW-XRP
+        type: String,// candles.1s: 초봉
+        isOnlySnapshot: Boolean = false,
+        isOnlyRealtime: Boolean = true
+    ) {
+        val message = """[
+                {
+                    "ticket": "candle"
+                },
+                {
+                    "type": "$type",
+                    "codes": ["$marketId"],
+                    "is_only_snapshot": $isOnlySnapshot,
+                    "is_only_realtime": $isOnlyRealtime
+                },
+                {
+                    "format": "SIMPLE"
+                }
             ]"""
         webSocket?.send(message)
     }
@@ -151,7 +170,7 @@ class RxSocketClient {
 
     companion object {
         const val MAIN_SOCKET = "main_socket"
-        const val MARKET_SOCKET = "market_socket"
+        const val TRADING_VIEW_CANDLE_SOCKET = "tradingViewCandleSocket"
         private var instances = HashMap<String, RxSocketClient?>()
 
         fun getInstance(key: String?): RxSocketClient {

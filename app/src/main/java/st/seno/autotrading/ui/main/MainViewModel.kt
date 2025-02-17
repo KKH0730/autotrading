@@ -39,9 +39,10 @@ class MainViewModel @Inject constructor(
                 .collectLatest { socketResponse: SockResponse ->
                     when(socketResponse) {
                         is SockResponse.Open -> {
-                            rxSocketClient.sendMessageAboutTotalCrypto(
+                            rxSocketClient.sendMessageDaysTicker(
                                 cryptos = PrefsManager.marketIdList.split(","),
-                                isRealTime = !isFirstCall
+                                isRealTime = true
+//                                isRealTime = !isFirstCall
                             )
                         }
                         is SockResponse.Message -> {
@@ -72,12 +73,13 @@ class MainViewModel @Inject constructor(
 
                             _tickersMap.value = mutableTickersMap.toMap()
 
-                            if (isFirstCall) {
-                                isFirstCall = false
-                                connectSocket()
-                            }
+//                            if (isFirstCall) {
+//                                isFirstCall = false
+//                                connectSocket()
+//                            }
                         }
                         else -> { // Closing, Closed, Failure
+                            isFirstCall = false
                             Timber.e(socketResponse.toString())
                         }
                     }

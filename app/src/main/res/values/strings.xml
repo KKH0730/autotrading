@@ -115,4 +115,22 @@
     <string name="auto_trading_back_test_check_stop_loss_or_take_profit">Please check the \'Stop loss\' or \'Take profit \' input field</string>
     <string name="auto_trading_back_test_check_correction_value">Please check the \'Correction value\' input field</string>
     <string name="auto_trading_back_test_progress">Backtesting in progress…</string>
+
+    <!--trading view-->
+    <string name="trading_view_header_high">Today High</string>
+    <string name="trading_view_header_low">Today Low</string>
+    <string name="trading_view_header_vol">Today Vol</string>
+    <string name="trading_view_header_24_vol">24h Vol</string>
+    <string name="trading_view_time_frame_1m">1m</string>
+    <string name="trading_view_time_frame_15m">15m</string>
+    <string name="trading_view_time_frame_1h">1h</string>
+    <string name="trading_view_time_frame_1d">1d</string>
+    <string name="trading_view_time_frame_1w">1w</string>
+    <string name="trading_view_time_frame_1_month">1M</string>
+    <string name="trading_view_time_frame_1y">1Y</string>
+    <string name="trading_view_overlay_opening_price">Opening Price</string>
+    <string name="trading_view_overlay_high_price">High price</string>
+    <string name="trading_view_overlay_low_price">Low price</string>
+    <string name="trading_view_overlay_trade_price">Trade price</string>
+    <string name="trading_view_overlay_volume">Volume</string>
 </resources>

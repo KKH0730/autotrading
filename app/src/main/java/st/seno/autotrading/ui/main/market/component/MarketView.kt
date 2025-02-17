@@ -47,11 +47,12 @@ import st.seno.autotrading.theme.FFDC2626
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.theme.FFFACC15
 import st.seno.autotrading.theme.FFFFFFFF
-import st.seno.autotrading.ui.common.LeadingCandleChart
+import st.seno.autotrading.ui.common.LeadingCandleView
 
 @Composable
 fun MarketFavoritesView(
     tickers: List<Ticker>,
+    onClickCryptoItem: (String) -> Unit,
     onClickBookmark: (String) -> Unit
 ) {
     LazyColumn(
@@ -78,7 +79,7 @@ fun MarketFavoritesView(
             }
         } else {
             items(tickers.size) { index ->
-                MarketCryptoView(ticker = tickers[index], isAlreadyBookmarked = true, onClickBookmark = onClickBookmark)
+                MarketCryptoView(ticker = tickers[index], isAlreadyBookmarked = true, onClickCryptoItem = onClickCryptoItem, onClickBookmark = onClickBookmark)
             }
         }
     }
@@ -88,6 +89,7 @@ fun MarketFavoritesView(
 fun MarketView(
     tickers: List<Ticker>,
     bookmarkedTickers: List<Ticker>,
+    onClickCryptoItem:(String) -> Unit,
     onClickBookmark: (String) -> Unit
 ) {
     LazyColumn(
@@ -99,6 +101,7 @@ fun MarketView(
             MarketCryptoView(
                 ticker = tickers[index],
                 isAlreadyBookmarked = bookmarkedTickers.firstOrNull{ it.code == tickers[index].code } != null,
+                onClickCryptoItem = onClickCryptoItem,
                 onClickBookmark = onClickBookmark
             )
         }
@@ -109,6 +112,7 @@ fun MarketView(
 fun MarketCryptoView(
     ticker: Ticker,
     isAlreadyBookmarked: Boolean,
+    onClickCryptoItem: (String) -> Unit,
     onClickBookmark: (String) -> Unit
 ) {
     val cryptoName = gson.getCryptoEnName(key = ticker.code)
@@ -118,14 +122,15 @@ fun MarketCryptoView(
     Card(
         elevation = 1.dp,
         shape = RoundedCornerShape(size = 8.dp),
-        backgroundColor = FFFFFFFF
+        backgroundColor = FFFFFFFF,
+        modifier = Modifier.noRippleClickable { onClickCryptoItem.invoke(ticker.code) }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.height(height = 76.dp)
         ) {
             16.WidthSpacer()
-            LeadingCandleChart(
+            LeadingCandleView(
                 openingPrice = ticker.openingPrice,
                 highPrice = ticker.highPrice,
                 lowPrice = ticker.lowPrice,

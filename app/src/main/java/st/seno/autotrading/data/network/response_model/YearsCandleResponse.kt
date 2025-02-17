@@ -2,7 +2,7 @@ package st.seno.autotrading.data.network.response_model
 
 import com.google.gson.annotations.SerializedName
 
-data class CandleResponse(
+data class YearsCandleResponse(
     @SerializedName("market")
     val market: String, // 종목 코드
     @SerializedName("candle_date_time_utc")
@@ -23,12 +23,6 @@ data class CandleResponse(
     val candleAccTradePrice: Double, // 누적 거래 금액
     @SerializedName("candle_acc_trade_volume")
     val candleAccTradeVolume: Double, // 누적 거래량
-    @SerializedName("prev_closing_price")
-    val prevClosingPrice: Double, // 전일 종가(UTC 0시 기준)
-    @SerializedName("change_price")
-    val changePrice: Double, // 전일 종가 대비 변화 금액
-    @SerializedName("change_rate")
-    val changeRate: Double, // 전일 종가 대비 변화량
-    @SerializedName("converted_trade_price")
-    val convertedTradePrice: Double // 종가 환산 화폐 단위로 환산된 가격(요청에 convertingPriceUnit 파라미터 없을 시 해당 필드 포함되지 않음.)
+    @SerializedName("first_day_of_period")
+    val firstDayOfPeriod: String, // 캔들 기간의 가장 첫 날
 )

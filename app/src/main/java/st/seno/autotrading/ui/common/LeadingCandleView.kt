@@ -23,7 +23,7 @@ import kotlin.math.abs
  *
  */
 @Composable
-fun LeadingCandleChart(
+fun LeadingCandleView(
     openingPrice: Double,
     highPrice: Double,
     lowPrice: Double,
@@ -31,14 +31,8 @@ fun LeadingCandleChart(
     candleWidth: Int,
     candleHeight: Int
 ) {
-   val trendType: PriceTrend = if (tradePrice > openingPrice) {
-       PriceTrend.BULLISH
-   } else if (tradePrice < openingPrice ){
-       PriceTrend.BEARISH
-   } else {
-       PriceTrend.NEUTRAL
-   }
-//    R.drawable.ic_bitcoin_default
+   val trendType: PriceTrend = PriceTrend.getPriceTrend(targetPrice = tradePrice, openingPrice = openingPrice)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier

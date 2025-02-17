@@ -11,8 +11,10 @@ data class Candle(
     val timestamp: Long, //마지막 틱이 저장된 시각
     val candleAccTradePrice: Double, // 누적 거래 금액
     val candleAccTradeVolume: Double, // 누적 거래량
-    val prevClosingPrice: Double, // 전일 종가(UTC 0시 기준)
-    val changePrice: Double, // 전일 종가 대비 변화 금액
-    val changeRate: Double, // 전일 종가 대비 변화량
-    val convertedTradePrice: Double // 종가 환산 화폐 단위로 환산된 가격(요청에 convertingPriceUnit 파라미터 없을 시 해당 필드 포함되지 않음.)
+    val prevClosingPrice: Double? = null, // 전일 종가(UTC 0시 기준)
+    val changePrice: Double? = null, // 전일 종가 대비 변화 금액
+    val changeRate: Double? = null, // 전일 종가 대비 변화량
+    val convertedTradePrice: Double? = null, // 종가 환산 화폐 단위로 환산된 가격(요청에 convertingPriceUnit 파라미터 없을 시 해당 필드 포함되지 않음.)
+    val firstDayOfPeriod: String? = null, // 캔들 기간의 가장 첫 날
+    val unit: Int? = null // 분 단위(유닛)
 )

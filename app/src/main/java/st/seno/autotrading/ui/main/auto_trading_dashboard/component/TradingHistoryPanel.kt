@@ -3,7 +3,6 @@ package st.seno.autotrading.ui.main.auto_trading_dashboard.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalOverscrollConfiguration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -45,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -57,11 +54,8 @@ import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.ClosedOrder
 import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
-import st.seno.autotrading.extensions.dpToPx
 import st.seno.autotrading.extensions.formatPrice
 import st.seno.autotrading.extensions.parseDateFormat
-import st.seno.autotrading.extensions.pxToDp
-import st.seno.autotrading.extensions.screenWidth
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.extensions.toDate
 import st.seno.autotrading.prefs.PrefsManager
@@ -76,7 +70,6 @@ import st.seno.autotrading.theme.FFE5E7EB
 import st.seno.autotrading.theme.FFFFFFFF
 import st.seno.autotrading.ui.common.CircleRippleButton
 import st.seno.autotrading.ui.common.CircleRippleNotFormatSizedButton
-import timber.log.Timber
 import java.util.Calendar
 
 @Composable

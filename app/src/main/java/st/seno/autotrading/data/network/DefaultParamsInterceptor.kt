@@ -19,8 +19,8 @@ import javax.inject.Inject
  */
 
 // Todo: key들은 local properties로 이전 필요
-const val SECRET_KEY = "FjkDfW3K6uSd1T4yQpgvx1cjJY5xlOb2MGCWNslC"
-const val ACCESS_KEY = "HAQHEpfACO4BFhUowJfPUkaRqXZA3nYSKKCoVQoC"
+const val SECRET_KEY = "5YK5U5ncRM0EmpgYmVxcZrT18QaZ4EzyCwyD46PM"
+const val ACCESS_KEY = "IqzzQMLaSJbuzCalGLBFYwhyUsP9pyU63qSQN3EL"
 
 class DefaultParamsInterceptor @Inject constructor() : Interceptor {
 
@@ -74,13 +74,6 @@ class DefaultParamsInterceptor @Inject constructor() : Interceptor {
      * Rest API 에서 사용하는 default headers
      */
     private fun getDefaultHeader(authenticationToken: String): Map<String, String> {
-//        val algorithm: Algorithm = Algorithm.HMAC256(SECRET_KEY)
-//        val jwtToken: String = JWT.create()
-//            .withClaim("access_key", ACCESS_KEY)
-//            .withClaim("nonce", UUID.randomUUID().toString())
-//            .sign(algorithm)
-//        val authenticationToken = "Bearer $jwtToken"
-
         return mutableMapOf(
             "Content-Type" to "application/json",
             "Authorization" to authenticationToken

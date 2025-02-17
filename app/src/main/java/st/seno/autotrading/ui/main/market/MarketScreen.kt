@@ -21,15 +21,19 @@ import st.seno.autotrading.R
 import st.seno.autotrading.extensions.changeBookmarkStatus
 import st.seno.autotrading.extensions.gson
 import st.seno.autotrading.model.MarketTickers
+import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.ui.main.MainActivity
 import st.seno.autotrading.ui.main.market.component.MarketFavoritesView
 import st.seno.autotrading.ui.main.market.component.MarketTabRow
 import st.seno.autotrading.ui.main.market.component.MarketView
+import st.seno.autotrading.ui.main.trading_view.TradingViewActivity
 import st.seno.autotrading.util.BookmarkUtil
 import st.seno.autotrading.util.BookmarkUtil.bookmarkedTickers
+import timber.log.Timber
 
 @Composable
 fun MarketScreen() {
+    val context = LocalContext.current
     val marketViewModel = hiltViewModel<MarketViewModel>()
     val marketTicker = marketViewModel.marketTickers.collectAsStateWithLifecycle(
         initialValue = MarketTickers(),
@@ -75,6 +79,7 @@ fun MarketScreen() {
                 0 -> MarketView(
                     tickers = marketTicker.krwTickers,
                     bookmarkedTickers = marketTicker.favoriteTickers,
+                    onClickCryptoItem = { TradingViewActivity.start(context = context, tickerCode = it) },
                     onClickBookmark = {
                         gson.changeBookmarkStatus(tickerCode = it)
                         BookmarkUtil.editBookmarkedTickers(tickerCode = it)
@@ -83,6 +88,7 @@ fun MarketScreen() {
                 1 -> MarketView(
                     tickers = marketTicker.btcTickers,
                     bookmarkedTickers = marketTicker.favoriteTickers,
+                    onClickCryptoItem = { TradingViewActivity.start(context = context, tickerCode = it) },
                     onClickBookmark = {
                         gson.changeBookmarkStatus(tickerCode = it)
                         BookmarkUtil.editBookmarkedTickers(tickerCode = it)
@@ -91,6 +97,7 @@ fun MarketScreen() {
                 2 -> MarketView(
                     tickers = marketTicker.usdtTickers,
                     bookmarkedTickers = marketTicker.favoriteTickers,
+                    onClickCryptoItem = { TradingViewActivity.start(context = context, tickerCode = it) },
                     onClickBookmark = {
                         gson.changeBookmarkStatus(tickerCode = it)
                         BookmarkUtil.editBookmarkedTickers(tickerCode = it)
@@ -98,6 +105,7 @@ fun MarketScreen() {
                 )
                 else -> MarketFavoritesView(
                     tickers = marketTicker.favoriteTickers,
+                    onClickCryptoItem = { TradingViewActivity.start(context = context, tickerCode = it) },
                     onClickBookmark = {
                         gson.changeBookmarkStatus(tickerCode = it)
                         BookmarkUtil.editBookmarkedTickers(tickerCode = it)

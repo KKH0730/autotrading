@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import st.seno.autotrading.R
 import st.seno.autotrading.extensions.FullWidthSpacer
+import st.seno.autotrading.extensions.noRippleClickable
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.theme.FF000000
 import st.seno.autotrading.theme.FFFFFFFF
@@ -50,11 +51,7 @@ fun BackTestButton(onClickBackTestSetting: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .padding(vertical = 16.dp, horizontal = 24.dp)
-            .clickable(
-                indication = null,
-                interactionSource = MutableInteractionSource(),
-                onClick = onClickBackTestSetting
-            )
+            .noRippleClickable { onClickBackTestSetting.invoke() }
     ) {
         Text(
             stringResource(R.string.auto_trading_dashboard_back_test),

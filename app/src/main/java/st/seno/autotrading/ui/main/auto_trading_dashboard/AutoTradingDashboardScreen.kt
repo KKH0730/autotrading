@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import st.seno.autotrading.AutoTradingService
+import st.seno.autotrading.service.AutoTradingService
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.ui.main.MainActivity

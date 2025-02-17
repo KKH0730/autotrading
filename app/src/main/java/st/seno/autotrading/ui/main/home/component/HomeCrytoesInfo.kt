@@ -44,12 +44,13 @@ import st.seno.autotrading.theme.FF6B7280
 import st.seno.autotrading.theme.FFDC2626
 import st.seno.autotrading.theme.FFFACC15
 import st.seno.autotrading.theme.FFFFFFFF
-import st.seno.autotrading.ui.common.LeadingCandleChart
+import st.seno.autotrading.ui.common.LeadingCandleView
 import st.seno.autotrading.ui.main.home.market_overview.MarketOverviewActivity
 
 @Composable
 fun HomeCrytoesInfo(
     data: HomeContentsType,
+    onClickCryptoItem:(String) -> Unit,
     onClickBookmark: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -92,10 +93,11 @@ fun HomeCrytoesInfo(
                 24.HeightSpacer()
             } else {
                 when (data) {
-                    is HomeContentsType.TopGainers -> TopGainers(tickers = data.tickers)
-                    is HomeContentsType.TopLosers -> TopLosers(tickers = data.tickers)
+                    is HomeContentsType.TopGainers -> TopGainers(tickers = data.tickers, onClickCryptoItem = onClickCryptoItem)
+                    is HomeContentsType.TopLosers -> TopLosers(tickers = data.tickers, onClickCryptoItem = onClickCryptoItem)
                     is HomeContentsType.Favorites -> FavoritesCryptoes(
                         tickers = data.tickers,
+                        onClickCryptoItem = onClickCryptoItem,
                         onClickBookmark = onClickBookmark
                     )
                     else -> Box {}
@@ -107,7 +109,10 @@ fun HomeCrytoesInfo(
 }
 
 @Composable
-fun TopGainers(tickers: List<Ticker>) {
+fun TopGainers(
+    tickers: List<Ticker>,
+    onClickCryptoItem:(String) -> Unit,
+) {
     val list = if (tickers.size > 3) {
         tickers.slice(0..2)
     } else {
@@ -119,13 +124,16 @@ fun TopGainers(tickers: List<Ticker>) {
         modifier = Modifier.padding(horizontal = 30.dp)
     ) {
         list.forEach { ticker ->
-            CryptoChangeRate(ticker = ticker)
+            CryptoChangeRate(ticker = ticker, onClickCryptoItem = onClickCryptoItem)
         }
     }
 }
 
 @Composable
-fun TopLosers(tickers: List<Ticker>) {
+fun TopLosers(
+    tickers: List<Ticker>,
+    onClickCryptoItem:(String) -> Unit,
+) {
     val list = if (tickers.size > 3) {
         tickers.slice(0..2)
     } else {
@@ -137,7 +145,7 @@ fun TopLosers(tickers: List<Ticker>) {
         modifier = Modifier.padding(horizontal = 30.dp)
     ) {
         list.forEach { ticker ->
-            CryptoChangeRate(ticker = ticker)
+            CryptoChangeRate(ticker = ticker, onClickCryptoItem = onClickCryptoItem)
         }
     }
 }
@@ -145,6 +153,7 @@ fun TopLosers(tickers: List<Ticker>) {
 @Composable
 fun FavoritesCryptoes(
     tickers: List<Ticker>,
+    onClickCryptoItem:(String) -> Unit,
     onClickBookmark: ((String) -> Unit)?
 ) {
     val list = if (tickers.size > 3) {
@@ -161,6 +170,7 @@ fun FavoritesCryptoes(
             CryptoChangeRate(
                 ticker = ticker,
                 isAlreadyBookmarked = true,
+                onClickCryptoItem = onClickCryptoItem,
                 onClickBookmark = onClickBookmark
             )
         }
@@ -171,6 +181,7 @@ fun FavoritesCryptoes(
 fun CryptoChangeRate(
     ticker: Ticker,
     isAlreadyBookmarked: Boolean = false,
+    onClickCryptoItem:(String) -> Unit,
     onClickBookmark: ((String) -> Unit)? = null
 ) {
     val cryptoName = gson.getCryptoEnName(key = ticker.code)
@@ -178,15 +189,18 @@ fun CryptoChangeRate(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.height(height = 56.dp)
+        modifier = Modifier
+            .height(height = 56.dp)
+            .noRippleClickable { onClickCryptoItem.invoke(ticker.code) }
     ) {
-        LeadingCandleChart(
+        LeadingCandleView(
             openingPrice = ticker.openingPrice,
             highPrice = ticker.highPrice,
             lowPrice = ticker.lowPrice,
             tradePrice = ticker.tradePrice,
             candleWidth = 7,
-            candleHeight = 30
+            candleHeight = 30,
+
         )
         12.WidthSpacer()
         Column {
@@ -241,7 +255,7 @@ fun CryptoChangeRate(
             Text(
                 String.format(
                     stringResource(R.string.s_percent),
-                    (ticker.signedChangeRate * 100).truncateToXDecimalPlaces(x = 3.0).toString()
+                    (ticker.signedChangeRate * 100).truncateToXDecimalPlaces(x = 2.0).toString()
                 ),
                 style = TextStyle(
                     fontSize = 12.textDp,

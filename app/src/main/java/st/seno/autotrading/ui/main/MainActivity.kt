@@ -18,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import st.seno.autotrading.extensions.startActivity
 import st.seno.autotrading.theme.AutotradingTheme
 import st.seno.autotrading.ui.main.home.HomeViewModel
+import st.seno.autotrading.ui.main.trading_view.TradingViewActivity
 import st.seno.autotrading.ui.splash.SplashActivity
 
 
@@ -30,6 +31,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         installSplashScreen()
+
 
         if (!intent.getBooleanExtra("isSplashFinish", false)) {
             SplashActivity.start(context = this@MainActivity, intent.getIntExtra("tabIndex", 0))

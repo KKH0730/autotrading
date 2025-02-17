@@ -35,6 +35,7 @@ import st.seno.autotrading.extensions.WidthSpacer
 import st.seno.autotrading.extensions.formatPrice
 import st.seno.autotrading.extensions.getCryptoEnName
 import st.seno.autotrading.extensions.gson
+import st.seno.autotrading.extensions.noRippleClickable
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.extensions.truncateToXDecimalPlaces
 import st.seno.autotrading.theme.FF000000
@@ -44,10 +45,13 @@ import st.seno.autotrading.theme.FF6B7280
 import st.seno.autotrading.theme.FFDC2626
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.theme.FFFFFFFF
-import st.seno.autotrading.ui.common.LeadingCandleChart
+import st.seno.autotrading.ui.common.LeadingCandleView
 
 @Composable
-fun FavoritesOverview(tickers: List<Ticker>) {
+fun FavoritesOverview(
+    tickers: List<Ticker>,
+    onClickCryptoItem:(String) -> Unit
+) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(space = 12.dp),
         contentPadding = PaddingValues(all = 16.dp),
@@ -72,40 +76,46 @@ fun FavoritesOverview(tickers: List<Ticker>) {
             }
         } else {
             items(tickers.size) { index ->
-                CryptoOverviewChangeRate(ticker = tickers[index])
+                CryptoOverviewChangeRate(ticker = tickers[index], onClickCryptoItem = onClickCryptoItem)
             }
         }
     }
 }
 
 @Composable
-fun TopGainersOverview(tickers: List<Ticker>) {
+fun TopGainersOverview(
+    tickers: List<Ticker>,
+    onClickCryptoItem:(String) -> Unit,
+) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(space = 12.dp),
         contentPadding = PaddingValues(all = 16.dp),
         modifier = Modifier.fillMaxSize().background(color = FFF9FAFB)
     ) {
         items(tickers.size) { index ->
-            CryptoOverviewChangeRate(ticker = tickers[index])
+            CryptoOverviewChangeRate(ticker = tickers[index], onClickCryptoItem = onClickCryptoItem)
         }
     }
 }
 
 @Composable
-fun TopLosersOverview(tickers: List<Ticker>) {
+fun TopLosersOverview(
+    tickers: List<Ticker>,
+    onClickCryptoItem:(String) -> Unit,
+) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(space = 12.dp),
         contentPadding = PaddingValues(all = 16.dp),
         modifier = Modifier.fillMaxSize().background(color = FFF9FAFB)
     ) {
         items(tickers.size) { index ->
-            CryptoOverviewChangeRate(ticker = tickers[index])
+            CryptoOverviewChangeRate(ticker = tickers[index], onClickCryptoItem = onClickCryptoItem)
         }
     }
 }
 
 @Composable
-fun CryptoOverviewChangeRate(ticker: Ticker) {
+fun CryptoOverviewChangeRate(ticker: Ticker, onClickCryptoItem:(String) -> Unit) {
     val cryptoName = gson.getCryptoEnName(key = ticker.code)
     val currencyName = ticker.code.split("-").let { if (it.size == 2) it[0] else stringResource(R.string.KRW) }
 
@@ -113,12 +123,13 @@ fun CryptoOverviewChangeRate(ticker: Ticker) {
         elevation = 1.dp,
         shape = RoundedCornerShape(size = 8.dp),
         backgroundColor = FFFFFFFF,
+        modifier = Modifier.noRippleClickable { onClickCryptoItem.invoke(ticker.code) }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(vertical = 22.dp, horizontal = 16.dp)
         ) {
-            LeadingCandleChart(
+            LeadingCandleView(
                 openingPrice = ticker.openingPrice,
                 highPrice = ticker.highPrice,
                 lowPrice = ticker.lowPrice,
@@ -179,7 +190,7 @@ fun CryptoOverviewChangeRate(ticker: Ticker) {
                 Text(
                     String.format(
                         stringResource(R.string.s_percent),
-                        (ticker.signedChangeRate * 100).truncateToXDecimalPlaces(x = 3.0).toString()
+                        (ticker.signedChangeRate * 100).truncateToXDecimalPlaces(x = 2.0).toString()
                     ),
                     style = TextStyle(
                         fontSize = 12.textDp,

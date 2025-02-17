@@ -13,8 +13,8 @@ import androidx.compose.ui.unit.Dp
 @Composable
 fun CircleRippleButton(
     size: Dp,
-    content: @Composable (Modifier) -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    content: @Composable (Modifier) -> Unit
 ) {
     Box(
         modifier = Modifier

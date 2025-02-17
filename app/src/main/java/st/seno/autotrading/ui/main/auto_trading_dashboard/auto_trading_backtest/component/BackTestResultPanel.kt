@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -45,21 +44,21 @@ fun BackTestResultPanel(
             isNormalCard = true,
             title = stringResource(R.string.auto_trading_back_test_result_total_profit),
             value = backTestResult.totalProfit.toString(),
-            priceTrend = if (backTestResult.totalProfit > 0.0) PriceTrend.BULLISH else if (backTestResult.totalProfit < 0.0) PriceTrend.BEARISH else PriceTrend.NEUTRAL,
+            priceTrend = if (backTestResult.totalProfit > 0.0) PriceTrend.RISE else if (backTestResult.totalProfit < 0.0) PriceTrend.FALL else PriceTrend.EVEN,
             modifier = Modifier.fillMaxWidth()
         )
         Row(horizontalArrangement = Arrangement.spacedBy(space = 16.dp)) {
             BackTestResultCard(
                 title = stringResource(R.string.auto_trading_back_test_result_total_return_rate),
                 value = backTestResult.totalReturnRate.toString(),
-                priceTrend = if (backTestResult.totalReturnRate > 0.0) PriceTrend.BULLISH else if (backTestResult.totalReturnRate < 0.0) PriceTrend.BEARISH else PriceTrend.NEUTRAL,
+                priceTrend = if (backTestResult.totalReturnRate > 0.0) PriceTrend.RISE else if (backTestResult.totalReturnRate < 0.0) PriceTrend.FALL else PriceTrend.EVEN,
                 modifier = Modifier.weight(weight = 1f)
             )
             BackTestResultCard(
                 isWindRateCard = true,
                 title = stringResource(R.string.auto_trading_back_test_result_win_rate),
                 value = backTestResult.winRate.toString(),
-                priceTrend = if (backTestResult.winRate > 0.0) PriceTrend.BULLISH else if (backTestResult.winRate < 0.0) PriceTrend.BEARISH else PriceTrend.NEUTRAL,
+                priceTrend = if (backTestResult.winRate > 0.0) PriceTrend.RISE else if (backTestResult.winRate < 0.0) PriceTrend.FALL else PriceTrend.EVEN,
                 modifier = Modifier.weight(weight = 1f)
             )
         }
@@ -67,13 +66,13 @@ fun BackTestResultPanel(
             BackTestResultCard(
                 title = stringResource(R.string.auto_trading_back_test_result_max_profit),
                 value = backTestResult.maximumProfitRate.toString(),
-                priceTrend = if (backTestResult.maximumProfitRate > 0.0) PriceTrend.BULLISH else if (backTestResult.maximumProfitRate < 0.0) PriceTrend.BEARISH else PriceTrend.NEUTRAL,
+                priceTrend = if (backTestResult.maximumProfitRate > 0.0) PriceTrend.RISE else if (backTestResult.maximumProfitRate < 0.0) PriceTrend.FALL else PriceTrend.EVEN,
                 modifier = Modifier.weight(weight = 1f)
             )
             BackTestResultCard(
                 title = stringResource(R.string.auto_trading_back_test_result_max_loss),
                 value = backTestResult.maximumLossRate.toString(),
-                priceTrend = if (backTestResult.maximumLossRate > 0.0) PriceTrend.BULLISH else if (backTestResult.maximumLossRate < 0.0) PriceTrend.BEARISH else PriceTrend.NEUTRAL,
+                priceTrend = if (backTestResult.maximumLossRate > 0.0) PriceTrend.RISE else if (backTestResult.maximumLossRate < 0.0) PriceTrend.FALL else PriceTrend.EVEN,
                 modifier = Modifier.weight(weight = 1f)
             )
         }
@@ -83,14 +82,14 @@ fun BackTestResultPanel(
                 isNormalCard = true,
                 title = stringResource(R.string.auto_trading_back_test_result_total_fee),
                 value = backTestResult.totalFee.toString(),
-                priceTrend = if (backTestResult.totalProfit > 0.0) PriceTrend.BULLISH else if (backTestResult.totalProfit < 0.0) PriceTrend.BEARISH else PriceTrend.NEUTRAL,
+                priceTrend = if (backTestResult.totalProfit > 0.0) PriceTrend.RISE else if (backTestResult.totalProfit < 0.0) PriceTrend.FALL else PriceTrend.EVEN,
                 modifier = Modifier.weight(weight = 1f)
             )
             BackTestResultCard(
                 isNormalCard = true,
                 title = stringResource(R.string.auto_trading_back_test_result_trade_count),
                 value = backTestResult.tradeCount.toString(),
-                priceTrend = if (backTestResult.totalProfit > 0.0) PriceTrend.BULLISH else if (backTestResult.totalProfit < 0.0) PriceTrend.BEARISH else PriceTrend.NEUTRAL,
+                priceTrend = if (backTestResult.totalProfit > 0.0) PriceTrend.RISE else if (backTestResult.totalProfit < 0.0) PriceTrend.FALL else PriceTrend.EVEN,
                 modifier = Modifier.weight(weight = 1f)
             )
         }
@@ -136,7 +135,7 @@ fun BackTestResultCard(
                 } else if (isWindRateCard) {
                     "$value%"
                 } else {
-                    if (priceTrend == PriceTrend.BULLISH) "+${value}%" else if (priceTrend == PriceTrend.BEARISH) "${value}%" else "$value%"
+                    if (priceTrend == PriceTrend.RISE) "+${value}%" else if (priceTrend == PriceTrend.FALL) "${value}%" else "$value%"
                 },
                 style = TextStyle(
                     fontSize = 17.textDp,

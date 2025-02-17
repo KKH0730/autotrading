@@ -1,13 +1,11 @@
 package st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import st.seno.autotrading.R
-import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.data.network.model.isSuccess
 import st.seno.autotrading.data.network.model.successData
 import st.seno.autotrading.domain.CandleUseCase
@@ -17,7 +15,6 @@ import st.seno.autotrading.extensions.truncateToXDecimalPlaces
 import st.seno.autotrading.model.BackTestResult
 import st.seno.autotrading.ui.base.BaseViewModel
 import st.seno.autotrading.util.BookmarkUtil
-import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.min
@@ -49,7 +46,7 @@ class BackTestViewModel @Inject constructor(
         vmScopeJob {
             showLoading()
 
-            candleUseCase.reqDayCandle(
+            candleUseCase.reqDaysCandle(
                 market = marketId,
                 to = "yyyy-MM-dd HH:mm:ss".formatedDate(),
                 count = sampleCount,

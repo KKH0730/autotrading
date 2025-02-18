@@ -59,10 +59,10 @@ class OrderImpl @Inject constructor(
         }
     }
 
-    override suspend fun reqIndividualOrder(uuid: String): Flow<Result<List<IndividualOrder>>> {
+    override suspend fun reqIndividualOrder(uuid: String): Flow<Result<IndividualOrder>> {
         return flow {
             val response = service.reqIndividualOrder(uuid = uuid)
-            emit(Result.Success(response.map { individualOrderMapper.fromRemote(it) }))
+            emit(Result.Success(individualOrderMapper.fromRemote(response)))
         }
     }
 }

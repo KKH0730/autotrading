@@ -63,11 +63,16 @@
 
     <!--auto trading-->
     <string name="auto_trading_dashboard_trade_status">Trade status</string>
-    <string name="auto_trading_dashboard_back_test">"Trading Backtest Button</string>
+    <string name="auto_trading_dashboard_back_test">"Trading Backtest</string>
     <string name="auto_trading_dashboard_trade_history">Trade history</string>
     <string name="auto_trading_status_on">Auto Trading in Progress…</string>
     <string name="auto_trading_status_off">Auto Trading Stopped</string>
     <string name="auto_trading_start_setting">Auto Trading Settings</string>
+    <string name="auto_trading_current_pnl">Current P/L:</string>
+    <string name="auto_trading_trading_strategy">Trading strategy</string>
+    <string name="auto_trading_trading_end_date">End date</string>
+    <string name="auto_trading_stop_loss">Stop loss</string>
+    <string name="auto_trading_take_profit">Take profit</string>
     <string name="auto_trading_stop">Stop</string>
     <string name="auto_trading_view">View trade</string>
     <string name="auto_trading_not_found_trade_history">No trade history found.\nPlease check the selected date range</string>
@@ -96,6 +101,7 @@
     <string name="auto_trading_end_date">End date</string>
     <string name="auto_trading_date_alert">The end date must be set after the start date.</string>
     <string name="auto_trading_not_enough">A minimum amount of 5,000 KRW is required</string>
+    <string name="auto_trading_start">Automated trading has been executed</string>
     <string name="auto_trading_back_test_setting">Backtest settings</string>
     <string name="auto_trading_back_test_price">Initial investment</string>
     <string name="auto_trading_back_test_sample_count">Sample count(3 ~ 200)</string>

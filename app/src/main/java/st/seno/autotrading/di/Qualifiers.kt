@@ -1,4 +1,4 @@
-package com.keytalkai.lewis.di
+package st.seno.autotrading.di
 
 import javax.inject.Qualifier
 

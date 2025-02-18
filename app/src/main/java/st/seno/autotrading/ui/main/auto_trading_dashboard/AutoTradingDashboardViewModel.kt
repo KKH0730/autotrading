@@ -11,23 +11,33 @@ import st.seno.autotrading.data.network.model.ClosedOrder
 import st.seno.autotrading.data.network.model.isSuccess
 import st.seno.autotrading.data.network.model.successData
 import st.seno.autotrading.domain.OrderUseCase
+import st.seno.autotrading.domain.TradingDataUseCase
+import st.seno.autotrading.extensions.truncateToXDecimalPlaces
+import st.seno.autotrading.model.Side
 import st.seno.autotrading.ui.base.BaseViewModel
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class AutoTradingDashboardViewModel @Inject constructor(
-    private val orderUseCase: OrderUseCase
+    private val orderUseCase: OrderUseCase,
+    private val tradingDataUseCase: TradingDataUseCase
 ) : BaseViewModel() {
 
-    private val _selectedCryptoToTradingHistory: MutableStateFlow<String> = MutableStateFlow("KRW-BTC")
+    private val _selectedCryptoToTradingHistory: MutableStateFlow<String> =
+        MutableStateFlow("KRW-BTC")
     val selectedCryptoToTradingHistory: StateFlow<String> get() = _selectedCryptoToTradingHistory.asStateFlow()
 
     @SuppressLint("SimpleDateFormat")
-    private val _selectedDateToTradingHistory: MutableStateFlow<Long> = MutableStateFlow(Calendar.getInstance().timeInMillis)
+    private val _selectedDateToTradingHistory: MutableStateFlow<Long> =
+        MutableStateFlow(Calendar.getInstance().timeInMillis)
     val selectedDateToTradingHistory: StateFlow<Long> get() = _selectedDateToTradingHistory.asStateFlow()
 
     private val _tradingHistories: MutableStateFlow<List<ClosedOrder>?> = MutableStateFlow(null)
     val tradingHistories: StateFlow<List<ClosedOrder>?> get() = _tradingHistories.asStateFlow()
+
+    private val _signedChangeRate: MutableStateFlow<Double> = MutableStateFlow(0.0)
+    val signedChangeRate: StateFlow<Double> get() = _signedChangeRate.asStateFlow()
 
 
     fun updateTradeHistorySelectedCrypto(newSelectedCrypto: String) {
@@ -62,6 +72,35 @@ class AutoTradingDashboardViewModel @Inject constructor(
             ).collectLatest { result ->
                 if (result.isSuccess()) {
                     _tradingHistories.value = result.successData()
+                }
+            }
+        }
+    }
+
+    fun reqTradingData(startDate: String) {
+        vmScopeJob {
+            tradingDataUseCase.reqTradingData(startDate = startDate).collectLatest {
+                _signedChangeRate.value = if (it.isEmpty()) {
+                    0.0
+                } else {
+                    val isAlreadyAsk = it.firstOrNull { tradingData ->  tradingData.order.side == Side.ASK.value } != null
+                    if (isAlreadyAsk) {
+                        it.fold(0.0 to 0.0) { acc, tradingData ->
+                            var totalBidPrice = acc.first
+                            var totalAskPrice = acc.second
+                            if (tradingData.order.side == Side.BID.value) {
+                                totalBidPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() + tradingData.order.paidFee.toDouble() } ?: 0.0
+                            } else {
+                                totalAskPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() - tradingData.order.paidFee.toDouble() } ?: 0.0
+                            }
+
+                            totalBidPrice to totalAskPrice
+                        }
+                            .let { pair -> ((pair.second - pair.first) / pair.first) * 100 }
+                            .truncateToXDecimalPlaces(x = 2.0)
+                    } else {
+                        0.0
+                    }
                 }
             }
         }

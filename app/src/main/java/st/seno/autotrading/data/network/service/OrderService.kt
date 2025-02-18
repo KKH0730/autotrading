@@ -32,10 +32,8 @@ interface OrderService {
     /**
      * 체결 대기 주문 조회
      **/
-    @GET("orders")
+    @GET("order")
     suspend fun reqIndividualOrder(
         @Query("uuid") uuid: String
-    ): List<IndividualOrderResponse>
-
-
+    ): IndividualOrderResponse
 }

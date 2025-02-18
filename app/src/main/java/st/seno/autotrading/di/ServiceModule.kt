@@ -1,6 +1,5 @@
 package st.seno.autotrading.di
 
-import com.keytalkai.lewis.di.Qualifiers
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

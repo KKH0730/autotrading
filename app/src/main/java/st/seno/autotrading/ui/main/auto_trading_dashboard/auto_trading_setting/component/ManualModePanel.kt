@@ -44,11 +44,13 @@ import st.seno.autotrading.ui.main.auto_trading_dashboard.component.CalendarPick
 fun ManualModePanel(
     stopLossValue: TextFieldValue,
     takeProfitValue: TextFieldValue,
+    correctionValue: TextFieldValue,
     startDateValue: Long,
     endDateValue: Long,
     tradeDateValue: TradeDate,
     onStopLossChanged: (TextFieldValue) -> Unit,
     onTakeProfitChanged: (TextFieldValue) -> Unit,
+    onCorrectionValueChanged: (TextFieldValue) -> Unit,
     onClickStartDatePicker: (Long) -> Unit,
     onClickEndDatePicker: (Long) -> Unit,
     onChangeDate: (TradeDate) -> Unit
@@ -95,6 +97,16 @@ fun ManualModePanel(
                         }
                     } catch (e: Exception) {
                         onTakeProfitChanged.invoke(TextFieldValue(text = value, selection = TextRange(index = value.length)))
+                    }
+                }
+            )
+            CommonInputContainer(
+                title = stringResource(R.string.auto_trading_back_test_correction_value),
+                textValue = correctionValue,
+                keyboardType = KeyboardType.Number,
+                onTextChanged = {
+                    if (it.text.toFloatOrNull()?.let { value -> value in 0.0..0.9 } == true) {
+                        onCorrectionValueChanged.invoke(TextFieldValue(text = it.text, selection = TextRange(index = it.text.length)))
                     }
                 }
             )

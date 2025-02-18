@@ -70,7 +70,7 @@ class CandleImpl @Inject constructor(
 
     override suspend fun reqDaysCandle(
         market: String,
-        to: String,
+        to: String?,
         count: Int,
         convertingPriceUnit: String
     ): Flow<Result<List<Candle>>> {

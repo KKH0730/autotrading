@@ -1,7 +1,6 @@
 package st.seno.autotrading.di
 
 import com.google.gson.Gson
-import com.keytalkai.lewis.di.Qualifiers
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

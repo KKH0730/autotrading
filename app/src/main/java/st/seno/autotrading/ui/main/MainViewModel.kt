@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
 ) : BaseViewModel() {
 
     private var rxSocketClient: RxSocketClient = RxSocketClient.getInstance(RxSocketClient.MAIN_SOCKET)

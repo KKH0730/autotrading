@@ -99,6 +99,7 @@ fun AutoTradingSettingScreen(
                         currentTradingMode = autoTradingSettingState.currentTradingModeState.value,
                         stopLossValue = autoTradingSettingState.stopLossState.value,
                         takeProfitValue = autoTradingSettingState.takeProfitState.value,
+                        correctionValue = autoTradingSettingState.correctionValueState.value,
                         startDateValue = autoTradingSettingState.startDateState.longValue,
                         endDateValue = autoTradingSettingState.endDateState.longValue,
                         tradeDateValue = autoTradingSettingState.tradeDateState.value,
@@ -109,6 +110,7 @@ fun AutoTradingSettingScreen(
                         onClickTradingMode = { autoTradingSettingState.currentTradingModeState.update(value = it) },
                         onStopLossChanged = { autoTradingSettingState.stopLossState.update(value = it) },
                         onTakeProfitChanged = { autoTradingSettingState.takeProfitState.update(value = it) },
+                        onCorrectionValueChanged = { autoTradingSettingState.correctionValueState.update(value = it) },
                         onClickStartDatePicker = { autoTradingSettingState.tradeDateState.update(value = TradeDate(isShowDatePicker = true, tradeDateType = TradeDateType.START, selectedDate = it)) },
                         onClickEndDatePicker = { autoTradingSettingState.tradeDateState.update(value = TradeDate(isShowDatePicker = true, tradeDateType = TradeDateType.END, selectedDate = it)) },
                         onChangeDate = { tradeDate ->

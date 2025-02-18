@@ -2,6 +2,7 @@ package st.seno.autotrading.extensions
 
 import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -14,11 +15,11 @@ import java.util.Locale
 
 @SuppressLint("SimpleDateFormat")
 fun Long.toDate(pattern: String): String {
-    val simpleDateFormat = SimpleDateFormat(pattern)
-    val calendar = Calendar.getInstance().apply {
-        timeInMillis  = this@toDate
-    }
-    return simpleDateFormat.format(Date().apply { time = calendar.timeInMillis })
+    val formatter = DateTimeFormatter.ofPattern(pattern)
+    return Instant.ofEpochMilli(this)
+        .atZone(ZoneId.systemDefault()) // 시스템 시간대 사용
+        .toLocalDate()
+        .format(formatter)
 }
 
 fun String.parseDateFormat(

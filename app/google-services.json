@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "558830770093",
+    "project_id": "cryptoautotrading-d3bd6",
+    "storage_bucket": "cryptoautotrading-d3bd6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:558830770093:android:1efdf5a5a2ff21448ff324",
+        "android_client_info": {
+          "package_name": "st.seno.autotrading"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1sRiaZDbEkIjD4gveuuBW3m-B3s_dNAs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

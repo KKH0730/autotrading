@@ -13,6 +13,8 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import st.seno.autotrading.R
+import st.seno.autotrading.extensions.getString
 import st.seno.autotrading.extensions.truncateToXDecimalPlaces
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.component.tradeModes
 import timber.log.Timber
@@ -35,8 +37,10 @@ class AutoTradingSettingState(
     val currentTradingModeState: MutableState<String>,
     val expandCryptoDropDownMenuState: MutableState<Boolean>,
     val quantityRatioIndexState: MutableState<Int>,
+    val tradingStrategyState: MutableState<String>,
     val stopLossState: MutableState<TextFieldValue>,
     val takeProfitState: MutableState<TextFieldValue>,
+    val correctionValueState: MutableState<TextFieldValue>,
     val startDateState: MutableLongState,
     val endDateState: MutableLongState,
     val tradeDateState: MutableState<TradeDate>,
@@ -59,8 +63,10 @@ fun rememberAutoTradingSettingState(
     currentTradingModeState: MutableState<String> = mutableStateOf(tradeModes[0]),
     expandCryptoDropDownMenuState: MutableState<Boolean> = mutableStateOf(false),
     quantityRatioIndexState: MutableState<Int> = mutableIntStateOf(0),
+    tradingStrategyState: MutableState<String> = mutableStateOf(getString(R.string.auto_trading_strategy_menu_1)),
     stopLossState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "0", selection = TextRange(index = "0".length))),
     takeProfitState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "0", selection = TextRange(index = "0".length))),
+    correctionValueState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "0.0", selection = TextRange(index = "0.0".length))),
     startDateState: MutableLongState,
     endDateState: MutableLongState,
     tradeDateState: MutableState<TradeDate>,
@@ -72,8 +78,10 @@ fun rememberAutoTradingSettingState(
         currentTradingModeState = currentTradingModeState,
         expandCryptoDropDownMenuState = expandCryptoDropDownMenuState,
         quantityRatioIndexState = quantityRatioIndexState,
+        tradingStrategyState = tradingStrategyState,
         stopLossState = stopLossState,
         takeProfitState = takeProfitState,
+        correctionValueState = correctionValueState,
         startDateState = startDateState,
         endDateState = endDateState,
         tradeDateState = tradeDateState,

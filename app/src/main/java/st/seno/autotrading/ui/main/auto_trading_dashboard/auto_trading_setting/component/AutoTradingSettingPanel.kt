@@ -29,7 +29,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import st.seno.autotrading.R
-import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.getString
@@ -54,6 +53,7 @@ fun AutoTradingSettingPanel(
     currentTradingMode: String,
     stopLossValue: TextFieldValue,
     takeProfitValue: TextFieldValue,
+    correctionValue: TextFieldValue,
     startDateValue: Long,
     endDateValue: Long,
     tradeDateValue: TradeDate,
@@ -64,6 +64,7 @@ fun AutoTradingSettingPanel(
     onClickTradingMode: (String) -> Unit,
     onStopLossChanged: (TextFieldValue) -> Unit,
     onTakeProfitChanged: (TextFieldValue) -> Unit,
+    onCorrectionValueChanged: (TextFieldValue) -> Unit,
     onClickStartDatePicker: (Long) -> Unit,
     onClickEndDatePicker: (Long) -> Unit,
     onChangeDate: (TradeDate) -> Unit
@@ -103,11 +104,13 @@ fun AutoTradingSettingPanel(
                 ManualModePanel(
                     stopLossValue = stopLossValue,
                     takeProfitValue = takeProfitValue,
+                    correctionValue = correctionValue,
                     startDateValue = startDateValue,
                     endDateValue = endDateValue,
                     tradeDateValue = tradeDateValue,
                     onStopLossChanged = onStopLossChanged,
                     onTakeProfitChanged = onTakeProfitChanged,
+                    onCorrectionValueChanged = onCorrectionValueChanged,
                     onClickStartDatePicker = onClickStartDatePicker,
                     onClickEndDatePicker = onClickEndDatePicker,
                     onChangeDate = onChangeDate,

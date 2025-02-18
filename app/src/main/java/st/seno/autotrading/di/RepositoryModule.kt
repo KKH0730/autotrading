@@ -13,6 +13,8 @@ import st.seno.autotrading.data.network.repository.MyAssetsImpl
 import st.seno.autotrading.data.network.repository.MyAssetsRepository
 import st.seno.autotrading.data.network.repository.OrderImpl
 import st.seno.autotrading.data.network.repository.OrderRepository
+import st.seno.autotrading.data.network.repository.TradingDataImpl
+import st.seno.autotrading.data.network.repository.TradingDataRepository
 
 /**
  * 구현체 형태의 repository 객체들을 viewModel scope에 interface 형태로 bind 해준다.
@@ -23,6 +25,9 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindMarketRepository(marketImpl: MarketImpl): MarketRepository
+
+    @Binds
+    abstract fun bindTradingDataRepository(tradingDataImpl: TradingDataImpl): TradingDataRepository
 }
 
 @Module

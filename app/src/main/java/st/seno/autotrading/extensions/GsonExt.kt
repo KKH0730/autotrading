@@ -37,3 +37,8 @@ fun Gson.changeBookmarkStatus(tickerCode: String) {
         Timber.e(e)
     }
 }
+
+inline fun <reified T> Gson.mapToModel(map: Map<String, Any?>): T {
+    val json = toJson(map) // Map을 JSON 문자열로 변환
+    return fromJson(json, T::class.java) // JSON을 Order 객체로 변환
+}

@@ -1,6 +1,6 @@
 package st.seno.autotrading.domain
 
-import com.keytalkai.lewis.di.Qualifiers
+import st.seno.autotrading.di.Qualifiers
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import st.seno.autotrading.data.network.model.ClosedOrder
@@ -45,5 +45,5 @@ class OrderUseCase @Inject constructor(
 
     suspend fun reqIndividualOrders(
         uuid: String,
-    ): Flow<Result<List<IndividualOrder>>> = orderRepository.reqIndividualOrder(uuid = uuid).catchError(dispatcher = ioDispatcher)
+    ): Flow<Result<IndividualOrder>> = orderRepository.reqIndividualOrder(uuid = uuid).catchError(dispatcher = ioDispatcher)
 }

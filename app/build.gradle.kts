@@ -5,6 +5,8 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
     id("kotlin-parcelize")
     id("dagger.hilt.android.plugin")
 }
@@ -49,6 +51,17 @@ android {
             isShrinkResources = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            manifestPlaceholders["enableCrashReporting"] = false
+            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+                // If you don't need crash reporting for your debug build,
+                // you can speed up your build by disabling mapping file uploading.
+                mappingFileUploadEnabled = false
+            }
+
+            // crashlytics 플러그인을 사용하지 않음
+            extra.set("enableCrashlytics", false)
+            // crashlytics 빌드 ID 업데이트 막기
+            extra.set("alwaysUpdateBuildId", false)
         }
 
         getByName("release") {
@@ -58,6 +71,7 @@ android {
             isShrinkResources = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            manifestPlaceholders["enableCrashReporting"] = true
         }
     }
 
@@ -97,10 +111,14 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.4")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.compose.material:material:1.3.0")
+    implementation("androidx.compose.material:material:1.7.8")
 
-    implementation("androidx.paging:paging-runtime:3.3.5")
-    implementation("androidx.paging:paging-compose:3.3.5")
+    implementation("androidx.paging:paging-runtime:3.3.6")
+    implementation("androidx.paging:paging-compose:3.3.6")
+
+    implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-firestore")
 
     implementation("com.google.dagger:hilt-android:2.50")
     kapt("com.google.dagger:hilt-android-compiler:2.50")

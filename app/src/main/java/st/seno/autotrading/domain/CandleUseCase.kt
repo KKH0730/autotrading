@@ -1,6 +1,6 @@
 package st.seno.autotrading.domain
 
-import com.keytalkai.lewis.di.Qualifiers
+import st.seno.autotrading.di.Qualifiers
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import st.seno.autotrading.data.network.model.Candle
@@ -51,7 +51,7 @@ class CandleUseCase @Inject constructor(
 
     suspend fun reqDaysCandle(
         market: String,
-        to: String,
+        to: String?,
         count: Int,
         convertingPriceUnit: String
     ): Flow<Result<List<Candle>>> {

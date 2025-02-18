@@ -44,6 +44,6 @@ interface OrderRepository {
 
     suspend fun reqIndividualOrder(
         uuid: String
-    ): Flow<Result<List<IndividualOrder>>>
+    ): Flow<Result<IndividualOrder>>
 
 }

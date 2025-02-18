@@ -55,5 +55,5 @@ data class TradeResponse(
     @SerializedName("side")
     val tradesSide: String, // 체결 종류
     @SerializedName("created_at")
-    val tradesCreatedAt: String, // 체결 시각
+    val tradesCreatedAt: String // 체결 시각
 )

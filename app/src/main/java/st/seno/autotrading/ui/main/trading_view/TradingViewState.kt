@@ -17,7 +17,6 @@ import st.seno.autotrading.extensions.pxToDp
 import st.seno.autotrading.extensions.screenHeight
 import st.seno.autotrading.extensions.screenWidth
 import st.seno.autotrading.extensions.update
-import timber.log.Timber
 import kotlin.math.abs
 
 const val MAX_CANDLE_CHART_HEIGHT = 500.0
@@ -30,18 +29,24 @@ const val tradingViewHeaderHeight = 100
 const val candleTimeframeHeight = 25
 const val candleDateHeight = 15
 const val bottomSpacerHeight = 10
+
 var candleChartHeight = (screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.6
 var volumeChartHeight = ((screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.4) - ((candleDateHeight + bottomSpacerHeight) * 2)
 var candleChartWidth = screenWidth.pxToDp() * 0.85
 val priceLevelIndicatorWidth = screenWidth.pxToDp() * 0.15
 
+var candleChartHeightWithAutoTrading = (screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.3
+var tradesListHeight = ((screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.7) - ((candleDateHeight + bottomSpacerHeight) * 2)
+
 val initialOverlayInfo = Triple(-10, -10, null)
 
 data class TradingViewState(
+    val isAutoTradingView: Boolean,
     val candleLazyListState: LazyListState,
     val candleChartWidthState: MutableDoubleState,
     val candleChartHeightState: MutableDoubleState,
-    val tradingVolumeHeight: MutableDoubleState,
+    val tradingVolumeHeightState: MutableDoubleState,
+    val tradesListHeightState: MutableDoubleState,
     val candleBodyWidthState: MutableIntState,
     val candleRangeState: MutableState<Pair<Double, Double>>,
     val tradingVolumeRangeState: MutableState<Pair<Double, Double>>,
@@ -72,10 +77,10 @@ data class TradingViewState(
     fun updateHeight(dragAmount: Float) {
         if (dragAmount < 0) {
             candleChartHeightState.doubleValue = (candleChartHeightState.doubleValue - abs(dragAmount.pxToDp())).takeIf { it >= MIN_CANDLE_CHART_HEIGHT } ?: MIN_CANDLE_CHART_HEIGHT
-            tradingVolumeHeight.doubleValue = (tradingVolumeHeight.doubleValue + abs(dragAmount.pxToDp())).takeIf { it <= MAX_TRADING_VOLUME_HEIGHT } ?: MAX_TRADING_VOLUME_HEIGHT
+            tradingVolumeHeightState.doubleValue = (tradingVolumeHeightState.doubleValue + abs(dragAmount.pxToDp())).takeIf { it <= MAX_TRADING_VOLUME_HEIGHT } ?: MAX_TRADING_VOLUME_HEIGHT
         } else {
             candleChartHeightState.doubleValue =  (candleChartHeightState.doubleValue + abs(dragAmount.pxToDp())).takeIf { it <= MAX_CANDLE_CHART_HEIGHT } ?: MAX_CANDLE_CHART_HEIGHT
-            tradingVolumeHeight.doubleValue = (tradingVolumeHeight.doubleValue - abs(dragAmount.pxToDp())).takeIf { it >= MIN_TRADING_VOLUME_HEIGHT } ?: MIN_TRADING_VOLUME_HEIGHT
+            tradingVolumeHeightState.doubleValue = (tradingVolumeHeightState.doubleValue - abs(dragAmount.pxToDp())).takeIf { it >= MIN_TRADING_VOLUME_HEIGHT } ?: MIN_TRADING_VOLUME_HEIGHT
         }
     }
 }
@@ -83,10 +88,12 @@ data class TradingViewState(
 
 @Composable
 fun rememberTradingViewState(
+    isAutoTradingView: Boolean,
     candleLazyListState: LazyListState = rememberLazyListState(),
     candleChartWidthState: MutableDoubleState = mutableDoubleStateOf(candleChartWidth),
-    candleChartHeightState: MutableDoubleState = mutableDoubleStateOf(candleChartHeight),
-    tradingVolumeHeight: MutableDoubleState = mutableDoubleStateOf(volumeChartHeight),
+    candleChartHeightState: MutableDoubleState = mutableDoubleStateOf(if (isAutoTradingView) candleChartHeightWithAutoTrading else candleChartHeight),
+    tradingVolumeHeightState: MutableDoubleState = mutableDoubleStateOf(volumeChartHeight),
+    tradesListHeightState: MutableDoubleState = mutableDoubleStateOf(tradesListHeight),
     candleBodyWidthState: MutableIntState = mutableIntStateOf(maxCandleBodyWidth),
     candleRangeState: MutableState<Pair<Double, Double>> = mutableStateOf(0.0 to 0.0),
     tradingVolumeRangeState: MutableState<Pair<Double, Double>> = mutableStateOf(0.0 to 0.0),
@@ -96,10 +103,12 @@ fun rememberTradingViewState(
     overlayInfoState: MutableState<Triple<Int, Int, Candle?>> = mutableStateOf(initialOverlayInfo)
 ) = remember {
     TradingViewState(
+        isAutoTradingView = isAutoTradingView,
         candleLazyListState = candleLazyListState,
         candleChartWidthState = candleChartWidthState,
         candleChartHeightState = candleChartHeightState,
-        tradingVolumeHeight = tradingVolumeHeight,
+        tradingVolumeHeightState = tradingVolumeHeightState,
+        tradesListHeightState = tradesListHeightState,
         candleBodyWidthState = candleBodyWidthState,
         candleRangeState = candleRangeState,
         tradingVolumeRangeState = tradingVolumeRangeState,

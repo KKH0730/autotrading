@@ -33,6 +33,7 @@ fun CandleView(
     candleTailWidth: Double,
     candleBodyWidth: Int,
     yOffset: Double,
+    side: String?,
     backgroundColor: Color,
     modifier: Modifier = Modifier
 ) {
@@ -46,6 +47,7 @@ fun CandleView(
             .height(height = candleHeight.dp)
             .offset(y = yOffset.dp)
             .background(color = backgroundColor)
+
     ) {
         val candleTopTailHeight = (((highPrice - openingPrice) * candleHeight) / abs(highPrice - lowPrice))
         val candleBottomTailHeight = (((openingPrice - lowPrice) * candleHeight) / abs(highPrice - lowPrice))

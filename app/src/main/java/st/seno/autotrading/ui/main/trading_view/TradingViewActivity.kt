@@ -22,6 +22,7 @@ class TradingViewActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     TradingViewScreen(
                         tickerCode = intent.getStringExtra(TICKER_CODE) ?: "",
+                        isAutoTradingView = intent.hasExtra(AUTO_TRADING_START_DATE),
                         onClickBack = { finish() }
                     )
                 }
@@ -31,10 +32,12 @@ class TradingViewActivity : ComponentActivity() {
 
     companion object {
         const val TICKER_CODE = "tickerCode"
+        const val AUTO_TRADING_START_DATE = "autoTradingStartDate"
 
-        fun start(context: Context, tickerCode: String) {
+        fun start(context: Context, tickerCode: String, autoTradingStartDate: String = "") {
             context.startActivity(TradingViewActivity::class.java) {
                 putExtra(TICKER_CODE, tickerCode)
+                autoTradingStartDate.takeIf { it.isNotEmpty() }?.let { putExtra(AUTO_TRADING_START_DATE, it) }
             }
         }
     }

@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.Asset
 import st.seno.autotrading.data.network.model.Candle
@@ -190,10 +191,7 @@ class AutoTradingService : Service() {
                 if (now.isAfter(endDateTime) && bidOrder == null) {
                     break
                 }
-
-                if (dayCandles.isEmpty()) {
-                    dayCandles = getDayCandles(marketId = marketId, coroutineScope = this)
-                }
+                dayCandles = dayCandles.ifEmpty { getDayCandles(marketId = marketId) }
 
                 // 매수 가능 체크
                 if (isBidTime(now = now) && isCanBid(order = bidOrder) && !isSkipBid) {
@@ -454,20 +452,18 @@ class AutoTradingService : Service() {
     }
 
     private suspend fun getDayCandles(
-        marketId: String,
-        coroutineScope: CoroutineScope
+        marketId: String
     ): List<Candle> {
-        return candleUseCase.reqDaysCandle(
-            market = marketId,
-            to = null,
-            count = 2,
-            convertingPriceUnit = "KRW"
-        )
-            .stateIn(coroutineScope)
-            .value
-            .takeIf { it.isSuccess() }
-            ?.successData()
-            ?: listOf()
+        return withContext(ioDispatcher) {
+            val response =  candleUseCase.reqDaysCandle(
+                market = marketId,
+                to = null,
+                count = 2
+            )
+            response.takeIf { it.isSuccess() }
+                ?.successData()
+                ?: listOf()
+        }
     }
 
     private suspend fun getMyAssets(coroutineScope: CoroutineScope): List<Asset>? {

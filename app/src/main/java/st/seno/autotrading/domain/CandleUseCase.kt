@@ -1,91 +1,74 @@
 package st.seno.autotrading.domain
 
-import st.seno.autotrading.di.Qualifiers
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import st.seno.autotrading.data.network.model.Candle
 import st.seno.autotrading.data.network.model.Result
+import st.seno.autotrading.data.network.paging.CandlePagingSourceFactory
+import st.seno.autotrading.data.network.paging.FlowUseCase
 import st.seno.autotrading.data.network.repository.CandleRepository
-import st.seno.autotrading.extensions.catchError
+import st.seno.autotrading.di.Qualifiers
+import timber.log.Timber
 import javax.inject.Inject
+
+class CandlePagingUseCase @Inject constructor(
+    private val candlePagingSourceFactory: CandlePagingSourceFactory,
+    @Qualifiers.IoDispatcher private val ioDispatcher: CoroutineDispatcher
+): FlowUseCase<CandlePagingUseCase.CandleParams, PagingData<Candle>>(dispatcher = ioDispatcher) {
+
+    override fun execute(params: CandleParams): Flow<Result<PagingData<Candle>>> {
+        return Pager(
+            PagingConfig(
+                pageSize = params.count,
+                prefetchDistance = 5,
+                enablePlaceholders = false
+            )
+        ) {
+            candlePagingSourceFactory.create(
+                market = params.market,
+                to = params.to,
+                count = params.count,
+                unit = params.unit,
+                timeFrame = params.timeFrame
+            )
+        }
+            .flow
+            .map { Result.Success(it) }
+    }
+
+
+    data class CandleParams(
+        val market: String,
+        val to: String,
+        val count: Int,
+        val unit: Int?,
+        val timeFrame: String
+    )
+}
 
 class CandleUseCase @Inject constructor(
     private val candleRepository: CandleRepository,
-    @Qualifiers.IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ){
-    suspend fun reqYearsCandle(
-        market: String,
-        to: String,
-        count: Int
-    ): Flow<Result<List<Candle>>> {
-        return candleRepository.reqYearsCandle(
-            market = market,
-            to = to,
-            count = count
-        ).catchError(dispatcher = ioDispatcher)
-    }
-
-    suspend fun reqMonthsCandle(
-        market: String,
-        to: String,
-        count: Int
-    ): Flow<Result<List<Candle>>> {
-        return candleRepository.reqMonthsCandle(
-            market = market,
-            to = to,
-            count = count
-        ).catchError(dispatcher = ioDispatcher)
-    }
-
-    suspend fun reqWeeksCandle(
-        market: String,
-        to: String,
-        count: Int
-    ): Flow<Result<List<Candle>>> {
-        return candleRepository.reqWeeksCandle(
-            market = market,
-            to = to,
-            count = count
-        ).catchError(dispatcher = ioDispatcher)
-    }
-
     suspend fun reqDaysCandle(
         market: String,
         to: String?,
-        count: Int,
-        convertingPriceUnit: String
-    ): Flow<Result<List<Candle>>> {
-        return candleRepository.reqDaysCandle(
-            market = market,
-            to = to,
-            count = count,
-            convertingPriceUnit = convertingPriceUnit
-        ).catchError(dispatcher = ioDispatcher)
-    }
-
-    suspend fun reqMinutesCandle(
-        market: String,
-        to: String,
-        count: Int,
-        unit: Int
-    ): Flow<Result<List<Candle>>> {
-        return candleRepository.reqMinutesCandle(
-            market = market,
-            to = to,
-            count = count,
-            unit = unit
-        ).catchError(dispatcher = ioDispatcher)
-    }
-
-    suspend fun reqSecondsCandle(
-        market: String,
-        to: String,
         count: Int
-    ): Flow<Result<List<Candle>>> {
-        return candleRepository.reqSecondsCandle(
-            market = market,
-            to = to,
-            count = count
-        ).catchError(dispatcher = ioDispatcher)
+    ): Result<List<Candle>> {
+        return try {
+            Result.Success(
+                candleRepository.reqDaysCandle(
+                    market = market,
+                    to = to,
+                    count = count
+                )
+            )
+        } catch (e: Exception) {
+            Timber.e(e)
+            Result.Error(e)
+        }
     }
 }

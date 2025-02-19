@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -23,8 +22,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import st.seno.autotrading.service.AutoTradingService
 import st.seno.autotrading.extensions.HeightSpacer
+import st.seno.autotrading.service.AutoTradingService
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.ui.main.MainActivity
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest.BackTestActivity
@@ -33,8 +32,6 @@ import st.seno.autotrading.ui.main.auto_trading_dashboard.component.AutoTradingS
 import st.seno.autotrading.ui.main.auto_trading_dashboard.component.BackTestPanel
 import st.seno.autotrading.ui.main.auto_trading_dashboard.component.TradingHistoryPanel
 import st.seno.autotrading.ui.main.trading_view.TradingViewActivity
-import timber.log.Timber
-import java.util.Calendar
 
 @Composable
 fun AutoTradingDashboardScreen() {
@@ -91,7 +88,13 @@ fun AutoTradingDashboardScreen() {
             isRunningAutoTradingService = isRunningAutoTradingService,
             signedChangeRate = signedChangeRate,
             onClickStopTrading = { stopService(context = context as MainActivity) },
-            onClickViewTrading = { AutoTradingService.tradingMarketId.takeIf { it.isNotEmpty() }?.let { TradingViewActivity.start(context = context, tickerCode = it) } } ,
+            onClickViewTrading = {
+                val marketId = AutoTradingService.tradingMarketId
+                val startDate = AutoTradingService.tradingStartDate
+                if (marketId.isNotEmpty() && startDate.isNotEmpty()) {
+                    TradingViewActivity.start(context = context, tickerCode = marketId, autoTradingStartDate = startDate)
+                }
+            } ,
             onClickStartAutoTrading = { AutoTradingSettingActivity.start(context = context) }
         )
         16.HeightSpacer()

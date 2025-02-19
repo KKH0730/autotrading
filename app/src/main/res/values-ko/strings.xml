@@ -133,4 +133,5 @@
     <string name="trading_view_overlay_low_price">Low price</string>
     <string name="trading_view_overlay_trade_price">Trade price</string>
     <string name="trading_view_overlay_volume">Volume</string>
+    <string name="trading_view_recent_trading_history">Recent trading history</string>
 </resources>

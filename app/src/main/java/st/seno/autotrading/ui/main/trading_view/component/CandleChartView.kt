@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -42,15 +43,15 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.paging.compose.LazyPagingItems
 import kotlinx.coroutines.flow.collectLatest
 import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.Candle
 import st.seno.autotrading.data.network.model.Ticker
+import st.seno.autotrading.data.network.response_model.Trade
 import st.seno.autotrading.extensions.Divider
-import st.seno.autotrading.extensions.FullHeightSpacer
-import st.seno.autotrading.extensions.FullWidthSpacer
+import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.VerticalDivider
-import st.seno.autotrading.extensions.dpToPx
 import st.seno.autotrading.extensions.formatRealPrice
 import st.seno.autotrading.extensions.isFirstDayOfMonth
 import st.seno.autotrading.extensions.isToday
@@ -59,7 +60,6 @@ import st.seno.autotrading.extensions.measuredTextHeight
 import st.seno.autotrading.extensions.numberWithCommas
 import st.seno.autotrading.extensions.parseDateFormat
 import st.seno.autotrading.extensions.pxToDp
-import st.seno.autotrading.extensions.screenWidth
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.model.PriceTrend
 import st.seno.autotrading.theme.B3000000
@@ -67,7 +67,6 @@ import st.seno.autotrading.theme.COLOR_80BDBBBB
 import st.seno.autotrading.theme.FF000000
 import st.seno.autotrading.theme.FF374151
 import st.seno.autotrading.theme.FF626975
-import st.seno.autotrading.theme.FFBDBBBB
 import st.seno.autotrading.theme.FFCEDBDA
 import st.seno.autotrading.theme.FFF8F8F8
 import st.seno.autotrading.theme.FFFFFFFF
@@ -76,13 +75,14 @@ import st.seno.autotrading.ui.main.trading_view.isDaysCandle
 import st.seno.autotrading.ui.main.trading_view.priceLevelIndicatorWidth
 import timber.log.Timber
 import java.time.format.DateTimeFormatter
-import java.util.logging.SimpleFormatter
 
 @SuppressLint("UseOfNonLambdaOffsetOverload")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun CandleChartView(
-    candles: List<Candle>,
+    isAutoTradingView: Boolean,
+    candles: LazyPagingItems<Candle>,
+    trades: List<Trade>,
     ticker: Ticker,
     selectedTimeFrame: String,
     firstOfDayOffsetList: List<Double>,
@@ -91,6 +91,7 @@ fun CandleChartView(
     candleChartHeight: Double,
     candleBodyWidth: Int,
     tradingVolumeHeight: Double,
+    tradesListHeightState: Double,
     candleLazyListState: LazyListState,
     candleRange: Pair<Double, Double>,
     tradingVolumeRange: Pair<Double, Double>,
@@ -107,7 +108,8 @@ fun CandleChartView(
 
     CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            if (candles.isNotEmpty()) {
+
+            if (candles.itemCount != 0) {
                 Column {
                     TradingViewHeader(ticker = ticker)
                     CandleTimeframe(selectedTimeFrame = selectedTimeFrame, onClickTimeFrame = onClickTimeFrame)
@@ -148,19 +150,24 @@ fun CandleChartView(
 //                        candleSpace = candleSpace,
 //                        onDraggedDateView = onDraggedDateView
 //                    )
-                    TradingVolumeView(
-                        candleLazyListState = candleLazyListState,
-                        candles = candles,
-                        ticker = ticker,
-                        selectedTimeFrame = selectedTimeFrame,
-                        firstVisibleIndex = firstVisibleIndex,
-                        tradingVolumeHeight = tradingVolumeHeight,
-                        candleSpace = candleSpace,
-                        candleChartWidth = candleChartWidth,
-                        candleBodyWidth = candleBodyWidth,
-                        tradingVolumeRange = tradingVolumeRange,
-                        onDraggedCandleView = onDraggedCandleView
-                    )
+                    if (isAutoTradingView) {
+                        24.HeightSpacer()
+                        TradingHistoryView(tradesListHeightState = tradesListHeightState, trades = trades)
+                    } else {
+                        TradingVolumeView(
+                            candleLazyListState = candleLazyListState,
+                            candles = candles,
+                            ticker = ticker,
+                            selectedTimeFrame = selectedTimeFrame,
+                            firstVisibleIndex = firstVisibleIndex,
+                            tradingVolumeHeight = tradingVolumeHeight,
+                            candleSpace = candleSpace,
+                            candleChartWidth = candleChartWidth,
+                            candleBodyWidth = candleBodyWidth,
+                            tradingVolumeRange = tradingVolumeRange,
+                            onDraggedCandleView = onDraggedCandleView
+                        )
+                    }
                 }
             }
         }
@@ -168,11 +175,10 @@ fun CandleChartView(
 }
 
 //region(TradingCandleView)
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TradingCandleView(
     candleLazyListState: LazyListState,
-    candles: List<Candle>,
+    candles: LazyPagingItems<Candle>,
     ticker: Ticker,
     selectedTimeFrame: String,
     firstVisibleIndex: Int,
@@ -189,8 +195,8 @@ fun TradingCandleView(
     onChangedCandleRange: (Pair<Pair<Double, Double> , Pair<Double, Double>>) -> Unit
 ) {
     val candleTailWidth = 1.0
-    val maxPrice = candleRange.second.takeIf { it != 0.0 } ?: candles.maxOf { it.highPrice }
-    val minPrice = candleRange.first.takeIf { it != 0.0 } ?: candles.minOf { it.lowPrice }
+    val maxPrice = candleRange.second.takeIf { it != 0.0 } ?: candles.itemSnapshotList.items.maxOf { it.highPrice }
+    val minPrice = candleRange.first.takeIf { it != 0.0 } ?: candles.itemSnapshotList.items.minOf { it.lowPrice }
     val totalRange = maxPrice - minPrice
 
     LaunchedEffect(candles, candleLazyListState, candleBodyWidth) {
@@ -200,8 +206,8 @@ fun TradingCandleView(
 
                 val lastVisibleIndex = candleLazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
 
-                if (lastVisibleIndex != null && lastVisibleIndex < candles.size) {
-                    val visibleCandles = candles.slice(firstVisibleIndex..lastVisibleIndex)
+                if (lastVisibleIndex != null && lastVisibleIndex < candles.itemCount) {
+                    val visibleCandles = candles.itemSnapshotList.items.slice(firstVisibleIndex..lastVisibleIndex)
 
                     onChangedCandleRange.invoke(
                         (visibleCandles.minOf { it.lowPrice } to visibleCandles.maxOf { it.highPrice })
@@ -263,7 +269,7 @@ fun TradingCandleView(
                                     val rawIndex = lastItem.index - itemIndex
                                     Timber.e("itemIndex : $itemIndex, rawIndex : $rawIndex")
                                     Timber.e("                     ")
-                                    if (rawIndex >= 0 && rawIndex < candles.lastIndex) {
+                                    if (rawIndex >= 0 && rawIndex < candles.itemCount - 1) {
                                         onChangedOverlayInfo.invoke(
                                             Triple(
                                                 offset.x.pxToDp(),
@@ -285,6 +291,7 @@ fun TradingCandleView(
             state = candleLazyListState,
             reverseLayout = true,
             userScrollEnabled = !isBlockCandleVerticalDrag,
+            contentPadding = PaddingValues(horizontal = 50.dp),
             horizontalArrangement = Arrangement.spacedBy(space = candleSpace.dp, alignment = Alignment.End),
             modifier = Modifier
                 .width(width = candleChartWidth.dp)
@@ -315,7 +322,7 @@ fun TradingCandleView(
                                     }
 
                                     val rawIndex = lastItem.index - itemIndex
-                                    if (rawIndex >= 0 && rawIndex < candles.lastIndex) {
+                                    if (rawIndex >= 0 && rawIndex < candles.itemCount - 1) {
                                         onChangedOverlayInfo.invoke(
                                             Triple(
                                                 change.position.x.pxToDp(),
@@ -337,50 +344,55 @@ fun TradingCandleView(
                 }
         ) {
             items(
-                count = candles.size,
-                key = { index -> candles[index].candleDateTimeUtc },
+                count = candles.itemCount,
             ) { index ->
-                val highPrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.highPrice else candles[index].highPrice
-                val lowPrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.lowPrice else candles[index].lowPrice
-                val tradePrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.tradePrice else candles[index].tradePrice
-                val openingPrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.openingPrice else candles[index].openingPrice
+                candles[index]?.let { candle ->
+                    val highPrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.highPrice else candle.highPrice
+                    val lowPrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.lowPrice else candle.lowPrice
+                    val tradePrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.tradePrice else candle.tradePrice
+                    val openingPrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.openingPrice else candle.openingPrice
 
-                val topSpace = (candleChartHeight * (maxPrice - highPrice)) / totalRange
-                val range = highPrice - lowPrice
-                val candleHeight = (candleChartHeight * range) / totalRange
+                    val topSpace = (candleChartHeight * (maxPrice - highPrice)) / totalRange
+                    val range = highPrice - lowPrice
+                    val candleHeight = (candleChartHeight * range) / totalRange
 
-                Box {
-                    CandleView(
-                        candleHeight = candleHeight,
-                        openingPrice = openingPrice,
-                        highPrice = highPrice,
-                        lowPrice = lowPrice,
-                        tradePrice = tradePrice,
-                        candleTailWidth = candleTailWidth,
-                        candleBodyWidth = candleBodyWidth,
-                        yOffset = topSpace,
-                        backgroundColor = FFFFFFFF
-                    )
-                    if (candles[index].candleDateTimeUtc.isFirstDayOfMonth()) {
-                        0.2.VerticalDivider(
-                            xOffset = candleChartWidth,
-                            modifier = Modifier
-                                .zIndex(zIndex = 0f)
-                                .align(alignment = Alignment.Center)
-                                .background(color = COLOR_80BDBBBB)
+                    Box {
+                        CandleView(
+                            candleHeight = candleHeight,
+                            openingPrice = openingPrice,
+                            highPrice = highPrice,
+                            lowPrice = lowPrice,
+                            tradePrice = tradePrice,
+                            candleTailWidth = candleTailWidth,
+                            candleBodyWidth = candleBodyWidth,
+                            yOffset = topSpace,
+                            side = candle.side,
+                            backgroundColor = FFFFFFFF
                         )
+                        if (candle.candleDateTimeUtc.isFirstDayOfMonth()) {
+                            0.2.VerticalDivider(
+                                xOffset = candleChartWidth,
+                                modifier = Modifier
+                                    .zIndex(zIndex = 0f)
+                                    .align(alignment = Alignment.Center)
+                                    .background(color = COLOR_80BDBBBB)
+                            )
+                        }
                     }
                 }
             }
         }
 
-        if (firstVisibleIndex != -1 && firstVisibleIndex < candles.size) {
-            val highlightPrice = if (candles[firstVisibleIndex].candleDateTimeUtc.isToday()) {
+        if (firstVisibleIndex != -1 && firstVisibleIndex < candles.itemCount) {
+            val highlightPrice = if (candles[firstVisibleIndex]?.candleDateTimeUtc?.isToday() == true) {
                 ticker.tradePrice
             } else {
-                candles[firstVisibleIndex].tradePrice
+                candles[firstVisibleIndex]?.tradePrice ?: 0.0
             }
-            val trendType: PriceTrend = PriceTrend.getPriceTrend(targetPrice = candles[firstVisibleIndex].tradePrice, openingPrice = candles[firstVisibleIndex].openingPrice)
+            val trendType: PriceTrend = PriceTrend.getPriceTrend(
+                targetPrice = candles[firstVisibleIndex]?.tradePrice ?: 0.0,
+                openingPrice = candles[firstVisibleIndex]?.openingPrice ?: 0.0
+            )
 
             ChartUnderLayerView(
                 chartHeight = candleChartHeight,
@@ -628,103 +640,6 @@ fun CandleDateView(
                 contentDescription = null,
                 tint = FF626975,
                 modifier = Modifier.size(height = 10.dp, width = 10.dp)
-            )
-        }
-    }
-}
-//endregion
-
-//region(TradingVolumeView)
-@Composable
-fun TradingVolumeView(
-    candleLazyListState: LazyListState,
-    candles: List<Candle>,
-    ticker: Ticker,
-    selectedTimeFrame: String,
-    firstVisibleIndex: Int,
-    tradingVolumeHeight: Double,
-    candleSpace: Int,
-    candleChartWidth: Double,
-    candleBodyWidth: Int,
-    tradingVolumeRange: Pair<Double, Double>,
-    onDraggedCandleView: (Float) -> Unit,
-) {
-    val maxVolume = tradingVolumeRange.second.takeIf { it != 0.0 } ?: candles.maxOf { it.candleAccTradeVolume }
-    val minVolume = tradingVolumeRange.first
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(height = tradingVolumeHeight.dp)
-            .pointerInput(Unit) {
-                detectVerticalDragGestures(
-                    onDragStart = {},
-                    onVerticalDrag = { _: PointerInputChange, dragAmount: Float ->
-                        onDraggedCandleView.invoke(
-                            dragAmount
-                        )
-                    },
-                    onDragEnd = {}
-                )
-            }
-    ) {
-        0.2.VerticalDivider(xOffset = candleChartWidth, backgroundColor = FFBDBBBB)
-        LazyRow(
-            state = candleLazyListState,
-            reverseLayout = true,
-            horizontalArrangement = Arrangement.spacedBy(space = candleSpace.dp, alignment = Alignment.End),
-            modifier = Modifier
-                .width(width = candleChartWidth.dp)
-                .height(height = tradingVolumeHeight.dp)
-                .background(color = FFFFFFFF)
-        ) {
-            items(
-                count = candles.size,
-                key = { index -> candles[index].candleDateTimeUtc },
-            ) { index ->
-                val volumeChartHeight = if (maxVolume < candles[index].candleAccTradeVolume) {
-                    0.0
-                } else {
-                    (tradingVolumeHeight * candles[index].candleAccTradeVolume) / maxVolume
-                }
-                val openingPrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.openingPrice else candles[index].openingPrice
-                val tradePrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.tradePrice else candles[index].tradePrice
-
-                Box {
-                    Column {
-                        FullHeightSpacer()
-                        VolumeCandleView(
-                            volumeChartHeight = volumeChartHeight,
-                            openingPrice = openingPrice,
-                            tradePrice =  tradePrice,
-                            candleBodyWidth = candleBodyWidth,
-                        )
-                    }
-                    if (candles[index].candleDateTimeUtc.isFirstDayOfMonth()) {
-                        Spacer(
-                            modifier = Modifier
-                                .width(width = 0.2.dp)
-                                .fillMaxHeight()
-                                .zIndex(zIndex = 0f)
-                                .align(alignment = Alignment.Center)
-                                .background(color = COLOR_80BDBBBB)
-                        )
-                    }
-                }
-            }
-        }
-        if (firstVisibleIndex != -1 && firstVisibleIndex < candles.size) {
-            val highlightVolume = candles[firstVisibleIndex].candleAccTradeVolume
-            val trendType: PriceTrend = PriceTrend.getPriceTrend(targetPrice = candles[firstVisibleIndex].tradePrice, openingPrice = candles[firstVisibleIndex].openingPrice)
-
-            ChartUnderLayerView(
-                chartHeight = tradingVolumeHeight,
-                maxPrice = maxVolume,
-                minPrice = minVolume,
-                highlightPrice = highlightVolume,
-                highlightPriceTrend = trendType,
-                isTradingVolume = true,
-                level = 4
             )
         }
     }

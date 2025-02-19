@@ -46,11 +46,11 @@ fun TradingViewHeader(ticker: Ticker) {
         PriceAndChangeRatePanel(
             ticker = ticker,
             priceTrend = priceTrend,
-            modifier = Modifier.weight(weight = 0.7f)
+            modifier = Modifier.weight(weight = 0.6f)
         )
         AdditionalTickerInfoPanel(
             ticker = ticker,
-            modifier = Modifier.weight(weight = 0.3f)
+            modifier = Modifier.weight(weight = 0.4f)
         )
     }
 }
@@ -126,7 +126,7 @@ fun AdditionalTickerInfoPanel(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(space = 25.dp),
+        horizontalArrangement = Arrangement.spacedBy(space = 36.dp, alignment = Alignment.End),
         modifier = modifier
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
@@ -134,7 +134,7 @@ fun AdditionalTickerInfoPanel(
                 Text(
                     stringResource(R.string.trading_view_header_high),
                     style = TextStyle(
-                        fontSize = 8.textDp,
+                        fontSize = 9.textDp,
                         fontWeight = FontWeight.Normal,
                         color = FF9CA3AF
                     )
@@ -152,7 +152,7 @@ fun AdditionalTickerInfoPanel(
                 Text(
                     stringResource(R.string.trading_view_header_low),
                     style = TextStyle(
-                        fontSize = 8.textDp,
+                        fontSize = 9.textDp,
                         fontWeight = FontWeight.Normal,
                         color = FF9CA3AF
                     )
@@ -172,7 +172,7 @@ fun AdditionalTickerInfoPanel(
                 Text(
                     stringResource(R.string.trading_view_header_vol),
                     style = TextStyle(
-                        fontSize = 8.textDp,
+                        fontSize = 9.textDp,
                         fontWeight = FontWeight.Normal,
                         color = FF9CA3AF
                     )
@@ -190,7 +190,7 @@ fun AdditionalTickerInfoPanel(
                 Text(
                     stringResource(R.string.trading_view_header_24_vol),
                     style = TextStyle(
-                        fontSize = 8.textDp,
+                        fontSize = 9.textDp,
                         fontWeight = FontWeight.Normal,
                         color = FF9CA3AF
                     )

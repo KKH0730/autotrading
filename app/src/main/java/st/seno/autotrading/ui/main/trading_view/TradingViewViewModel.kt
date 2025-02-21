@@ -3,6 +3,7 @@ package st.seno.autotrading.ui.main.trading_view
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,6 @@ import st.seno.autotrading.data.network.model.Result
 import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.data.network.response_model.Trade
 import st.seno.autotrading.domain.CandlePagingUseCase
-import st.seno.autotrading.domain.CandleUseCase
 import st.seno.autotrading.domain.TradingDataUseCase
 import st.seno.autotrading.extensions.formatedDate
 import st.seno.autotrading.extensions.getString
@@ -47,7 +47,6 @@ fun String.isDaysCandle() = this == candleTimeFrames[3].first
 
 @HiltViewModel
 class TradingViewViewModel @Inject constructor(
-    private val candleUseCase: CandleUseCase,
     private val candlePagingUseCase: CandlePagingUseCase,
     private val tradingDataUseCase: TradingDataUseCase,
     savedStateHandle: SavedStateHandle
@@ -129,15 +128,16 @@ class TradingViewViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val rawCandles = candleParams.flatMapLatest { params ->
-        candlePagingUseCase.execute(
-            params = params
-        ).map { result ->
-            when (result) {
-                is Result.Success -> { result.data }
-                else -> PagingData.empty()
+        candlePagingUseCase.execute(params = params)
+            .map { result ->
+                when (result) {
+                    is Result.Success -> { result.data }
+                    else -> PagingData.empty()
+                }
             }
-        }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, PagingData.empty())
+    }
+        .cachedIn(viewModelScope)
+        .stateIn(viewModelScope, SharingStarted.Lazily, PagingData.empty())
 
     init {
         if (autoTradingStartDate.isNotEmpty()) {

@@ -11,12 +11,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import st.seno.autotrading.R
-import st.seno.autotrading.data.network.model.Candle
 import st.seno.autotrading.extensions.getString
 import st.seno.autotrading.extensions.pxToDp
 import st.seno.autotrading.extensions.screenHeight
 import st.seno.autotrading.extensions.screenWidth
 import st.seno.autotrading.extensions.update
+import st.seno.autotrading.model.CandleListType
 import kotlin.math.abs
 
 const val MAX_CANDLE_CHART_HEIGHT = 500.0
@@ -53,7 +53,7 @@ data class TradingViewState(
     val selectedTimeFrameState: MutableState<String>,
     val firstVisibleIndexState: MutableIntState,
     val isBlockCandleVerticalDragState: MutableState<Boolean>,
-    val overlayInfoState: MutableState<Triple<Int, Int, Candle?>>
+    val overlayInfoState: MutableState<Triple<Int, Int, CandleListType.CandleType?>>
 ) {
 
     fun updateCandleRange(candleRange: Pair<Double, Double>, tradingVolumeRange: Pair<Double, Double>) {
@@ -100,7 +100,7 @@ fun rememberTradingViewState(
     selectedTimeFrameState: MutableState<String> = mutableStateOf(getString(R.string.trading_view_time_frame_1d)),
     firstVisibleIndexState: MutableIntState = mutableIntStateOf(-1),
     isBlockCandleVerticalDragState: MutableState<Boolean> = mutableStateOf(false),
-    overlayInfoState: MutableState<Triple<Int, Int, Candle?>> = mutableStateOf(initialOverlayInfo)
+    overlayInfoState: MutableState<Triple<Int, Int, CandleListType.CandleType?>> = mutableStateOf(initialOverlayInfo)
 ) = remember {
     TradingViewState(
         isAutoTradingView = isAutoTradingView,

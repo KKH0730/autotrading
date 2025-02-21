@@ -12,15 +12,16 @@ import st.seno.autotrading.data.network.paging.CandlePagingSourceFactory
 import st.seno.autotrading.data.network.paging.FlowUseCase
 import st.seno.autotrading.data.network.repository.CandleRepository
 import st.seno.autotrading.di.Qualifiers
+import st.seno.autotrading.model.CandleListType
 import timber.log.Timber
 import javax.inject.Inject
 
 class CandlePagingUseCase @Inject constructor(
     private val candlePagingSourceFactory: CandlePagingSourceFactory,
     @Qualifiers.IoDispatcher private val ioDispatcher: CoroutineDispatcher
-): FlowUseCase<CandlePagingUseCase.CandleParams, PagingData<Candle>>(dispatcher = ioDispatcher) {
+): FlowUseCase<CandlePagingUseCase.CandleParams, PagingData<CandleListType>>(dispatcher = ioDispatcher) {
 
-    override fun execute(params: CandleParams): Flow<Result<PagingData<Candle>>> {
+    override fun execute(params: CandleParams): Flow<Result<PagingData<CandleListType>>> {
         return Pager(
             PagingConfig(
                 pageSize = params.count,

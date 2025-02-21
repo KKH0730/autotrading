@@ -11,10 +11,10 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import st.seno.autotrading.extensions.changeBookmarkStatus
 import st.seno.autotrading.extensions.gson
 import st.seno.autotrading.extensions.update
+import st.seno.autotrading.model.CandleListType
 import st.seno.autotrading.ui.main.trading_view.component.CandleChartView
 import st.seno.autotrading.ui.main.trading_view.component.TradingViewToolbar
 import st.seno.autotrading.util.BookmarkUtil
-import timber.log.Timber
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -26,12 +26,11 @@ fun TradingViewScreen(
     val tradingViewState = rememberTradingViewState(isAutoTradingView = isAutoTradingView)
     val tradingViewViewModel = hiltViewModel<TradingViewViewModel>()
     val candleChartModel = tradingViewViewModel.candleChartModel.collectAsStateWithLifecycle().value
-    val candles = tradingViewViewModel.rawCandles.collectAsLazyPagingItems()
+    val candleListTypes = tradingViewViewModel.rawCandles.collectAsLazyPagingItems()
+    val candles = candleListTypes.itemSnapshotList.items.filterIsInstance<CandleListType.CandleType>()
     val trades = tradingViewViewModel.trades.collectAsStateWithLifecycle().value
     val ticker = candleChartModel?.ticker
     val bookmarkedTickers = candleChartModel?.favoriteTickers
-
-    Timber.e("candles size : ${candles.itemCount}")
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (tickerCode.split("-").size == 2) {
@@ -49,6 +48,7 @@ fun TradingViewScreen(
         if (candleChartModel != null && ticker != null) {
             CandleChartView(
                 isAutoTradingView = isAutoTradingView,
+                candleListTypes = candleListTypes,
                 candles = candles,
                 trades = trades,
                 ticker = ticker,
@@ -59,6 +59,7 @@ fun TradingViewScreen(
                 candleChartHeight = tradingViewState.candleChartHeightState.doubleValue,
                 candleBodyWidth = tradingViewState.candleBodyWidthState.intValue,
                 tradingVolumeHeight = tradingViewState.tradingVolumeHeightState.doubleValue,
+                candleDateHeight = candleDateHeight,
                 tradesListHeightState = tradingViewState.tradesListHeightState.doubleValue,
                 candleLazyListState = tradingViewState.candleLazyListState,
                 candleRange = tradingViewState.candleRangeState.value,
@@ -72,7 +73,7 @@ fun TradingViewScreen(
                     tradingViewViewModel.reqCandles(timeFrameName = it.first, unit = it.second)
                  },
                 onChangeFirstVisibleIndex = { tradingViewState.firstVisibleIndexState.update(value = it) },
-                onDraggedCandleView = { tradingViewState.updateCandleBodyWidth(dragAmount = it, candlesSize = candles.itemCount) },
+                onDraggedCandleView = { tradingViewState.updateCandleBodyWidth(dragAmount = it, candlesSize = candles.size) },
                 onChangedCandleRange = { tradingViewState.updateCandleRange(candleRange = it.first, tradingVolumeRange = it.second) },
                 onDraggedDateView = { tradingViewState.updateHeight(dragAmount = it) }
             )

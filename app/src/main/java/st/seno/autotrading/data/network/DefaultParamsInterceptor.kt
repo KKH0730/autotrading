@@ -46,8 +46,6 @@ class DefaultParamsInterceptor @Inject constructor() : Interceptor {
             } ?: ""
         }
 
-        Timber.e("queryString : $queryString")
-
         val md = MessageDigest.getInstance("SHA-512")
         md.update(queryString.toByteArray(charset("UTF-8")))
 

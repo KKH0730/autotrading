@@ -303,7 +303,6 @@ class AutoTradingService : Service() {
         } else {
             // 변동성 돌파 전략 -> 오늘 시가 + (전일 고가와 저가 변동폭 * 보정계수) 도달 시 상승 신호로 판단하여 매수 진행
             val breakoutPrice = dayCandles[0].openingPrice + ((dayCandles[1].highPrice - dayCandles[1].lowPrice) * correctionValue)
-            Timber.e("breakoutPrice : $breakoutPrice, correctionValue : $correctionValue, 오늘 tradePrice : ${dayCandles[0].tradePrice}, 오늘 openPrice : ${dayCandles[0].openingPrice} 어제 highPrice : ${dayCandles[1].highPrice}, 어제 lowPrice : ${dayCandles[1].lowPrice}")
             if (breakoutPrice <= dayCandles[0].tradePrice) {
                 val myAssets = getMyAssets(coroutineScope = coroutineScope)
                 myAssets?.firstOrNull { asset -> asset.currency.lowercase() == getString(R.string.krw) }?.let { krwAsset ->
@@ -341,7 +340,6 @@ class AutoTradingService : Service() {
         onSkipBid: () -> Unit,
     ): Pair<Order?, Double?>? {
         val bidOrder = buyCrypto(marketId, quantityRatio, correctionValue, dayCandles, onSkipBid, coroutineScope)
-        Timber.e("bid : $bidOrder")
         bidOrder?.let {
             val individualOrder = reqIndividualOrder(uuid = bidOrder.uuid, coroutineScope = coroutineScope)
 

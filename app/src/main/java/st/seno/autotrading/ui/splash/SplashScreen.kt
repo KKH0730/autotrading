@@ -6,10 +6,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.delay
 import st.seno.autotrading.R
 import st.seno.autotrading.extensions.restartApp
@@ -23,6 +27,9 @@ fun SplashScreen(
     onFinished: () -> Unit,
 
 ) {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.bitcoin_jumping)
+    )
     var countState by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
 
@@ -36,20 +43,20 @@ fun SplashScreen(
         countState += 1
     }
     if (startMain || countState <= 2) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(color = FFCEDBDA)
         ) {
-            Spacer(modifier = Modifier.height(height = 210.dp))
-            Image(
-                painter = painterResource(id = R.drawable.img_splash),
-                contentDescription = null,
-                modifier = Modifier.width(width = 216.dp)
-                    .aspectRatio(ratio = 2.37f)
+            LottieAnimation(
+                composition = composition,
+                iterations = Int.MAX_VALUE,
+                speed = 2f,
+                modifier = Modifier
+                    .height(height = 150.dp)
+                    .width(width = 300.dp)
+                    .align(alignment = Alignment.Center)
             )
-            Spacer(modifier = Modifier.weight(weight = 1f))
         }
     } else {
         RestartDialog(

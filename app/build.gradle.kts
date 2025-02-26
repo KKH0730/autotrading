@@ -11,6 +11,9 @@ plugins {
     id("dagger.hilt.android.plugin")
 }
 
+val localProperties = Properties()
+localProperties.load(FileInputStream(rootProject.file("local.properties")))
+
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreFileInputStream = FileInputStream(keystorePropertiesFile)
 val keystoreProperties = Properties()
@@ -25,7 +28,7 @@ android {
         minSdk = 30
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -62,6 +65,9 @@ android {
             extra.set("enableCrashlytics", false)
             // crashlytics 빌드 ID 업데이트 막기
             extra.set("alwaysUpdateBuildId", false)
+
+            buildConfigField("String", "SECRET_KEY", localProperties["SECRET_KEY"].toString())
+            buildConfigField("String", "ACCESS_KEY", localProperties["ACCESS_KEY"].toString())
         }
 
         getByName("release") {
@@ -72,6 +78,9 @@ android {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             manifestPlaceholders["enableCrashReporting"] = true
+
+            buildConfigField("String", "SECRET_KEY", localProperties["SECRET_KEY"].toString())
+            buildConfigField("String", "ACCESS_KEY", localProperties["ACCESS_KEY"].toString())
         }
     }
 

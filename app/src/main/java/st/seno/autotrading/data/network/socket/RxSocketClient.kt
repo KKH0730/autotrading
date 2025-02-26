@@ -2,7 +2,6 @@ package st.seno.autotrading.data.network.socket
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.google.gson.Gson
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -12,9 +11,7 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
-import st.seno.autotrading.data.network.ACCESS_KEY
-import st.seno.autotrading.data.network.SECRET_KEY
-import st.seno.autotrading.data.network.model.Ticker
+import st.seno.autotrading.BuildConfig
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -29,10 +26,10 @@ class RxSocketClient {
         return channelFlow {
             val url = "wss://api.upbit.com/websocket/v1"
 
-            val algorithm: Algorithm = Algorithm.HMAC256(SECRET_KEY)
+            val algorithm: Algorithm = Algorithm.HMAC256(BuildConfig.SECRET_KEY)
 
             val jwtToken: String = JWT.create()
-                .withClaim("access_key", ACCESS_KEY)
+                .withClaim("access_key", BuildConfig.ACCESS_KEY)
                 .withClaim("nonce", UUID.randomUUID().toString())
                 .sign(algorithm)
 

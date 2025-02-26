@@ -144,7 +144,7 @@ class AutoTradingService : Service() {
             .setColor(ContextCompat.getColor(this, R.color.FF18C942))
             .setContentTitle(getString(R.string.auto_trading_service_notification_title))
             .setContentText(getString(R.string.auto_trading_service_notification_content))
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.mipmap.ic_launcher_round)
             .setAutoCancel(false)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import okhttp3.Interceptor
 import okhttp3.Response
 import org.json.JSONObject
+import st.seno.autotrading.BuildConfig
 import st.seno.autotrading.data.network.model.Asset
 import timber.log.Timber
 import java.math.BigInteger
@@ -17,10 +18,6 @@ import javax.inject.Inject
 /**
  * Retrofit을 이용한 REST API에 공통 헤더를 추가하는 interceptor
  */
-
-// Todo: key들은 local properties로 이전 필요
-const val SECRET_KEY = "5YK5U5ncRM0EmpgYmVxcZrT18QaZ4EzyCwyD46PM"
-const val ACCESS_KEY = "IqzzQMLaSJbuzCalGLBFYwhyUsP9pyU63qSQN3EL"
 
 class DefaultParamsInterceptor @Inject constructor() : Interceptor {
 
@@ -52,9 +49,9 @@ class DefaultParamsInterceptor @Inject constructor() : Interceptor {
         // SHA-512 해싱 후 Base64 인코딩
         val queryHash = String.format("%0128x", BigInteger(1, md.digest()))
 
-        val algorithm: Algorithm = Algorithm.HMAC256(SECRET_KEY)
+        val algorithm: Algorithm = Algorithm.HMAC256(BuildConfig.SECRET_KEY)
         val jwtToken: String = JWT.create()
-            .withClaim("access_key", ACCESS_KEY)
+            .withClaim("access_key", BuildConfig.ACCESS_KEY)
             .withClaim("nonce", UUID.randomUUID().toString())
             .withClaim("query_hash", queryHash)
             .withClaim("query_hash_alg", "SHA512")

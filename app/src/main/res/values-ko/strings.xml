@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">autotrading</string>
+    <string name="app_name">TradeWave</string>
 
     <!--common-->
     <string name="network_request_error">"네트워크 요청을 실패했습니다. 다시 시도해주세요."</string>

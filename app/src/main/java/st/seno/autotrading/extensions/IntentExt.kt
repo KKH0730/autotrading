@@ -39,9 +39,9 @@ fun <T> Context.startActivity(
 }
 
 fun Activity.restartApp() {
-    ActivityCompat.finishAffinity(this)
-    val intent: Intent? = packageManager.getLaunchIntentForPackage(packageName)
-    if (intent != null) {
-        startActivity(intent)
-    }
+    val intent = packageManager.getLaunchIntentForPackage(packageName)
+    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+
+    startActivity(intent)
+    Runtime.getRuntime().exit(0)  // 앱 프로세스 종료
 }

@@ -22,6 +22,11 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <activity android:name=".ui.main.settings.color_preference.ColorPreferenceActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="fullSensor" />
+
         <activity android:name=".ui.main.trading_view.TradingViewActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"

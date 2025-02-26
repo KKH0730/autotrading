@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,7 +18,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import st.seno.autotrading.R
-import st.seno.autotrading.data.network.model.Candle
 import st.seno.autotrading.data.network.model.Result
 import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.data.network.response_model.Trade
@@ -27,18 +25,13 @@ import st.seno.autotrading.domain.CandlePagingUseCase
 import st.seno.autotrading.domain.TradingDataUseCase
 import st.seno.autotrading.extensions.formatedDate
 import st.seno.autotrading.extensions.getString
-import st.seno.autotrading.model.CandleListType
 import st.seno.autotrading.ui.base.BaseViewModel
 import st.seno.autotrading.ui.main.MainViewModel
 import st.seno.autotrading.util.BookmarkUtil
 import st.seno.autotrading.util.BookmarkUtil.bookmarkedTickers
-import timber.log.Timber
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import kotlin.coroutines.CoroutineContext
 
-val candleSpace = 1
+const val candleSpace = 1
 val candleTimeFrames = listOf(
     getString(R.string.trading_view_time_frame_1m) to 1,
     getString(R.string.trading_view_time_frame_15m) to 15,
@@ -67,7 +60,7 @@ class TradingViewViewModel @Inject constructor(
     private val _trades: MutableStateFlow<List<Trade>> = MutableStateFlow(listOf())
     val trades: StateFlow<List<Trade>> get() = _trades.asStateFlow()
 
-    val candleChartModel: StateFlow<CandleChartModel?> = combine(MainViewModel.tickersMap, bookmarkedTickers) { tickersMap, bookmarkedTickers ->
+    val tickerInfos: StateFlow<CandleChartModel?> = combine(MainViewModel.tickersMap, bookmarkedTickers) { tickersMap, bookmarkedTickers ->
         val currentTicker: Ticker? = tickersMap[marketId]
         val favoriteTickers = BookmarkUtil.convertSetToTickerList(bookmarkedTickerCodeSet = bookmarkedTickers)
 

@@ -11,23 +11,26 @@ plugins {
     id("dagger.hilt.android.plugin")
 }
 
+val localProperties = Properties()
+localProperties.load(FileInputStream(rootProject.file("local.properties")))
+
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreFileInputStream = FileInputStream(keystorePropertiesFile)
 val keystoreProperties = Properties()
 keystoreProperties.load(keystoreFileInputStream)
 
 android {
-    namespace = "st.seno.autotrading"
-    compileSdk = 34
+    namespace = Versions.NAMESPACE
+    compileSdk = Versions.COMPILE_SDK
 
     defaultConfig {
-        applicationId = "st.seno.autotrading"
-        minSdk = 30
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        applicationId = Versions.APPLICATION_Id
+        minSdk = Versions.MIN_SDK
+        targetSdk = Versions.TARGET_SDK
+        versionCode = Versions.VERSION_CODE
+        versionName = Versions.VERSION_NAME
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = Versions.TEST_INSTRUMENTATION_RUNNER
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -62,6 +65,9 @@ android {
             extra.set("enableCrashlytics", false)
             // crashlytics 빌드 ID 업데이트 막기
             extra.set("alwaysUpdateBuildId", false)
+
+            buildConfigField("String", "SECRET_KEY", localProperties["SECRET_KEY"].toString())
+            buildConfigField("String", "ACCESS_KEY", localProperties["ACCESS_KEY"].toString())
         }
 
         getByName("release") {
@@ -72,6 +78,9 @@ android {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             manifestPlaceholders["enableCrashReporting"] = true
+
+            buildConfigField("String", "SECRET_KEY", localProperties["SECRET_KEY"].toString())
+            buildConfigField("String", "ACCESS_KEY", localProperties["ACCESS_KEY"].toString())
         }
     }
 
@@ -98,51 +107,60 @@ android {
 }
 
 dependencies {
-    implementation("com.google.android.material:material:1.9.0")
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.9.3")
-    implementation(platform("androidx.compose:compose-bom:2024.01.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.navigation:navigation-compose:2.8.4")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.compose.material:material:1.7.8")
+    // AndroidX
+    implementation(Dependencies.AndroidX.ANDROID_CORE)
+    implementation(Dependencies.AndroidX.ANDROID_LIFECYCLE)
+    implementation(Dependencies.AndroidX.ANDROID_ACTIVITY_COMPOSE)
+    implementation(platform(Dependencies.AndroidX.COMPOSE_BOM))
+    implementation(Dependencies.AndroidX.COMPOSE_UI)
+    implementation(Dependencies.AndroidX.COMPOSE_UI_GRAPHICS)
+    implementation(Dependencies.AndroidX.COMPOSE_UI_TOOLING_PREVIEW)
+    implementation(Dependencies.AndroidX.COMPOSE_MATERIAL3)
+    implementation(Dependencies.AndroidX.SPLASHSCREEN)
+    implementation(Dependencies.AndroidX.NAVIGATION_COMPOSE)
+    implementation(Dependencies.AndroidX.HILT_NAVIGATION_COMPOSE)
+    implementation(Dependencies.AndroidX.APPCOMPAT)
+    implementation(Dependencies.AndroidX.COMPOSE_MATERIAL)
+    implementation(Dependencies.AndroidX.ANDROID_MATERIAL)
 
-    implementation("androidx.paging:paging-runtime:3.3.6")
-    implementation("androidx.paging:paging-compose:3.3.6")
+    // Firebase
+    implementation(platform(Dependencies.Firebase.FIREBASE_BOM))
+    implementation(Dependencies.Firebase.FIREBASE_CRASHLYTICS)
+    implementation(Dependencies.Firebase.FIREBASE_FIRESTORE)
 
-    implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
-    implementation("com.google.firebase:firebase-crashlytics")
-    implementation("com.google.firebase:firebase-firestore")
+    //Paging
+    implementation(Dependencies.AndroidX.Paging.PAGING_RUNTIME)
+    implementation(Dependencies.AndroidX.Paging.PAGING_COMPOSE)
 
-    implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-android-compiler:2.50")
-    testImplementation("com.google.dagger:hilt-android-testing:2.48")
+    // Hilt
+    implementation(Dependencies.Hilt.ANDROID_HILT)
+    kapt(Dependencies.Hilt.ANDROID_HILT_COMPILER)
+    testImplementation(Dependencies.Hilt.ANDROID_HILT_TESTING)
 
-    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
-    implementation("com.squareup.okhttp3:okhttp")
-    implementation("com.squareup.okhttp3:logging-interceptor")
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    // OkHttp3
+    implementation(platform(Dependencies.OkHttp3.OKHTTP3_BOM))
+    implementation(Dependencies.OkHttp3.OKHTTP3)
+    implementation(Dependencies.OkHttp3.OKHTTP3_INTERCEPTOR)
 
-    implementation("com.airbnb.android:lottie-compose:6.6.2")
+    // Retrofit2
+    implementation(Dependencies.Retrofit.RETROFIT)
+    implementation(Dependencies.Retrofit.GSON_CONVERTER)
 
-    implementation("io.github.ParkSangGwon:tedpermission-normal:3.3.0")
-    implementation("com.pixplicity.easyprefs:EasyPrefs:1.10.0")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("com.jakewharton.timber:timber:5.0.1")
-    implementation("com.auth0:java-jwt:4.4.0")
+    // Lottie
+    implementation(Dependencies.Lottie.LOTTIE)
 
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    testImplementation("androidx.compose.ui:ui-test-junit4")
+    // Etc
+    implementation(Dependencies.Gson.GSON)
+    implementation(Dependencies.Etc.TEDPERMISSION)
+    implementation(Dependencies.Etc.EASYPREFS)
+    implementation(Dependencies.Etc.TIMBER)
+    implementation(Dependencies.Etc.JAVA_JWT)
 
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    // Test
+    testImplementation(Dependencies.Test.JUNIT)
+    androidTestImplementation(Dependencies.Test.TEST_EXT_JUNIT)
+    androidTestImplementation(Dependencies.Test.ESPRESSO_CORE)
+    testImplementation(Dependencies.Test.COMPOSE_UI_TEST)
+    debugImplementation(Dependencies.Test.COMPOSE_UI_TOOLING)
+    debugImplementation(Dependencies.Test.COMPOSE_UI_TEST_MANIFEST)
 }

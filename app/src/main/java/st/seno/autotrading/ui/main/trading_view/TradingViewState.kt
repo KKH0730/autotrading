@@ -3,10 +3,10 @@ package st.seno.autotrading.ui.main.trading_view
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableDoubleState
+import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,10 +19,6 @@ import st.seno.autotrading.extensions.update
 import st.seno.autotrading.model.CandleListType
 import kotlin.math.abs
 
-const val MAX_CANDLE_CHART_HEIGHT = 500.0
-const val MIN_CANDLE_CHART_HEIGHT = 0.0
-const val MAX_TRADING_VOLUME_HEIGHT = 500.0
-const val MIN_TRADING_VOLUME_HEIGHT = 0.0
 const val maxCandleBodyWidth = 3
 const val tradeBadgeWidth = 10
 const val tradingViewToolbarHeight = 40
@@ -31,23 +27,23 @@ const val candleTimeframeHeight = 25
 const val candleDateHeight = 15
 const val bottomSpacerHeight = 10
 
-var candleChartHeight = (screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.6
-var volumeChartHeight = ((screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.4) - ((candleDateHeight + bottomSpacerHeight) * 2)
-var candleChartWidth = screenWidth.pxToDp() * 0.85
+var candleChartHeight = (screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.6f
+var volumeChartHeight = ((screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.4f) - ((candleDateHeight + bottomSpacerHeight) * 2f)
+var candleChartWidth = screenWidth.pxToDp() * 0.85f
 val priceLevelIndicatorWidth = screenWidth.pxToDp() * 0.15
 
-var candleChartHeightWithAutoTrading = (screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.3
-var tradesListHeight = ((screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.7) - ((candleDateHeight + bottomSpacerHeight) * 2)
+var candleChartHeightWithAutoTrading = (screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.3f
+var tradesListHeight = ((screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.7f) - ((candleDateHeight + bottomSpacerHeight) * 2f)
 
 val initialOverlayInfo = Triple(-10, -10, null)
 
 data class TradingViewState(
     val isAutoTradingView: Boolean,
     val candleLazyListState: LazyListState,
-    val candleChartWidthState: MutableDoubleState,
-    val candleChartHeightState: MutableDoubleState,
-    val tradingVolumeHeightState: MutableDoubleState,
-    val tradesListHeightState: MutableDoubleState,
+    val candleChartWidthState: MutableFloatState,
+    val candleChartHeightState: MutableFloatState,
+    val tradingVolumeHeightState: MutableFloatState,
+    val tradesListHeightState: MutableFloatState,
     val candleBodyWidthState: MutableIntState,
     val tradeBadgeSpacingState: MutableIntState,
     val candleRangeState: MutableState<Pair<Double, Double>>,
@@ -65,7 +61,7 @@ data class TradingViewState(
     }
 
     fun updateCandleBodyWidth(dragAmount: Float, candlesSize: Int) {
-        val minCandleBodyWidth = ( candleChartWidthState.doubleValue / (if (candlesSize < 20) candlesSize else 20)).toInt()
+        val minCandleBodyWidth = ( candleChartWidthState.floatValue / (if (candlesSize < 20) candlesSize else 20)).toInt()
         val changedCandleBodyWidth = (candleBodyWidthState.intValue + dragAmount.pxToDp())
         val candleBodyWidth = if (changedCandleBodyWidth > minCandleBodyWidth) {
             minCandleBodyWidth
@@ -79,11 +75,11 @@ data class TradingViewState(
 
     fun updateHeight(dragAmount: Float) {
         if (dragAmount < 0) {
-            candleChartHeightState.doubleValue = (candleChartHeightState.doubleValue - abs(dragAmount.pxToDp()))
-            tradingVolumeHeightState.doubleValue = (tradingVolumeHeightState.doubleValue + abs(dragAmount.pxToDp()))
+            candleChartHeightState.floatValue = (candleChartHeightState.floatValue - abs(dragAmount.pxToDp()))
+            tradingVolumeHeightState.floatValue = (tradingVolumeHeightState.floatValue + abs(dragAmount.pxToDp()))
         } else {
-            candleChartHeightState.doubleValue =  (candleChartHeightState.doubleValue + abs(dragAmount.pxToDp()))
-            tradingVolumeHeightState.doubleValue = (tradingVolumeHeightState.doubleValue - abs(dragAmount.pxToDp()))
+            candleChartHeightState.floatValue =  (candleChartHeightState.floatValue + abs(dragAmount.pxToDp()))
+            tradingVolumeHeightState.floatValue = (tradingVolumeHeightState.floatValue - abs(dragAmount.pxToDp()))
         }
     }
 }
@@ -93,10 +89,10 @@ data class TradingViewState(
 fun rememberTradingViewState(
     isAutoTradingView: Boolean,
     candleLazyListState: LazyListState = rememberLazyListState(),
-    candleChartWidthState: MutableDoubleState = mutableDoubleStateOf(candleChartWidth),
-    candleChartHeightState: MutableDoubleState = mutableDoubleStateOf(if (isAutoTradingView) candleChartHeightWithAutoTrading else candleChartHeight),
-    tradingVolumeHeightState: MutableDoubleState = mutableDoubleStateOf(volumeChartHeight),
-    tradesListHeightState: MutableDoubleState = mutableDoubleStateOf(tradesListHeight),
+    candleChartWidthState: MutableFloatState = mutableFloatStateOf(candleChartWidth),
+    candleChartHeightState: MutableFloatState = mutableFloatStateOf(if (isAutoTradingView) candleChartHeightWithAutoTrading else candleChartHeight),
+    tradingVolumeHeightState: MutableFloatState = mutableFloatStateOf(volumeChartHeight),
+    tradesListHeightState: MutableFloatState = mutableFloatStateOf(tradesListHeight),
     candleBodyWidthState: MutableIntState = mutableIntStateOf(maxCandleBodyWidth),
     tradeBadgeSpacingState: MutableIntState = mutableIntStateOf(tradeBadgeWidth),
     candleRangeState: MutableState<Pair<Double, Double>> = mutableStateOf(0.0 to 0.0),

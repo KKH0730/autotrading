@@ -28,7 +28,6 @@ import kotlin.math.abs
  */
 @Composable
 fun CandleView(
-    date: String,
     candleHeight: Double,
     openingPrice: Double,
     highPrice: Double,
@@ -42,12 +41,127 @@ fun CandleView(
 ) {
 
     val trendType: PriceTrend = PriceTrend.getPriceTrend(targetPrice = tradePrice, openingPrice = openingPrice)
-    if (date == "2025-02-26 14:28:00") {
-        Timber.e("highPrice: $highPrice")
-        Timber.e("lowPrice: $lowPrice")
-        Timber.e("tradePrice: $tradePrice")
-        Timber.e("openingPrice: $openingPrice")
-        Timber.e("trendType: $trendType")
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .width(width = candleBodyWidth.dp)
+            .height(height = candleHeight.dp)
+            .offset(y = yOffset.dp)
+            .background(color = backgroundColor)
+
+    ) {
+        val candleTopTailHeight = (((highPrice - openingPrice) * candleHeight) / abs(highPrice - lowPrice))
+        val candleBottomTailHeight = (((openingPrice - lowPrice) * candleHeight) / abs(highPrice - lowPrice))
+        val candleBodyHeight = (((abs(tradePrice - openingPrice)) * candleHeight) / abs(highPrice - lowPrice))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height = candleTopTailHeight.dp)
+        ) {
+            CandleTail(
+                candleTailWidth = candleTailWidth,
+                candleTailHeight = candleTopTailHeight,
+                color = trendType.color,
+                modifier = Modifier.align(alignment = Alignment.BottomCenter)
+            )
+            if (tradePrice > openingPrice) {
+                CandleBody(
+                    candleBodyWidth = candleBodyWidth,
+                    candleBodyHeight = candleBodyHeight,
+                    color = trendType.color,
+                    modifier = Modifier.align(alignment = Alignment.BottomCenter)
+                )
+            }
+        }
+        if (tradePrice == openingPrice) {
+            Box(
+                modifier = Modifier
+                    .width(width = candleBodyWidth.dp)
+                    .height(height = 2.dp)
+                    .background(color = trendType.color)
+            )
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height = candleBottomTailHeight.dp)
+        ) {
+            CandleTail(
+                candleTailWidth = candleTailWidth,
+                candleTailHeight = candleBottomTailHeight,
+                color = trendType.color,
+                modifier = Modifier.align(alignment = Alignment.TopCenter)
+            )
+            if (tradePrice < openingPrice) {
+                CandleBody(
+                    candleBodyWidth = candleBodyWidth,
+                    candleBodyHeight = candleBodyHeight,
+                    color = trendType.color,
+                    modifier = Modifier.align(alignment = Alignment.TopCenter)
+                )
+            }
+        }
+    }
+}
+
+//region(CandleTail)
+@Composable
+fun CandleTail(
+    candleTailWidth: Double,
+    candleTailHeight: Double,
+    color: Color,
+    modifier: Modifier
+) {
+    Spacer(
+        modifier = modifier
+            .width(width = candleTailWidth.dp)
+            .height(height = candleTailHeight.dp)
+            .background(color = color)
+    )
+}
+//endregion
+
+//region(CandleBody)
+@Composable
+fun CandleBody(
+    candleBodyWidth: Int,
+    candleBodyHeight: Double,
+    color: Color,
+    modifier: Modifier
+) {
+    Spacer(
+        modifier = modifier
+            .width(width = candleBodyWidth.dp)
+            .height(height = candleBodyHeight.dp)
+            .background(color = color)
+    )
+}
+//endregion
+
+@Composable
+fun SampleCandleView(
+    candleHeight: Double,
+    openingPrice: Double,
+    highPrice: Double,
+    lowPrice: Double,
+    tradePrice: Double,
+    candleTailWidth: Double,
+    candleBodyWidth: Int,
+    yOffset: Double,
+    backgroundColor: Color,
+    riseColor: Color,
+    fallColor: Color,
+    evenColor: Color,
+    modifier: Modifier = Modifier
+) {
+
+    val trendType: PriceTrend = PriceTrend.getPriceTrend(targetPrice = tradePrice, openingPrice = openingPrice)
+    val color = when(trendType) {
+        PriceTrend.RISE -> riseColor
+        PriceTrend.FALL -> fallColor
+        else -> evenColor
     }
 
     Column(
@@ -69,16 +183,16 @@ fun CandleView(
                 .height(height = candleTopTailHeight.dp)
         ) {
             CandleTail(
-                trendType = trendType,
                 candleTailWidth = candleTailWidth,
                 candleTailHeight = candleTopTailHeight,
+                color = color,
                 modifier = Modifier.align(alignment = Alignment.BottomCenter)
             )
             if (tradePrice > openingPrice) {
                 CandleBody(
-                    trendType = trendType,
                     candleBodyWidth = candleBodyWidth,
                     candleBodyHeight = candleBodyHeight,
+                    color = color,
                     modifier = Modifier.align(alignment = Alignment.BottomCenter)
                 )
             }
@@ -97,51 +211,19 @@ fun CandleView(
                 .height(height = candleBottomTailHeight.dp)
         ) {
             CandleTail(
-                trendType = trendType,
                 candleTailWidth = candleTailWidth,
                 candleTailHeight = candleBottomTailHeight,
+                color = color,
                 modifier = Modifier.align(alignment = Alignment.TopCenter)
             )
             if (tradePrice < openingPrice) {
                 CandleBody(
-                    trendType = trendType,
                     candleBodyWidth = candleBodyWidth,
                     candleBodyHeight = candleBodyHeight,
+                    color = color,
                     modifier = Modifier.align(alignment = Alignment.TopCenter)
                 )
             }
         }
     }
-}
-
-//region(CandleTail)
-@Composable
-fun CandleTail(
-    trendType: PriceTrend,
-    candleTailWidth: Double,
-    candleTailHeight: Double,
-    modifier: Modifier
-) {
-    Spacer(
-        modifier = modifier
-            .width(width = candleTailWidth.dp)
-            .height(height = candleTailHeight.dp)
-            .background(color = trendType.color)
-    )
-}
-//endregion
-
-@Composable
-fun CandleBody(
-    trendType: PriceTrend,
-    candleBodyWidth: Int,
-    candleBodyHeight: Double,
-    modifier: Modifier
-) {
-    Spacer(
-        modifier = modifier
-            .width(width = candleBodyWidth.dp)
-            .height(height = candleBodyHeight.dp)
-            .background(color = trendType.color)
-    )
 }

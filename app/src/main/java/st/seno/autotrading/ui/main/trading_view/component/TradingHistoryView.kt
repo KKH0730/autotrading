@@ -42,7 +42,7 @@ import st.seno.autotrading.theme.FFFEE2E2
 
 //region(TradingHistoryView)
 @Composable
-fun TradingHistoryView(tradesListHeightState: Double, trades: List<Trade>) {
+fun TradingHistoryView(tradesListHeightState: Float, trades: List<Trade>) {
     Column(
         verticalArrangement = Arrangement.spacedBy(space = 4.dp),
         modifier = Modifier

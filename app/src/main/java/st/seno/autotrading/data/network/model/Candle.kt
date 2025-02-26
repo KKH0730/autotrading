@@ -1,9 +1,9 @@
 package st.seno.autotrading.data.network.model
 
 data class Candle(
-    val market: String, // 종목 코드
-    val candleDateTimeUtc: String, // 캔들 기준 시각(UTC 기준) 포맷: yyyy-MM-dd HH:mm:ss
-    val candleDateTimeKst: String, // 캔들 기준 시각(KST 기준) 포맷: yyyy-MM-dd HH:mm:ss
+    val market: String = "", // 종목 코드
+    val candleDateTimeUtc: String = "", // 캔들 기준 시각(UTC 기준) 포맷: yyyy-MM-dd HH:mm:ss
+    val candleDateTimeKst: String = "", // 캔들 기준 시각(KST 기준) 포맷: yyyy-MM-dd HH:mm:ss
     val openingPrice: Double, // 시가
     val highPrice: Double, // 고가
     val lowPrice: Double, // 저가

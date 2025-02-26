@@ -9,12 +9,13 @@ import androidx.navigation.compose.composable
 import st.seno.autotrading.ui.main.auto_trading_dashboard.AutoTradingDashboardScreen
 import st.seno.autotrading.ui.main.home.HomeScreen
 import st.seno.autotrading.ui.main.market.MarketScreen
+import st.seno.autotrading.ui.main.settings.SettingsScreen
 
 enum class NavigationRoute(val routeName: String) {
     DASHBOARD("Dashboard"),
     MARKET("MARKET"),
     AUTO_TRADING("Auto Trading"),
-    SETTINGS("Settings")
+    SETTINGS("Settings"),
 }
 
 @SuppressLint("RememberReturnType")
@@ -33,7 +34,7 @@ fun NavigationGraph(startRoute: NavigationRoute = NavigationRoute.DASHBOARD, nav
             AutoTradingDashboardScreen()
         }
         composable(NavigationRoute.SETTINGS.routeName) {
-            MarketScreen()
+            SettingsScreen()
         }
     }
 }

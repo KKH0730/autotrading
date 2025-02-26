@@ -73,7 +73,6 @@ import st.seno.autotrading.ui.main.trading_view.candleSpace
 import st.seno.autotrading.ui.main.trading_view.candleTimeFrames
 import st.seno.autotrading.ui.main.trading_view.isDaysCandle
 import st.seno.autotrading.ui.main.trading_view.priceLevelIndicatorWidth
-import timber.log.Timber
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -90,13 +89,13 @@ fun CandleChartView(
     dates: Triple<String, String, String>,
     selectedTimeFrame: String,
     firstVisibleIndex: Int,
-    candleChartWidth: Double,
-    candleChartHeight: Double,
+    candleChartWidth: Float,
+    candleChartHeight: Float,
     candleBodyWidth: Int,
     tradeBadgeSpacing: Int,
-    tradingVolumeHeight: Double,
+    tradingVolumeHeight: Float,
     candleDateHeight: Int,
-    tradesListHeightState: Double,
+    tradesListHeightState: Float,
     candleLazyListState: LazyListState,
     candleRange: Pair<Double, Double>,
     tradingVolumeRange: Pair<Double, Double>,
@@ -202,8 +201,8 @@ fun TradingCandleView(
     ticker: Ticker,
     selectedTimeFrame: String,
     firstVisibleIndex: Int,
-    candleChartHeight: Double,
-    candleChartWidth: Double,
+    candleChartHeight: Float,
+    candleChartWidth: Float,
     candleSpace: Int,
     candleBodyWidth: Int,
     tradeBadgeSpacing: Int,
@@ -332,7 +331,6 @@ fun TradingCandleView(
                             }
 
                             CandleView(
-                                date = candleListType.candle.candleDateTimeUtc,
                                 candleHeight = candleHeight,
                                 openingPrice = openingPrice,
                                 highPrice = highPrice,
@@ -505,7 +503,7 @@ fun TradeBadge(
 //region(ChartUnderLayer)
 @Composable
 fun ChartUnderLayerView(
-    chartHeight: Double,
+    chartHeight: Float,
     tradeBadgeSpacing: Int,
     maxPrice: Double,
     minPrice: Double,
@@ -550,7 +548,7 @@ fun ChartUnderLayerView(
 
 @Composable
 fun ChardGridView(
-    chartHeight: Double,
+    chartHeight: Float,
     tradeBadgeSpacing: Int,
     indicatorPricePairs: List<Pair<Double, Double>>,
     modifier: Modifier
@@ -576,7 +574,7 @@ fun ChardGridView(
 
 @Composable
 fun PriceLevelIndicator(
-    chartHeight: Double,
+    chartHeight: Float,
     tradeBadgeSpacing: Int,
     maxPrice: Double,
     minPrice: Double,
@@ -640,7 +638,7 @@ fun PriceLevelIndicator(
 fun CandleDateView(
     dates: Triple<String, String, String>,
     candleDateHeight: Int,
-    candleChartWidth: Double,
+    candleChartWidth: Float,
     onDraggedDateView: (Float) -> Unit
 ) {
     Row(
@@ -716,10 +714,10 @@ fun CandleDateView(
 
 @Composable
 fun DateOverlay(
-    candleChartWidth: Double,
-    candleChartHeight: Double,
+    candleChartWidth: Float,
+    candleChartHeight: Float,
     candleDateHeight: Int,
-    tradingVolumeHeight: Double,
+    tradingVolumeHeight: Float,
 ) {
     Box(
         modifier = Modifier
@@ -842,8 +840,8 @@ fun TickerOverlayInfoPanel(
     ticker: Ticker,
     selectedTimeFrame: String,
     isBlockCandleVerticalDrag: Boolean,
-    overlayInfoHeight: Double,
-    overlayInfoWidth: Double,
+    overlayInfoHeight: Float,
+    overlayInfoWidth: Float,
     overlayInfo: Triple<Int, Int, CandleListType.CandleType?>
 ) {
     if (isBlockCandleVerticalDrag) {

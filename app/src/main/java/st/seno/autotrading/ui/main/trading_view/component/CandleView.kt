@@ -13,7 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import st.seno.autotrading.extensions.parseDateFormat
 import st.seno.autotrading.model.PriceTrend
+import timber.log.Timber
+import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 
 /**
@@ -25,6 +28,7 @@ import kotlin.math.abs
  */
 @Composable
 fun CandleView(
+    date: String,
     candleHeight: Double,
     openingPrice: Double,
     highPrice: Double,
@@ -33,12 +37,18 @@ fun CandleView(
     candleTailWidth: Double,
     candleBodyWidth: Int,
     yOffset: Double,
-    side: String?,
     backgroundColor: Color,
     modifier: Modifier = Modifier
 ) {
 
     val trendType: PriceTrend = PriceTrend.getPriceTrend(targetPrice = tradePrice, openingPrice = openingPrice)
+    if (date == "2025-02-26 14:28:00") {
+        Timber.e("highPrice: $highPrice")
+        Timber.e("lowPrice: $lowPrice")
+        Timber.e("tradePrice: $tradePrice")
+        Timber.e("openingPrice: $openingPrice")
+        Timber.e("trendType: $trendType")
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

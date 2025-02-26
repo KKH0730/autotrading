@@ -52,12 +52,13 @@ fun TradingViewScreen(
                 candles = candles,
                 trades = trades,
                 ticker = ticker,
+                dates = tradingViewState.datesState.value,
                 selectedTimeFrame = tradingViewState.selectedTimeFrameState.value,
-                firstOfDayOffsetList = candleChartModel.firstOfDayOffsetList,
                 firstVisibleIndex = tradingViewState.firstVisibleIndexState.intValue,
                 candleChartWidth = tradingViewState.candleChartWidthState.doubleValue,
                 candleChartHeight = tradingViewState.candleChartHeightState.doubleValue,
                 candleBodyWidth = tradingViewState.candleBodyWidthState.intValue,
+                tradeBadgeSpacing = tradingViewState.tradeBadgeSpacingState.intValue,
                 tradingVolumeHeight = tradingViewState.tradingVolumeHeightState.doubleValue,
                 candleDateHeight = candleDateHeight,
                 tradesListHeightState = tradingViewState.tradesListHeightState.doubleValue,
@@ -67,12 +68,13 @@ fun TradingViewScreen(
                 isBlockCandleVerticalDrag = tradingViewState.isBlockCandleVerticalDragState.value,
                 overlayInfo = tradingViewState.overlayInfoState.value,
                 onDetectedMotionEvent = { tradingViewState.isBlockCandleVerticalDragState.update(value = it) },
+                onChangedDate = { tradingViewState.datesState.update(value = it) },
                 onChangedOverlayInfo = { tradingViewState.overlayInfoState.update(value = it) },
                 onClickTimeFrame = {
                     tradingViewState.selectedTimeFrameState.update(value = it.first)
                     tradingViewViewModel.reqCandles(timeFrameName = it.first, unit = it.second)
                  },
-                onChangeFirstVisibleIndex = { tradingViewState.firstVisibleIndexState.update(value = it) },
+                onChangedFirstVisibleIndex = { tradingViewState.firstVisibleIndexState.update(value = it) },
                 onDraggedCandleView = { tradingViewState.updateCandleBodyWidth(dragAmount = it, candlesSize = candles.size) },
                 onChangedCandleRange = { tradingViewState.updateCandleRange(candleRange = it.first, tradingVolumeRange = it.second) },
                 onDraggedDateView = { tradingViewState.updateHeight(dragAmount = it) }

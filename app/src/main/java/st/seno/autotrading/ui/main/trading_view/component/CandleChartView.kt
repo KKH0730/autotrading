@@ -13,30 +13,34 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.paging.compose.LazyPagingItems
 import kotlinx.coroutines.flow.collectLatest
 import st.seno.autotrading.R
@@ -45,26 +49,37 @@ import st.seno.autotrading.data.network.response_model.Trade
 import st.seno.autotrading.extensions.Divider
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.VerticalDivider
+import st.seno.autotrading.extensions.dpToPx
 import st.seno.autotrading.extensions.formatRealPrice
-import st.seno.autotrading.extensions.isFirstDayOfMonth
 import st.seno.autotrading.extensions.isToday
 import st.seno.autotrading.extensions.measuredTextHeight
 import st.seno.autotrading.extensions.numberWithCommas
+import st.seno.autotrading.extensions.parseDateFormat
 import st.seno.autotrading.extensions.pxToDp
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.model.CandleListType
 import st.seno.autotrading.model.PriceTrend
+import st.seno.autotrading.model.Side
 import st.seno.autotrading.theme.B3000000
 import st.seno.autotrading.theme.COLOR_80BDBBBB
+import st.seno.autotrading.theme.FF000000
+import st.seno.autotrading.theme.FF16A34A
 import st.seno.autotrading.theme.FF374151
-import st.seno.autotrading.theme.FFF8F8F8
+import st.seno.autotrading.theme.FF626975
+import st.seno.autotrading.theme.FFDC2626
 import st.seno.autotrading.theme.FFFFFFFF
+import st.seno.autotrading.ui.common.VerticalDashedLine
 import st.seno.autotrading.ui.main.trading_view.candleSpace
+import st.seno.autotrading.ui.main.trading_view.candleTimeFrames
 import st.seno.autotrading.ui.main.trading_view.isDaysCandle
 import st.seno.autotrading.ui.main.trading_view.priceLevelIndicatorWidth
+import timber.log.Timber
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @SuppressLint("UseOfNonLambdaOffsetOverload")
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CandleChartView(
     isAutoTradingView: Boolean,
@@ -72,12 +87,13 @@ fun CandleChartView(
     candles: List<CandleListType.CandleType>,
     trades: List<Trade>,
     ticker: Ticker,
+    dates: Triple<String, String, String>,
     selectedTimeFrame: String,
-    firstOfDayOffsetList: List<Double>,
     firstVisibleIndex: Int,
     candleChartWidth: Double,
     candleChartHeight: Double,
     candleBodyWidth: Int,
+    tradeBadgeSpacing: Int,
     tradingVolumeHeight: Double,
     candleDateHeight: Int,
     tradesListHeightState: Double,
@@ -88,8 +104,9 @@ fun CandleChartView(
     overlayInfo: Triple<Int, Int, CandleListType.CandleType?>,
     onDetectedMotionEvent: (Boolean) -> Unit,
     onChangedOverlayInfo: (Triple<Int, Int, CandleListType.CandleType?>) -> Unit,
+    onChangedDate: (Triple<String, String, String>) -> Unit,
     onClickTimeFrame: (Pair<String, Int>) -> Unit,
-    onChangeFirstVisibleIndex: (Int) -> Unit,
+    onChangedFirstVisibleIndex: (Int) -> Unit,
     onDraggedCandleView: (Float) -> Unit,
     onChangedCandleRange: (Pair<Pair<Double, Double> , Pair<Double, Double>>) -> Unit,
     onDraggedDateView: (Float) -> Unit
@@ -97,8 +114,7 @@ fun CandleChartView(
 
     CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
         Box(modifier = Modifier.fillMaxWidth()) {
-
-            if (candleListTypes.itemCount != 0) {
+            if (candleListTypes.itemSnapshotList.firstOrNull { it is CandleListType.CandleType } != null) {
                 Column {
                     TradingViewHeader(ticker = ticker)
                     CandleTimeframe(selectedTimeFrame = selectedTimeFrame, onClickTimeFrame = onClickTimeFrame)
@@ -115,23 +131,20 @@ fun CandleChartView(
                                 candleChartWidth = candleChartWidth,
                                 candleSpace = candleSpace,
                                 candleBodyWidth = candleBodyWidth,
+                                tradeBadgeSpacing = tradeBadgeSpacing,
                                 candleRange = candleRange,
                                 isBlockCandleVerticalDrag = isBlockCandleVerticalDrag,
-                                onDetectedTab = onDetectedMotionEvent,
+                                onDetectedMotionEvent = onDetectedMotionEvent,
+                                onChangedDate = onChangedDate,
                                 onChangedOverlayInfo = onChangedOverlayInfo,
-                                onChangeFirstVisibleIndex = onChangeFirstVisibleIndex,
+                                onChangedFirstVisibleIndex = onChangedFirstVisibleIndex,
                                 onDraggedCandleView = onDraggedCandleView,
                                 onChangedCandleRange = onChangedCandleRange,
                             )
                             CandleDateView(
-                                candleLazyListState = candleLazyListState,
-                                candleListTypes = candleListTypes,
-                                candles = candles,
-                                firstOfDayOffsetList = firstOfDayOffsetList,
+                                dates = dates,
                                 candleDateHeight = candleDateHeight,
                                 candleChartWidth = candleChartWidth,
-                                candleBodyWidth = candleBodyWidth,
-                                candleSpace = candleSpace,
                                 onDraggedDateView = onDraggedDateView
                             )
                             if (isAutoTradingView) {
@@ -153,15 +166,21 @@ fun CandleChartView(
                                     candleBodyWidth = candleBodyWidth,
                                     tradingVolumeRange = tradingVolumeRange,
                                     isBlockCandleVerticalDrag = isBlockCandleVerticalDrag,
-                                    onDetectedTab = onDetectedMotionEvent,
+                                    onDetectedMotionEvent = onDetectedMotionEvent,
                                     onChangedOverlayInfo = onChangedOverlayInfo,
                                     onDraggedCandleView = onDraggedCandleView
                                 )
                             }
                         }
-
+                        DateOverlay(
+                            candleChartWidth = candleChartWidth,
+                            candleChartHeight = candleChartHeight,
+                            candleDateHeight = candleDateHeight,
+                            tradingVolumeHeight = tradingVolumeHeight
+                        )
                         TickerOverlayInfoPanel(
                             ticker = ticker,
+                            selectedTimeFrame = selectedTimeFrame,
                             isBlockCandleVerticalDrag = isBlockCandleVerticalDrag,
                             overlayInfoHeight = if (isAutoTradingView) candleChartHeight else candleChartHeight + candleDateHeight + tradingVolumeHeight,
                             overlayInfoWidth = candleChartWidth,
@@ -187,11 +206,13 @@ fun TradingCandleView(
     candleChartWidth: Double,
     candleSpace: Int,
     candleBodyWidth: Int,
+    tradeBadgeSpacing: Int,
     candleRange: Pair<Double, Double>,
     isBlockCandleVerticalDrag: Boolean,
-    onDetectedTab: (Boolean) -> Unit,
+    onDetectedMotionEvent: (Boolean) -> Unit,
+    onChangedDate: (Triple<String, String, String>) -> Unit,
     onChangedOverlayInfo: (Triple<Int, Int, CandleListType.CandleType?>) -> Unit,
-    onChangeFirstVisibleIndex: (Int) -> Unit,
+    onChangedFirstVisibleIndex: (Int) -> Unit,
     onDraggedCandleView: (Float) -> Unit,
     onChangedCandleRange: (Pair<Pair<Double, Double> , Pair<Double, Double>>) -> Unit
 ) {
@@ -204,7 +225,17 @@ fun TradingCandleView(
         snapshotFlow { candleLazyListState.layoutInfo }
             .collectLatest { _ ->
                 val firstVisibleItemIndex = candleLazyListState.firstVisibleItemIndex
-                onChangeFirstVisibleIndex.invoke(firstVisibleItemIndex)
+                onChangedFirstVisibleIndex.invoke(firstVisibleItemIndex)
+
+                invokeCandleDate(
+                    selectedTimeFrame = selectedTimeFrame,
+                    candleLazyListState = candleLazyListState,
+                    candleListTypes = candleListTypes,
+                    leftOffsetX = (candleLazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.offset?.toFloat() ?: 0f) + (candleChartWidth / 8).dpToPx(),
+                    centerOffsetX = (candleLazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.offset?.toFloat() ?: 0f) + (candleChartWidth / 2f).dpToPx(),
+                    rightOffsetX = (candleLazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.offset?.toFloat() ?: 0f) - (candleChartWidth / 8).dpToPx(),
+                    onChangedDate = onChangedDate
+                )
 
                 val lastVisibleItemIndex = candleLazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
                 if (lastVisibleItemIndex != null && lastVisibleItemIndex < candleListTypes.itemCount) {
@@ -244,7 +275,7 @@ fun TradingCandleView(
                                 onChangedOverlayInfo = onChangedOverlayInfo
                             )
                         }
-                        onDetectedTab.invoke(!isBlockCandleVerticalDrag)
+                        onDetectedMotionEvent.invoke(!isBlockCandleVerticalDrag)
                     }
                 )
             }
@@ -286,12 +317,22 @@ fun TradingCandleView(
                         val tradePrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.tradePrice else candleListType.candle.tradePrice
                         val openingPrice = if (index == 0 && selectedTimeFrame.isDaysCandle()) ticker.openingPrice else candleListType.candle.openingPrice
 
-                        val topSpace = (candleChartHeight * (maxPrice - highPrice)) / totalRange
+                        val topSpace = ((candleChartHeight - (2 * tradeBadgeSpacing)) * (maxPrice - highPrice)) / totalRange
                         val range = highPrice - lowPrice
                         val candleHeight = (candleChartHeight * range) / totalRange
-
                         Box {
+                            if (candleListType.candle.side == Side.ASK.value) {
+                                TradeBadge(
+                                    side = Side.ASK,
+                                    tradeBadgeSpacing = tradeBadgeSpacing,
+                                    candleBodyWidth = candleBodyWidth,
+                                    yOffset = topSpace,
+                                    modifier = Modifier.align(alignment = Alignment.TopCenter)
+                                )
+                            }
+
                             CandleView(
+                                date = candleListType.candle.candleDateTimeUtc,
                                 candleHeight = candleHeight,
                                 openingPrice = openingPrice,
                                 highPrice = highPrice,
@@ -299,17 +340,16 @@ fun TradingCandleView(
                                 tradePrice = tradePrice,
                                 candleTailWidth = candleTailWidth,
                                 candleBodyWidth = candleBodyWidth,
-                                yOffset = topSpace,
-                                side = candleListType.candle.side,
+                                yOffset = topSpace + tradeBadgeSpacing,
                                 backgroundColor = FFFFFFFF
                             )
-                            if (candleListType.candle.candleDateTimeUtc.isFirstDayOfMonth()) {
-                                0.2.VerticalDivider(
-                                    xOffset = candleChartWidth,
-                                    modifier = Modifier
-                                        .zIndex(zIndex = 0f)
-                                        .align(alignment = Alignment.Center)
-                                        .background(color = COLOR_80BDBBBB)
+                            if (candleListType.candle.side == Side.BID.value) {
+                                TradeBadge(
+                                    side = Side.BID,
+                                    tradeBadgeSpacing = tradeBadgeSpacing,
+                                    candleBodyWidth = candleBodyWidth,
+                                    yOffset = topSpace + tradeBadgeSpacing + candleHeight,
+                                    modifier = Modifier.align(alignment = Alignment.TopCenter)
                                 )
                             }
                         }
@@ -341,6 +381,7 @@ fun TradingCandleView(
 
                 ChartUnderLayerView(
                     chartHeight = candleChartHeight,
+                    tradeBadgeSpacing = tradeBadgeSpacing,
                     maxPrice = maxPrice,
                     minPrice = minPrice,
                     highlightPrice = highlightPrice,
@@ -367,19 +408,20 @@ fun onDetectedOverlayGesture(
             var rawIndex = -1
             val realOffsetX = candleLazyListState.layoutInfo.viewportEndOffset - offsetX
             for (i in 0 until candleLazyListState.layoutInfo.visibleItemsInfo.size) {
-                if (i == 0) {
-                    if (realOffsetX <= candleLazyListState.layoutInfo.visibleItemsInfo[i].offset) {
-                        rawIndex = candleLazyListState.layoutInfo.visibleItemsInfo[0].index
-                        break
-                    }
+                if (candleLazyListState.layoutInfo.visibleItemsInfo.size < 2) {
+                    rawIndex = candleLazyListState.layoutInfo.visibleItemsInfo[0].index
+                    break
                 } else {
-                    if (realOffsetX > candleLazyListState.layoutInfo.visibleItemsInfo[i - 1].offset && realOffsetX <= candleLazyListState.layoutInfo.visibleItemsInfo[i].offset + 4) {
-                        rawIndex = candleLazyListState.layoutInfo.visibleItemsInfo[i].index
-                        break
-                    }
-
                     if (i == candleLazyListState.layoutInfo.visibleItemsInfo.lastIndex) {
                         rawIndex = lastItem.index
+                    } else {
+                        if (realOffsetX < 0) {
+                            rawIndex = 0
+                            break
+                        } else if (realOffsetX < candleLazyListState.layoutInfo.visibleItemsInfo[i + 1].offset && realOffsetX >= candleLazyListState.layoutInfo.visibleItemsInfo[i].offset) {
+                            rawIndex = candleLazyListState.layoutInfo.visibleItemsInfo[i].index
+                            break
+                        }
                     }
                 }
             }
@@ -403,12 +445,68 @@ fun onDetectedOverlayGesture(
         }
 }
 
+@Composable
+fun TradeBadge(
+    side: Side,
+    tradeBadgeSpacing: Int,
+    candleBodyWidth: Int,
+    yOffset: Double,
+    modifier: Modifier = Modifier
+) {
+    val tint = if (side == Side.BID) {
+        FF16A34A
+    } else {
+        FFDC2626
+    }
+
+    Box(
+        modifier = modifier
+            .width(width = candleBodyWidth.dp)
+            .height(height = tradeBadgeSpacing.dp)
+            .offset(y = yOffset.dp)
+            .background(Color.Yellow)
+    ) {
+        Box(
+            modifier = Modifier
+                .align(alignment = if (side == Side.BID) Alignment.BottomCenter else Alignment.TopCenter)
+        ) {
+            Icon(
+                painterResource(R.drawable.ic_label),
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier
+                    .size(size = candleBodyWidth.dp)
+                    .align(alignment = Alignment.Center)
+                    .rotate(degrees = if (side == Side.BID) -90f else 90f)
+            )
+
+            val textSize = when (candleBodyWidth) {
+                in 3..5 -> 4
+                in 6..8 -> 5
+                in 9..12 -> 6
+                else -> 7
+            }
+
+            Text(
+                if (side == Side.BID) "B" else "S",
+                style = TextStyle(
+                    fontSize = textSize.textDp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = FFFFFFFF
+                ),
+                modifier = Modifier.align(alignment = Alignment.Center)
+            )
+        }
+    }
+}
+
 //endregion
 
 //region(ChartUnderLayer)
 @Composable
 fun ChartUnderLayerView(
     chartHeight: Double,
+    tradeBadgeSpacing: Int,
     maxPrice: Double,
     minPrice: Double,
     highlightPrice: Double,
@@ -421,7 +519,7 @@ fun ChartUnderLayerView(
     val oneLevelPrice = priceGap / level
 
     val indicatorPricePairs: List<Pair<Double, Double>> = (0 until level).mapIndexed { index, i ->
-        val pair = accumulatedValue to (chartHeight * (maxPrice - accumulatedValue)) / (maxPrice - minPrice)
+        val pair = accumulatedValue to ((chartHeight - (2 * tradeBadgeSpacing)) * (maxPrice - accumulatedValue)) / (maxPrice - minPrice)
         accumulatedValue -= oneLevelPrice
         pair
     }
@@ -433,11 +531,13 @@ fun ChartUnderLayerView(
     ) {
         ChardGridView(
             chartHeight = chartHeight,
+            tradeBadgeSpacing = tradeBadgeSpacing,
             indicatorPricePairs = indicatorPricePairs,
             modifier = Modifier.weight(weight = 0.85f)
         )
         PriceLevelIndicator(
             chartHeight = chartHeight,
+            tradeBadgeSpacing = tradeBadgeSpacing,
             maxPrice = maxPrice,
             minPrice = minPrice,
             highlightPrice = highlightPrice,
@@ -451,6 +551,7 @@ fun ChartUnderLayerView(
 @Composable
 fun ChardGridView(
     chartHeight: Double,
+    tradeBadgeSpacing: Int,
     indicatorPricePairs: List<Pair<Double, Double>>,
     modifier: Modifier
 ) {
@@ -465,12 +566,7 @@ fun ChardGridView(
                         .height(height = 1.dp)
                         .fillMaxWidth()
                         .align(alignment = Alignment.TopStart)
-                        .offset(
-                            y = (pair.second + (pair.first
-                                .toString()
-                                .measuredTextHeight(fontSize = 8)
-                                .pxToDp() / 2)).dp
-                        )
+                        .offset(y = ((pair.second + (pair.first.toString().measuredTextHeight(fontSize = 8).pxToDp() / 2)) + tradeBadgeSpacing).dp)
                         .background(color = COLOR_80BDBBBB)
                 )
             }
@@ -481,6 +577,7 @@ fun ChardGridView(
 @Composable
 fun PriceLevelIndicator(
     chartHeight: Double,
+    tradeBadgeSpacing: Int,
     maxPrice: Double,
     minPrice: Double,
     highlightPrice: Double,
@@ -488,7 +585,7 @@ fun PriceLevelIndicator(
     indicatorPricePairs: List<Pair<Double, Double>>,
     isTradingVolume: Boolean,
 ) {
-    val highlightPriceYOffset = (chartHeight * (maxPrice - highlightPrice)) / (maxPrice - minPrice)
+    val highlightPriceYOffset = ((chartHeight - (2 * tradeBadgeSpacing)) * (maxPrice - highlightPrice)) / (maxPrice - minPrice)
 
      Box(
          modifier = Modifier
@@ -509,18 +606,14 @@ fun PriceLevelIndicator(
                  ),
                  modifier = Modifier
                      .align(alignment = Alignment.TopStart)
-                     .offset(y = pair.second.dp)
+                     .offset(y = (pair.second + tradeBadgeSpacing).dp)
              )
          }
 
          val value = if (isTradingVolume) highlightPrice.numberWithCommas() else highlightPrice.formatRealPrice()
          Box(
              modifier = Modifier
-                 .offset(
-                     y = (highlightPriceYOffset - (value
-                         .measuredTextHeight(fontSize = 8)
-                         .pxToDp() / 2)).dp
-                 )
+                 .offset(y = ((highlightPriceYOffset - (value.measuredTextHeight(fontSize = 8).pxToDp() / 2)) + tradeBadgeSpacing).dp)
                  .fillMaxWidth()
                  .clip(shape = RoundedCornerShape(size = 4.dp))
                  .align(alignment = Alignment.TopStart)
@@ -545,22 +638,16 @@ fun PriceLevelIndicator(
 //region(CandleDateView)
 @Composable
 fun CandleDateView(
-    candleLazyListState: LazyListState,
-    candleListTypes: LazyPagingItems<CandleListType>,
-    candles: List<CandleListType.CandleType>,
-    firstOfDayOffsetList: List<Double>,
+    dates: Triple<String, String, String>,
     candleDateHeight: Int,
     candleChartWidth: Double,
-    candleBodyWidth: Int,
-    candleSpace: Int,
     onDraggedDateView: (Float) -> Unit
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .height(height = candleDateHeight.dp)
-            .background(color = FFF8F8F8)
+            .background(color = COLOR_80BDBBBB)
             .pointerInput(Unit) {
                 detectVerticalDragGestures(
                     onDragStart = {},
@@ -571,75 +658,180 @@ fun CandleDateView(
                 )
             }
     ) {
-//        LazyRow(
-//            state = candleLazyListState,
-//            verticalAlignment = Alignment.CenterVertically,
-//            reverseLayout = true,
-//            horizontalArrangement = Arrangement.spacedBy(space = candleSpace.dp),
-//            modifier = Modifier
-//                .width(width = candleChartWidth.dp)
-//                .height(height = candleDateHeight.dp)
-//        ) {
-//            items(
-//                count = candles.itemCount,
-//            ) { index ->
-//                Box(
-//                    contentAlignment = Alignment.Center,
-//                    modifier = Modifier
-//                        .fillMaxHeight()
-//                        .zIndex(zIndex = if (candles[index]?.candleDateTimeUtc?.isFirstDayOfMonth() == true) 2f else 0f)
-//                        .background(color = FFCEDBDA)
-//                ) {
-//                    if (candles[index]?.candleDateTimeUtc?.isFirstDayOfMonth() == true) {
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxHeight()
-//                                .width(width = candleBodyWidth.dp)
-//                                .background(color = Color.Magenta)
-//                                .align(alignment = Alignment.Center)
-//                        )
-//                        val date = candles[index]?.candleDateTimeUtc?.parseDateFormat(
-//                            inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
-//                            outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"),
-//                        ) ?: ""
-//                        val textWidth = date.measureTextWidth(fontSizeSp = 8f).pxToDp()
-//                        Text(
-//                            candles[index]?.candleDateTimeUtc?.parseDateFormat(
-//                                inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
-//                                outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd"),
-//                            ) ?: "",
-//                            style = TextStyle(
-//                                fontSize = 8.textDp,
-//                                fontWeight = FontWeight.Normal,
-//                                color = FF000000
-//                            ),
-//                            modifier = Modifier
-//                                .width(width = textWidth.dp)
-//                                .offset(x = firstOfDayOffsetList[index].dp)
-//                                .background(Color.Green)
-//                        )
-//                    } else {
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxHeight()
-//                                .width(width = candleBodyWidth.dp)
-//                                .offset(x = 0.dp)
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//        Box(
-//            contentAlignment = Alignment.Center,
-//            modifier = Modifier.fillMaxSize()
-//        ) {
-//            Icon(
-//                painter = painterResource(R.drawable.ic_vertical_handle),
-//                contentDescription = null,
-//                tint = FF626975,
-//                modifier = Modifier.size(height = 10.dp, width = 10.dp)
-//            )
-//        }
+        Box(
+            modifier = Modifier
+                .width(width = candleChartWidth.dp)
+                .fillMaxHeight()
+        ) {
+            Text(
+                dates.first,
+                style = TextStyle(
+                    fontSize = 8.textDp,
+                    fontWeight = FontWeight.Medium,
+                    color = FF000000
+                ),
+                modifier = Modifier
+                    .align(alignment = Alignment.CenterStart)
+                    .offset(x = (candleChartWidth / 20).dp)
+            )
+
+            Text(
+                dates.second,
+                style = TextStyle(
+                    fontSize = 8.textDp,
+                    fontWeight = FontWeight.Medium,
+                    color = FF000000
+                ),
+                modifier = Modifier
+                    .align(alignment = Alignment.Center)
+            )
+
+            Text(
+                dates.third,
+                style = TextStyle(
+                    fontSize = 8.textDp,
+                    fontWeight = FontWeight.Medium,
+                    color = FF000000
+                ),
+                modifier = Modifier
+                    .align(alignment = Alignment.CenterEnd)
+                    .offset(x = -(candleChartWidth / 20).dp)
+            )
+
+        }
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_vertical_handle),
+                contentDescription = null,
+                tint = FF626975,
+                modifier = Modifier.size(height = 10.dp, width = 10.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun DateOverlay(
+    candleChartWidth: Double,
+    candleChartHeight: Double,
+    candleDateHeight: Int,
+    tradingVolumeHeight: Double,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(width = candleChartWidth.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .align(alignment = Alignment.CenterStart)
+                .offset(x = (candleChartWidth / 8).dp)
+        ) {
+            VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = candleChartHeight.dp))
+            candleDateHeight.HeightSpacer()
+            VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = tradingVolumeHeight.dp))
+        }
+
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.align(alignment = Alignment.Center)
+        ) {
+            VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = candleChartHeight.dp))
+            candleDateHeight.HeightSpacer()
+            VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = tradingVolumeHeight.dp))
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .align(alignment = Alignment.CenterEnd)
+                .offset(x = -(candleChartWidth / 8).dp)
+        ) {
+            VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = candleChartHeight.dp))
+            candleDateHeight.HeightSpacer()
+            VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = tradingVolumeHeight.dp))
+        }
+    }
+}
+
+fun invokeCandleDate(
+    selectedTimeFrame: String,
+    candleLazyListState: LazyListState,
+    candleListTypes: LazyPagingItems<CandleListType>,
+    leftOffsetX: Float,
+    centerOffsetX: Float,
+    rightOffsetX: Float,
+    onChangedDate: (Triple<String, String, String>) -> Unit
+) {
+    candleLazyListState.layoutInfo.visibleItemsInfo
+        .lastOrNull()
+        ?.let { lastItem ->
+            listOf(leftOffsetX, centerOffsetX, rightOffsetX).map { offsetX ->
+                var rawIndex = -1
+                val realOffsetX = candleLazyListState.layoutInfo.viewportEndOffset - offsetX
+                for (i in 0 until candleLazyListState.layoutInfo.visibleItemsInfo.size) {
+                    if (candleLazyListState.layoutInfo.visibleItemsInfo.size < 2) {
+                        rawIndex = candleLazyListState.layoutInfo.visibleItemsInfo[0].index
+                        break
+                    } else {
+                        if (i == candleLazyListState.layoutInfo.visibleItemsInfo.lastIndex) {
+                            rawIndex = lastItem.index
+                        } else {
+                            if (realOffsetX < candleLazyListState.layoutInfo.visibleItemsInfo[i + 1].offset && realOffsetX >= candleLazyListState.layoutInfo.visibleItemsInfo[i].offset) {
+                                rawIndex = candleLazyListState.layoutInfo.visibleItemsInfo[i].index
+                                break
+                            }
+                        }
+                    }
+                }
+                rawIndex
+            }.map { rawIndex ->
+                if (rawIndex >= 0 && rawIndex < candleListTypes.itemCount - 1) {
+                    val candleListType = candleListTypes[rawIndex]
+
+                    if (candleListType is CandleListType.CandleType) {
+                        if (selectedTimeFrame == candleTimeFrames[0].first
+                            || selectedTimeFrame == candleTimeFrames[1].first
+                            || selectedTimeFrame == candleTimeFrames[2].first) {
+
+                            val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                            val dateTime = LocalDateTime.parse(candleListType.candle.candleDateTimeUtc, inputFormatter)
+
+                            val outputFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
+                            val formattedTime = dateTime.format(outputFormatter)
+                            val daySuffix = getDaySuffix(dateTime.dayOfMonth)
+
+                            "$formattedTime, ${dateTime.dayOfMonth}$daySuffix"
+                        } else {
+                            candleListType.candle.candleDateTimeUtc.parseDateFormat(
+                                inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+                                outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                            )
+                        }
+                    } else {
+                        ""
+                    }
+                } else {
+                    ""
+                }
+            }.run {
+                onChangedDate.invoke(Triple(this[0], this[1], this[2]))
+            }
+        }
+}
+
+fun getDaySuffix(day: Int): String {
+    return when {
+        day in 11..13 -> "th"
+        day % 10 == 1 -> "st"
+        day % 10 == 2 -> "nd"
+        day % 10 == 3 -> "rd"
+        else -> "th"
     }
 }
 //endregion
@@ -648,6 +840,7 @@ fun CandleDateView(
 @Composable
 fun TickerOverlayInfoPanel(
     ticker: Ticker,
+    selectedTimeFrame: String,
     isBlockCandleVerticalDrag: Boolean,
     overlayInfoHeight: Double,
     overlayInfoWidth: Double,
@@ -763,8 +956,11 @@ fun TickerOverlayInfoPanel(
                                 ),
                                 modifier = Modifier.weight(weight = 0.5f)
                             )
-                            Text(
-                                (if (candleType.candle.candleDateTimeUtc.isToday()) ticker.tradePrice else candleType.candle.tradePrice).formatRealPrice(),
+                            Text((if (candleType.candle.candleDateTimeUtc.isToday() && selectedTimeFrame.isDaysCandle()) {
+                                ticker.tradePrice
+                            } else {
+                                candleType.candle.tradePrice
+                            }).formatRealPrice(),
                                 style = TextStyle(
                                     fontSize = 8.textDp,
                                     fontWeight = FontWeight.Normal,

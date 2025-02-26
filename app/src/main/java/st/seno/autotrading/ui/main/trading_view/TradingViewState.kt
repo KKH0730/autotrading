@@ -23,7 +23,8 @@ const val MAX_CANDLE_CHART_HEIGHT = 500.0
 const val MIN_CANDLE_CHART_HEIGHT = 0.0
 const val MAX_TRADING_VOLUME_HEIGHT = 500.0
 const val MIN_TRADING_VOLUME_HEIGHT = 0.0
-const val maxCandleBodyWidth = 1
+const val maxCandleBodyWidth = 3
+const val tradeBadgeWidth = 10
 const val tradingViewToolbarHeight = 40
 const val tradingViewHeaderHeight = 100
 const val candleTimeframeHeight = 25
@@ -48,11 +49,13 @@ data class TradingViewState(
     val tradingVolumeHeightState: MutableDoubleState,
     val tradesListHeightState: MutableDoubleState,
     val candleBodyWidthState: MutableIntState,
+    val tradeBadgeSpacingState: MutableIntState,
     val candleRangeState: MutableState<Pair<Double, Double>>,
     val tradingVolumeRangeState: MutableState<Pair<Double, Double>>,
     val selectedTimeFrameState: MutableState<String>,
     val firstVisibleIndexState: MutableIntState,
     val isBlockCandleVerticalDragState: MutableState<Boolean>,
+    val datesState: MutableState<Triple<String, String, String>>,
     val overlayInfoState: MutableState<Triple<Int, Int, CandleListType.CandleType?>>
 ) {
 
@@ -63,7 +66,7 @@ data class TradingViewState(
 
     fun updateCandleBodyWidth(dragAmount: Float, candlesSize: Int) {
         val minCandleBodyWidth = ( candleChartWidthState.doubleValue / (if (candlesSize < 20) candlesSize else 20)).toInt()
-        val changedCandleBodyWidth = (candleBodyWidthState.intValue + dragAmount.pxToDp()).toInt()
+        val changedCandleBodyWidth = (candleBodyWidthState.intValue + dragAmount.pxToDp())
         val candleBodyWidth = if (changedCandleBodyWidth > minCandleBodyWidth) {
             minCandleBodyWidth
         } else if (changedCandleBodyWidth < maxCandleBodyWidth){
@@ -76,11 +79,11 @@ data class TradingViewState(
 
     fun updateHeight(dragAmount: Float) {
         if (dragAmount < 0) {
-            candleChartHeightState.doubleValue = (candleChartHeightState.doubleValue - abs(dragAmount.pxToDp())).takeIf { it >= MIN_CANDLE_CHART_HEIGHT } ?: MIN_CANDLE_CHART_HEIGHT
-            tradingVolumeHeightState.doubleValue = (tradingVolumeHeightState.doubleValue + abs(dragAmount.pxToDp())).takeIf { it <= MAX_TRADING_VOLUME_HEIGHT } ?: MAX_TRADING_VOLUME_HEIGHT
+            candleChartHeightState.doubleValue = (candleChartHeightState.doubleValue - abs(dragAmount.pxToDp()))
+            tradingVolumeHeightState.doubleValue = (tradingVolumeHeightState.doubleValue + abs(dragAmount.pxToDp()))
         } else {
-            candleChartHeightState.doubleValue =  (candleChartHeightState.doubleValue + abs(dragAmount.pxToDp())).takeIf { it <= MAX_CANDLE_CHART_HEIGHT } ?: MAX_CANDLE_CHART_HEIGHT
-            tradingVolumeHeightState.doubleValue = (tradingVolumeHeightState.doubleValue - abs(dragAmount.pxToDp())).takeIf { it >= MIN_TRADING_VOLUME_HEIGHT } ?: MIN_TRADING_VOLUME_HEIGHT
+            candleChartHeightState.doubleValue =  (candleChartHeightState.doubleValue + abs(dragAmount.pxToDp()))
+            tradingVolumeHeightState.doubleValue = (tradingVolumeHeightState.doubleValue - abs(dragAmount.pxToDp()))
         }
     }
 }
@@ -95,11 +98,13 @@ fun rememberTradingViewState(
     tradingVolumeHeightState: MutableDoubleState = mutableDoubleStateOf(volumeChartHeight),
     tradesListHeightState: MutableDoubleState = mutableDoubleStateOf(tradesListHeight),
     candleBodyWidthState: MutableIntState = mutableIntStateOf(maxCandleBodyWidth),
+    tradeBadgeSpacingState: MutableIntState = mutableIntStateOf(tradeBadgeWidth),
     candleRangeState: MutableState<Pair<Double, Double>> = mutableStateOf(0.0 to 0.0),
     tradingVolumeRangeState: MutableState<Pair<Double, Double>> = mutableStateOf(0.0 to 0.0),
     selectedTimeFrameState: MutableState<String> = mutableStateOf(getString(R.string.trading_view_time_frame_1d)),
     firstVisibleIndexState: MutableIntState = mutableIntStateOf(-1),
     isBlockCandleVerticalDragState: MutableState<Boolean> = mutableStateOf(false),
+    datesState: MutableState<Triple<String, String, String>> = mutableStateOf(Triple("", "", "")),
     overlayInfoState: MutableState<Triple<Int, Int, CandleListType.CandleType?>> = mutableStateOf(initialOverlayInfo)
 ) = remember {
     TradingViewState(
@@ -110,11 +115,13 @@ fun rememberTradingViewState(
         tradingVolumeHeightState = tradingVolumeHeightState,
         tradesListHeightState = tradesListHeightState,
         candleBodyWidthState = candleBodyWidthState,
+        tradeBadgeSpacingState = tradeBadgeSpacingState,
         candleRangeState = candleRangeState,
         tradingVolumeRangeState = tradingVolumeRangeState,
         selectedTimeFrameState = selectedTimeFrameState,
         firstVisibleIndexState = firstVisibleIndexState,
         isBlockCandleVerticalDragState = isBlockCandleVerticalDragState,
+        datesState = datesState,
         overlayInfoState = overlayInfoState
     )
 }

@@ -49,7 +49,7 @@ fun TradingVolumeView(
     candleBodyWidth: Int,
     tradingVolumeRange: Pair<Double, Double>,
     isBlockCandleVerticalDrag: Boolean,
-    onDetectedTab: (Boolean) -> Unit,
+    onDetectedMotionEvent: (Boolean) -> Unit,
     onChangedOverlayInfo: (Triple<Int, Int, CandleListType.CandleType?>) -> Unit,
     onDraggedCandleView: (Float) -> Unit,
 ) {
@@ -74,7 +74,7 @@ fun TradingVolumeView(
                                 onChangedOverlayInfo = onChangedOverlayInfo
                             )
                         }
-                        onDetectedTab.invoke(!isBlockCandleVerticalDrag)
+                        onDetectedMotionEvent.invoke(!isBlockCandleVerticalDrag)
                     }
                 )
             }
@@ -162,6 +162,7 @@ fun TradingVolumeView(
 
                 ChartUnderLayerView(
                     chartHeight = tradingVolumeHeight,
+                    tradeBadgeSpacing = 0,
                     maxPrice = maxVolume,
                     minPrice = minVolume,
                     highlightPrice = highlightVolume,

@@ -11,6 +11,7 @@ import st.seno.autotrading.data.network.model.Result
 import st.seno.autotrading.data.network.paging.CandlePagingSourceFactory
 import st.seno.autotrading.data.network.paging.FlowUseCase
 import st.seno.autotrading.data.network.repository.CandleRepository
+import st.seno.autotrading.data.network.response_model.Trade
 import st.seno.autotrading.di.Qualifiers
 import st.seno.autotrading.model.CandleListType
 import timber.log.Timber
@@ -34,7 +35,8 @@ class CandlePagingUseCase @Inject constructor(
                 to = params.to,
                 count = params.count,
                 unit = params.unit,
-                timeFrame = params.timeFrame
+                timeFrame = params.timeFrame,
+                trades = params.trades
             )
         }
             .flow
@@ -47,7 +49,8 @@ class CandlePagingUseCase @Inject constructor(
         val to: String,
         val count: Int,
         val unit: Int?,
-        val timeFrame: String
+        val timeFrame: String,
+        val trades: List<Trade>
     )
 }
 

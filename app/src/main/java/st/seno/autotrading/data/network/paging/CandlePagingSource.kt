@@ -2,7 +2,9 @@ package st.seno.autotrading.data.network.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import st.seno.autotrading.data.network.model.Candle
 import st.seno.autotrading.data.network.repository.CandleRepository
+import st.seno.autotrading.data.network.response_model.Trade
 import st.seno.autotrading.model.CandleListType
 import st.seno.autotrading.ui.main.trading_view.candleTimeFrames
 import timber.log.Timber
@@ -15,6 +17,7 @@ class CandlePagingSource(
     private val count: Int,
     private val unit: Int?,
     private val timeFrame: String,
+    private val trades: List<Trade>,
     private val candleRepository: CandleRepository
 ) : PagingSource<String, CandleListType>() {
 
@@ -28,7 +31,7 @@ class CandlePagingSource(
             candleTimeFrames[5].first -> candleRepository.reqMonthsCandle(market = market, to = key, count = count)
             else -> candleRepository.reqYearsCandle(market = market, to = key, count = count)
         }
-            .map { CandleListType.CandleType(candle = it) as CandleListType }
+            .updateCandleSidesFromTrades()
             .toMutableList()
             .also { if (params.key == null) it.add(0, CandleListType.Blank()) }
 
@@ -63,4 +66,63 @@ class CandlePagingSource(
     }
 
     override fun getRefreshKey(state: PagingState<String, CandleListType>): String? = null
+
+    private fun List<Candle>.updateCandleSidesFromTrades(): List<CandleListType> {
+        trades.forEach { trade ->
+            val targetCandleTime = LocalDateTime.parse(trade.tradesCreatedAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+
+            val index = this.indexOfFirst { candle ->
+                val currentCandleTime = LocalDateTime.parse(candle.candleDateTimeUtc, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                when (timeFrame) {
+                    candleTimeFrames[0].first -> {
+                        targetCandleTime.year == currentCandleTime.year
+                                && targetCandleTime.monthValue == currentCandleTime.monthValue
+                                && targetCandleTime.dayOfMonth == currentCandleTime.dayOfMonth
+                                && targetCandleTime.hour == currentCandleTime.hour
+                                && targetCandleTime.minute == currentCandleTime.minute
+                    }
+
+                    candleTimeFrames[1].first -> {
+                        val nextCandleTime = currentCandleTime.plusMinutes(15)
+                        (currentCandleTime.isBefore(targetCandleTime) && nextCandleTime.isAfter(targetCandleTime)) ||
+                                targetCandleTime.year == currentCandleTime.year
+                                && targetCandleTime.monthValue == currentCandleTime.monthValue
+                                && targetCandleTime.dayOfMonth == currentCandleTime.dayOfMonth
+                                && targetCandleTime.hour == currentCandleTime.hour
+                                && targetCandleTime.minute == currentCandleTime.minute
+                    }
+
+                    candleTimeFrames[2].first -> {
+                        val nextCandleTime = currentCandleTime.plusMinutes(60)
+                        (currentCandleTime.isBefore(targetCandleTime) && nextCandleTime.isAfter(targetCandleTime)) ||
+                                targetCandleTime.year == currentCandleTime.year
+                                && targetCandleTime.monthValue == currentCandleTime.monthValue
+                                && targetCandleTime.dayOfMonth == currentCandleTime.dayOfMonth
+                                && targetCandleTime.hour == currentCandleTime.hour
+                                && targetCandleTime.minute == currentCandleTime.minute
+                    }
+
+                    candleTimeFrames[3].first, candleTimeFrames[4].first -> {
+                        targetCandleTime.year == currentCandleTime.year
+                                && targetCandleTime.monthValue == currentCandleTime.monthValue
+                                && targetCandleTime.dayOfMonth == currentCandleTime.dayOfMonth
+                    }
+
+                    candleTimeFrames[5].first -> {
+                        targetCandleTime.year == currentCandleTime.year
+                                && targetCandleTime.monthValue == currentCandleTime.monthValue
+                    }
+
+                    else -> {
+                        targetCandleTime.year == currentCandleTime.year
+                    }
+                }
+            }
+
+            if (index != -1) {
+                this[index].side = trade.tradesSide
+            }
+        }
+        return this.map { CandleListType.CandleType(candle = it) }
+    }
 }

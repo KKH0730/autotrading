@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import st.seno.autotrading.data.mapper.TradingDataMapper
 import st.seno.autotrading.data.network.response_model.TradingData
 import st.seno.autotrading.keyname.KeyName
+import timber.log.Timber
 import javax.inject.Inject
 
 class TradingDataImpl @Inject constructor(
@@ -22,6 +23,7 @@ class TradingDataImpl @Inject constructor(
                 .collection(startDate)
                 .addSnapshotListener { value, error ->
                     if (error != null) {
+                        Timber.e("error : $error")
                         close(error) // Flow 종료
                         return@addSnapshotListener
                     }

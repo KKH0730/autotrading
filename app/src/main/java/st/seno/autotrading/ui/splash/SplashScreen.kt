@@ -65,20 +65,5 @@ fun SplashScreen(
             confirmText = context.getString(R.string.alert_dialog_restart),
             onClickConfirm = { (context as SplashActivity).restartApp() }
         )
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = FFCEDBDA)
-        ) {
-            Spacer(modifier = Modifier.height(height = 210.dp))
-            Image(
-                painter = painterResource(id = R.drawable.ic_setting),
-                contentDescription = null,
-                modifier = Modifier.width(width = 216.dp)
-                    .aspectRatio(ratio = 2.37f)
-            )
-            Spacer(modifier = Modifier.weight(weight = 1f))
-        }
     }
 }

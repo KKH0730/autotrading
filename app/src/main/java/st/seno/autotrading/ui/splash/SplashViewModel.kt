@@ -32,11 +32,6 @@ class SplashViewModel @Inject constructor(
         vmScopeJob(coroutineExceptionHandler = CoroutineExceptionHandler { _, _ ->
             vmScopeJob { _startMain.emit(false) }
         }) {
-            if (BuildConfig.DEBUG) {
-                _startMain.emit(true)
-                return@vmScopeJob
-            }
-
             val result = marketUseCase.reqMarketCrypto()
             if (result.isSuccess()) {
                 PrefsManager.marketIdList = result.successData().joinToString(separator = ",") { it.marketId }

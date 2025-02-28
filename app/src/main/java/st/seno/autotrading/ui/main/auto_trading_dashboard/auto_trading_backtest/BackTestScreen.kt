@@ -99,7 +99,7 @@ fun BacktestScreen(
             scaffoldState = backTestState.bottomSheetScaffoldState,
             sheetPeekHeight = 0.dp,
             sheetShadowElevation = 12.dp,
-            sheetShape = RoundedCornerShape(size = 50.dp),
+            sheetShape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
             sheetContainerColor = FFF9FAFB,
             sheetSwipeEnabled = true,
             sheetContent = { backTestResult?.let { BackTestResultPanel(backTestResult = it, onClickConfirm = { backTestState.partialExpand() }) } }

@@ -1,9 +1,7 @@
 package st.seno.autotrading.data.network.repository
 
-import kotlinx.coroutines.flow.Flow
 import st.seno.autotrading.data.network.model.ClosedOrder
 import st.seno.autotrading.data.network.model.Order
-import st.seno.autotrading.data.network.model.Result
 import st.seno.autotrading.data.network.response_model.IndividualOrder
 
 interface OrderRepository {
@@ -32,7 +30,7 @@ interface OrderRepository {
         volume: String? = null, // 주문량 (지정가, 시장가 매도 시 필수)
         price: String? = null, // 주문 가격(지정가, 시장가 매수 시 필수)
         ordType: String, // 주문 타입(limit: 지정가 주문, price: 시장가 주문(매수), market: 시장가 주문(매도), best: 최유리 주문(time_in_force 설정 필수))
-    ): Flow<Result<Order>>
+    ): Order
 
     suspend fun reqClosedOrders(
         marketId: String, // 마켓 ID
@@ -40,10 +38,10 @@ interface OrderRepository {
         startTime: String?,
         endTime: String,
         limit: Int, // 요청 개수, default: 100, max: 1,000
-    ): Flow<Result<List<ClosedOrder>>>
+    ): List<ClosedOrder>
 
     suspend fun reqIndividualOrder(
         uuid: String
-    ): Flow<Result<IndividualOrder>>
+    ): IndividualOrder
 
 }

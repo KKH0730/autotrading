@@ -37,21 +37,20 @@ class SplashViewModel @Inject constructor(
                 return@vmScopeJob
             }
 
-            marketUseCase.reqMarketCrypto().collectLatest { result ->
-                if (result.isSuccess()) {
-                    PrefsManager.marketIdList = result.successData().joinToString(separator = ",") { it.marketId }
+            val result = marketUseCase.reqMarketCrypto()
+            if (result.isSuccess()) {
+                PrefsManager.marketIdList = result.successData().joinToString(separator = ",") { it.marketId }
 
-                    try {
-                        val map: Map<String, Crypto> = result.successData().map { it.marketId to it }.toMap()
-                        val json = Gson().toJson(map)
-                        PrefsManager.marketAll = json
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                try {
+                    val map: Map<String, Crypto> = result.successData().map { it.marketId to it }.toMap()
+                    val json = Gson().toJson(map)
+                    PrefsManager.marketAll = json
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-
-                vmScopeJob { _startMain.emit(result.isSuccess()) }
             }
+
+            vmScopeJob { _startMain.emit(result.isSuccess()) }
         }
     }
 }

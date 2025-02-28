@@ -77,10 +77,9 @@ class MyAssetOverviewViewModel @Inject constructor(
     }
 
     private suspend fun reqMyAssets() {
-        myAssetsUseCase.reqMyAssets().collectLatest {
-            if (it.isSuccess()) {
-                myAssets.value = it.successData()
-            }
+        val result = myAssetsUseCase.reqMyAssets()
+        if (result.isSuccess()) {
+            myAssets.value = result.successData()
         }
     }
 }

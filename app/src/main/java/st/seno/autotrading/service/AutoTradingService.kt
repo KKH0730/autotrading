@@ -252,7 +252,7 @@ class AutoTradingService : Service() {
                                 correctionValue = correctionValue,
                                 endDateTime = endDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                                 uuid = askOrder.uuid,
-                                individualOrder = reqIndividualOrder(uuid = askOrder.uuid, coroutineScope = this),
+                                individualOrder = reqIndividualOrder(uuid = askOrder.uuid)
                             )
 
                             bidOrder = null
@@ -304,7 +304,7 @@ class AutoTradingService : Service() {
             // 변동성 돌파 전략 -> 오늘 시가 + (전일 고가와 저가 변동폭 * 보정계수) 도달 시 상승 신호로 판단하여 매수 진행
             val breakoutPrice = dayCandles[0].openingPrice + ((dayCandles[1].highPrice - dayCandles[1].lowPrice) * correctionValue)
             if (breakoutPrice <= dayCandles[0].tradePrice) {
-                val myAssets = getMyAssets(coroutineScope = coroutineScope)
+                val myAssets = getMyAssets()
                 myAssets?.firstOrNull { asset -> asset.currency.lowercase() == getString(R.string.krw) }?.let { krwAsset ->
 
                     val price: Double = krwAsset.balance.toDouble() * quantityRatio / 100 * (1 + fee).truncateToXDecimalPlaces(x = 2.0)
@@ -314,8 +314,7 @@ class AutoTradingService : Service() {
                             side = Side.BID.value,
                             volume = null,
                             price = price.truncateToXDecimalPlaces(x = 2.0).toString(),
-                            ordType = OrderType.PRICE.value,
-                            coroutineScope = coroutineScope
+                            ordType = OrderType.PRICE.value
                         )
                     } else {
                         onSkipBid.invoke()
@@ -341,7 +340,7 @@ class AutoTradingService : Service() {
     ): Pair<Order?, Double?>? {
         val bidOrder = buyCrypto(marketId, quantityRatio, correctionValue, dayCandles, onSkipBid, coroutineScope)
         bidOrder?.let {
-            val individualOrder = reqIndividualOrder(uuid = bidOrder.uuid, coroutineScope = coroutineScope)
+            val individualOrder = reqIndividualOrder(uuid = bidOrder.uuid)
 
             val tradePrice = individualOrder?.trades?.firstOrNull()?.tradesPrice?.toDouble()
             reqUpdateTradingData(
@@ -352,7 +351,7 @@ class AutoTradingService : Service() {
                 correctionValue = correctionValue,
                 endDateTime = endDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 uuid = bidOrder.uuid,
-                individualOrder = reqIndividualOrder(uuid = bidOrder.uuid, coroutineScope = coroutineScope),
+                individualOrder = reqIndividualOrder(uuid = bidOrder.uuid)
             )
             return bidOrder to tradePrice
         }
@@ -367,7 +366,7 @@ class AutoTradingService : Service() {
             return null
         }
 
-        val myAssets = getMyAssets(coroutineScope = coroutineScope)
+        val myAssets = getMyAssets()
         val cryptoAsset = myAssets?.firstOrNull { asset -> asset.currency.lowercase() == marketId.split("-")[1].lowercase() }
         return if (cryptoAsset == null) {
             null
@@ -377,8 +376,7 @@ class AutoTradingService : Service() {
                 side = Side.ASK.value,
                 volume = cryptoAsset.balance,
                 price = null,
-                ordType = OrderType.MARKET.value,
-                coroutineScope = coroutineScope
+                ordType = OrderType.MARKET.value
             )
         }
     }
@@ -413,7 +411,7 @@ class AutoTradingService : Service() {
                 correctionValue = correctionValue,
                 endDateTime = endDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 uuid = it.uuid,
-                individualOrder = reqIndividualOrder(uuid = it.uuid, coroutineScope = coroutineScope),
+                individualOrder = reqIndividualOrder(uuid = it.uuid)
             )
         }
         return askOrder
@@ -464,10 +462,8 @@ class AutoTradingService : Service() {
         }
     }
 
-    private suspend fun getMyAssets(coroutineScope: CoroutineScope): List<Asset>? {
+    private suspend fun getMyAssets(): List<Asset>? {
         return myAssetUseCase.reqMyAssets()
-            .stateIn(coroutineScope)
-            .value
             .takeIf { it.isSuccess() }
             ?.successData()
     }
@@ -477,8 +473,7 @@ class AutoTradingService : Service() {
         side: String,
         volume: String?,
         price: String?,
-        ordType: String,
-        coroutineScope: CoroutineScope
+        ordType: String
     ): Order? {
         return orderUseCase.reqOrder(
             marketId = marketId,
@@ -487,20 +482,13 @@ class AutoTradingService : Service() {
             price = price,
             ordType = ordType
         )
-            .stateIn(coroutineScope)
-            .value
             .takeIf { it.isSuccess() }
             ?.successData()
     }
 
-    private suspend fun reqIndividualOrder(
-        uuid: String,
-        coroutineScope: CoroutineScope
-    ): IndividualOrder? {
+    private suspend fun reqIndividualOrder(uuid: String): IndividualOrder? {
         delay(1000)
         return orderUseCase.reqIndividualOrders(uuid = uuid)
-            .stateIn(coroutineScope)
-            .value
             .takeIf { it.isSuccess() }
             ?.successData()
     }

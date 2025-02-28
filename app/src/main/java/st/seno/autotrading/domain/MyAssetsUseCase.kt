@@ -13,7 +13,7 @@ class MyAssetsUseCase @Inject constructor(
     private val myAssetsRepository: MyAssetsRepository,
     @Qualifiers.IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    suspend fun reqMyAssets(): Flow<Result<List<Asset>>> {
+    suspend fun reqMyAssets(): Result<List<Asset>> {
         return myAssetsRepository.reqMyAssets().catchError(dispatcher = ioDispatcher)
     }
 }

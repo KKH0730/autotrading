@@ -32,8 +32,6 @@ class MainViewModel @Inject constructor(
 
     fun connectSocket() {
         var isFirstCall = true
-Timber.e("rise : ${PrefsManager.riseColor}")
-Timber.e("fall : ${PrefsManager.fallColor}")
         vmScopeJob {
             rxSocketClient
                 .connect()

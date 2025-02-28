@@ -13,7 +13,8 @@ class MarketUseCase @Inject constructor(
     private val marketRepository: MarketRepository,
     @Qualifiers.IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ){
-    suspend fun reqMarketCrypto(): Flow<Result<List<Crypto>>> {
+    suspend fun reqMarketCrypto(): Result<List<Crypto>> {
         return marketRepository.reqMarketCrypto().catchError(dispatcher = ioDispatcher)
     }
 }
+

@@ -1,13 +1,12 @@
 package st.seno.autotrading.domain
 
-import st.seno.autotrading.di.Qualifiers
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
 import st.seno.autotrading.data.network.model.ClosedOrder
 import st.seno.autotrading.data.network.model.Order
 import st.seno.autotrading.data.network.model.Result
 import st.seno.autotrading.data.network.repository.OrderRepository
 import st.seno.autotrading.data.network.response_model.IndividualOrder
+import st.seno.autotrading.di.Qualifiers
 import st.seno.autotrading.extensions.catchError
 import javax.inject.Inject
 
@@ -21,7 +20,7 @@ class OrderUseCase @Inject constructor(
         volume: String?,
         price: String?,
         ordType: String,
-    ): Flow<Result<Order>> = orderRepository.reqOrder(
+    ): Result<Order> = orderRepository.reqOrder(
         marketId = marketId,
         side = side,
         volume = volume,
@@ -35,7 +34,7 @@ class OrderUseCase @Inject constructor(
         startTime: String? = null,
         endTime: String,
         limit: Int
-    ): Flow<Result<List<ClosedOrder>>> = orderRepository.reqClosedOrders(
+    ): Result<List<ClosedOrder>> = orderRepository.reqClosedOrders(
         marketId = marketId,
         states = states,
         startTime = startTime,
@@ -45,5 +44,5 @@ class OrderUseCase @Inject constructor(
 
     suspend fun reqIndividualOrders(
         uuid: String,
-    ): Flow<Result<IndividualOrder>> = orderRepository.reqIndividualOrder(uuid = uuid).catchError(dispatcher = ioDispatcher)
+    ): Result<IndividualOrder> = orderRepository.reqIndividualOrder(uuid = uuid).catchError(dispatcher = ioDispatcher)
 }

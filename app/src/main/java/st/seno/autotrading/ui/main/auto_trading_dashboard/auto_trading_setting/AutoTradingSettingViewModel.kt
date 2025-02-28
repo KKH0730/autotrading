@@ -35,16 +35,15 @@ class AutoTradingSettingViewModel @Inject constructor(
     }
 
     private suspend fun reqMyAssets() {
-        myAssetsUseCase.reqMyAssets().collectLatest {
-            if (it.isSuccess()) {
-                it.successData()
-                    .firstOrNull { asset -> asset.currency.lowercase() == getString(R.string.krw) }
-                    ?.let { asset -> _myKrw.value = asset.balance.toDouble().truncateToXDecimalPlaces(x = 2.0) }
-            } else {
-                showMessage(message = getString(R.string.network_request_error))
-                delay(1000)
-                finish()
-            }
+        val result = myAssetsUseCase.reqMyAssets()
+        if (result.isSuccess()) {
+            result.successData()
+                .firstOrNull { asset -> asset.currency.lowercase() == getString(R.string.krw) }
+                ?.let { asset -> _myKrw.value = asset.balance.toDouble().truncateToXDecimalPlaces(x = 2.0) }
+        } else {
+            showMessage(message = getString(R.string.network_request_error))
+            delay(1000)
+            finish()
         }
     }
 }

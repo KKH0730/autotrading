@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.withContext
 import st.seno.autotrading.data.network.model.Result
 import timber.log.Timber
 import java.io.IOException
@@ -25,5 +26,16 @@ fun <T> Flow<Result<T>>.retry(tryCount: Int = 3, delay: Long = 1000): Flow<Resul
         } else {
             false
         }
+    }
+}
+
+suspend fun <T> T.catchError(dispatcher: CoroutineDispatcher): Result<T> {
+    return try {
+        withContext(dispatcher) {
+            Result.Success(this@catchError)
+        }
+    } catch (e: Exception) {
+        Timber.e(e)
+        Result.Error(e)
     }
 }

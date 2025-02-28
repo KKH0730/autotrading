@@ -63,16 +63,16 @@ class AutoTradingDashboardViewModel @Inject constructor(
         }
 
         vmScopeJob {
-            orderUseCase.reqClosedOrders(
+            val result = orderUseCase.reqClosedOrders(
                 marketId = _selectedCryptoToTradingHistory.value,
                 states = arrayOf("done, cancel"),
                 startTime = null,
                 endTime = calendar.timeInMillis.toString(),
                 limit = 100
-            ).collectLatest { result ->
-                if (result.isSuccess()) {
-                    _tradingHistories.value = result.successData()
-                }
+            )
+
+            if (result.isSuccess()) {
+                _tradingHistories.value = result.successData()
             }
         }
     }

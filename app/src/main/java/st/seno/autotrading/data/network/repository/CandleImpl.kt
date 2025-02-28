@@ -8,6 +8,8 @@ import st.seno.autotrading.data.mapper.WeeksCandleMapper
 import st.seno.autotrading.data.mapper.YearsCandleMapper
 import st.seno.autotrading.data.network.model.Candle
 import st.seno.autotrading.data.network.service.CandleService
+import st.seno.autotrading.extensions.utcToKoreanTime
+import timber.log.Timber
 import javax.inject.Inject
 
 class CandleImpl @Inject constructor(

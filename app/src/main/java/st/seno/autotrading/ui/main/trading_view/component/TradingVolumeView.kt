@@ -129,7 +129,7 @@ fun TradingVolumeView(
                                     candleBodyWidth = candleBodyWidth,
                                 )
                             }
-                            if (candleListType.candle.candleDateTimeUtc.isFirstDayOfMonth()) {
+                            if (candleListType.candle.candleDateTimeKst.isFirstDayOfMonth()) {
                                 Spacer(
                                     modifier = Modifier
                                         .width(width = 0.2.dp)

@@ -203,7 +203,6 @@ class AutoTradingService : Service() {
                         correctionValue = correctionValue,
                         dayCandles = dayCandles,
                         endDateTime = endDateTime,
-                        coroutineScope = this,
                         onSkipBid = { isSkipBid = true },
                     ) ?: Pair(null, null)
 
@@ -228,8 +227,7 @@ class AutoTradingService : Service() {
                             correctionValue = correctionValue,
                             bidPrice = it,
                             now = now,
-                            endDateTime = endDateTime,
-                            coroutineScope = this
+                            endDateTime = endDateTime
                         )?.run {
                             isSkipBid = false
                             bidOrder = null
@@ -242,7 +240,7 @@ class AutoTradingService : Service() {
                 // 매도 가능 체크
                 if (isAskTime(now = now)) {
                     if (isCanAsk(order = bidOrder)) {
-                        sellCrypto(marketId = marketId, coroutineScope = this)?.let { askOrder ->
+                        sellCrypto(marketId = marketId)?.let { askOrder ->
                             Timber.e("ask : $askOrder")
                             reqUpdateTradingData(
                                 quantityRatio = quantityRatio,
@@ -295,8 +293,7 @@ class AutoTradingService : Service() {
         quantityRatio: Int,
         correctionValue: Float,
         dayCandles: List<Candle>,
-        onSkipBid: () -> Unit,
-        coroutineScope: CoroutineScope
+        onSkipBid: () -> Unit
     ): Order? {
         return if (dayCandles.size < 2) {
             null
@@ -335,10 +332,9 @@ class AutoTradingService : Service() {
         correctionValue: Float,
         dayCandles: List<Candle>,
         endDateTime: LocalDateTime,
-        coroutineScope: CoroutineScope,
         onSkipBid: () -> Unit,
     ): Pair<Order?, Double?>? {
-        val bidOrder = buyCrypto(marketId, quantityRatio, correctionValue, dayCandles, onSkipBid, coroutineScope)
+        val bidOrder = buyCrypto(marketId, quantityRatio, correctionValue, dayCandles, onSkipBid)
         bidOrder?.let {
             val individualOrder = reqIndividualOrder(uuid = bidOrder.uuid)
 
@@ -358,10 +354,7 @@ class AutoTradingService : Service() {
         return null
     }
 
-    private suspend fun sellCrypto(
-        marketId: String,
-        coroutineScope: CoroutineScope
-    ): Order? {
+    private suspend fun sellCrypto(marketId: String): Order? {
         if (marketId.split("-").size != 2) {
             return null
         }
@@ -389,17 +382,24 @@ class AutoTradingService : Service() {
         correctionValue: Float,
         bidPrice: Double,
         now: LocalDateTime,
-        endDateTime: LocalDateTime,
-        coroutineScope: CoroutineScope
+        endDateTime: LocalDateTime
     ): Order? {
         var askOrder: Order? = null
 
         if (stopLoss != 0 && isStopLossOrTakeProfitTime(now)) {
-            askOrder = isExecuteStopLoss(marketId, bidPrice, stopLoss, coroutineScope)
+            askOrder = isExecuteStopLoss(
+                marketId = marketId,
+                bidPrice = bidPrice,
+                stopLoss = stopLoss
+            )
         }
 
         if (takeProfit != 0 && askOrder == null && isStopLossOrTakeProfitTime(now)) {
-            askOrder = isExecuteTakeProfit(marketId, bidPrice, takeProfit, coroutineScope)
+            askOrder = isExecuteTakeProfit(
+                marketId = marketId,
+                bidPrice = bidPrice,
+                takeProfit = takeProfit
+            )
         }
 
         askOrder?.let {
@@ -420,12 +420,11 @@ class AutoTradingService : Service() {
     private suspend fun isExecuteStopLoss(
         marketId: String,
         bidPrice: Double?,
-        stopLoss: Int,
-        coroutineScope: CoroutineScope
+        stopLoss: Int
     ): Order? {
         val currentTradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice
         return if (currentTradePrice != null && bidPrice != null && currentTradePrice <= (bidPrice * ((100 - stopLoss) / 100.0))) {
-            val askOrder = sellCrypto(marketId = marketId, coroutineScope = coroutineScope)
+            val askOrder = sellCrypto(marketId = marketId)
             return askOrder
         } else {
             null
@@ -435,12 +434,11 @@ class AutoTradingService : Service() {
     private suspend fun isExecuteTakeProfit(
         marketId: String,
         bidPrice: Double?,
-        takeProfit: Int,
-        coroutineScope: CoroutineScope
+        takeProfit: Int
     ): Order? {
         val currentTradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice
         return if (currentTradePrice != null && bidPrice != null && currentTradePrice >= (bidPrice * (1 + (takeProfit / 100.0)))) {
-            val askOrder = sellCrypto(marketId = marketId, coroutineScope = coroutineScope)
+            val askOrder = sellCrypto(marketId = marketId)
             return askOrder
         } else {
             null

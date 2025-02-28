@@ -72,7 +72,7 @@ class CandlePagingSource(
             val targetCandleTime = LocalDateTime.parse(trade.tradesCreatedAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
 
             val index = this.indexOfFirst { candle ->
-                val currentCandleTime = LocalDateTime.parse(candle.candleDateTimeUtc, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                val currentCandleTime = LocalDateTime.parse(candle.candleDateTimeKst, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                 when (timeFrame) {
                     candleTimeFrames[0].first -> {
                         targetCandleTime.year == currentCandleTime.year

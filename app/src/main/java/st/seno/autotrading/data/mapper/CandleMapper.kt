@@ -7,8 +7,8 @@ import st.seno.autotrading.data.network.response_model.MonthsCandleResponse
 import st.seno.autotrading.data.network.response_model.SecondsCandleResponse
 import st.seno.autotrading.data.network.response_model.WeeksCandleResponse
 import st.seno.autotrading.data.network.response_model.YearsCandleResponse
-import st.seno.autotrading.extensions.kstToKoreanTime
-import st.seno.autotrading.extensions.utcToKoreanTime
+import st.seno.autotrading.extensions.parseDateFormat
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class YearsCandleMapper @Inject constructor() : Mapper<YearsCandleResponse, Candle> {
@@ -16,8 +16,14 @@ class YearsCandleMapper @Inject constructor() : Mapper<YearsCandleResponse, Cand
         return with(model) {
             Candle(
                 market = market,
-                candleDateTimeUtc = candleDateTimeUtc.utcToKoreanTime(),
-                candleDateTimeKst = candleDateTimeKst.kstToKoreanTime(),
+                candleDateTimeUtc = candleDateTimeUtc.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
+                candleDateTimeKst = candleDateTimeKst.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
                 openingPrice = openingPrice,
                 highPrice = highPrice,
                 lowPrice = lowPrice,
@@ -36,8 +42,14 @@ class MonthsCandleMapper @Inject constructor() : Mapper<MonthsCandleResponse, Ca
         return with(model) {
             Candle(
                 market = market,
-                candleDateTimeUtc = candleDateTimeUtc.utcToKoreanTime(),
-                candleDateTimeKst = candleDateTimeKst.kstToKoreanTime(),
+                candleDateTimeUtc = candleDateTimeUtc.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
+                candleDateTimeKst = candleDateTimeKst.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
                 openingPrice = openingPrice,
                 highPrice = highPrice,
                 lowPrice = lowPrice,
@@ -56,8 +68,14 @@ class WeeksCandleMapper @Inject constructor() : Mapper<WeeksCandleResponse, Cand
         return with(model) {
             Candle(
                 market = market,
-                candleDateTimeUtc = candleDateTimeUtc.utcToKoreanTime(),
-                candleDateTimeKst = candleDateTimeKst.kstToKoreanTime(),
+                candleDateTimeUtc = candleDateTimeUtc.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
+                candleDateTimeKst = candleDateTimeKst.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
                 openingPrice = openingPrice,
                 highPrice = highPrice,
                 lowPrice = lowPrice,
@@ -76,8 +94,14 @@ class DaysCandleMapper @Inject constructor() : Mapper<DaysCandleResponse, Candle
         return with(model) {
             Candle(
                 market = market,
-                candleDateTimeUtc = candleDateTimeUtc.utcToKoreanTime(),
-                candleDateTimeKst = candleDateTimeKst.kstToKoreanTime(),
+                candleDateTimeUtc = candleDateTimeUtc.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
+                candleDateTimeKst = candleDateTimeKst.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
                 openingPrice = openingPrice,
                 highPrice = highPrice,
                 lowPrice = lowPrice,
@@ -99,8 +123,14 @@ class MinutesCandleMapper @Inject constructor() : Mapper<MinutesCandleResponse, 
         return with(model) {
             Candle(
                 market = market,
-                candleDateTimeUtc = candleDateTimeUtc.utcToKoreanTime(),
-                candleDateTimeKst = candleDateTimeKst.kstToKoreanTime(),
+                candleDateTimeUtc = candleDateTimeUtc.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
+                candleDateTimeKst = candleDateTimeKst.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
                 openingPrice = openingPrice,
                 highPrice = highPrice,
                 lowPrice = lowPrice,
@@ -119,8 +149,14 @@ class SecondsCandleMapper @Inject constructor() : Mapper<SecondsCandleResponse, 
         return with(model) {
             Candle(
                 market = market,
-                candleDateTimeUtc = candleDateTimeUtc.utcToKoreanTime(),
-                candleDateTimeKst = candleDateTimeKst.kstToKoreanTime(),
+                candleDateTimeUtc = candleDateTimeUtc.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
+                candleDateTimeKst = candleDateTimeKst.parseDateFormat(
+                    inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+                    outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ),
                 openingPrice = openingPrice,
                 highPrice = highPrice,
                 lowPrice = lowPrice,

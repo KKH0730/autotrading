@@ -172,6 +172,7 @@ fun CandleChartView(
                             }
                         }
                         DateOverlay(
+                            isAutoTradingView = isAutoTradingView,
                             candleChartWidth = candleChartWidth,
                             candleChartHeight = candleChartHeight,
                             candleDateHeight = candleDateHeight,
@@ -367,7 +368,7 @@ fun TradingCandleView(
             }
 
             if (candleListType is CandleListType.CandleType) {
-                val highlightPrice = if (candleListType.candle.candleDateTimeUtc.isToday()) {
+                val highlightPrice = if (candleListType.candle.candleDateTimeKst.isToday()) {
                     ticker.tradePrice
                 } else {
                     candleListType.candle.tradePrice
@@ -564,7 +565,12 @@ fun ChardGridView(
                         .height(height = 1.dp)
                         .fillMaxWidth()
                         .align(alignment = Alignment.TopStart)
-                        .offset(y = ((pair.second + (pair.first.toString().measuredTextHeight(fontSize = 8).pxToDp() / 2)) + tradeBadgeSpacing).dp)
+                        .offset(
+                            y = ((pair.second + (pair.first
+                                .toString()
+                                .measuredTextHeight(fontSize = 8)
+                                .pxToDp() / 2)) + tradeBadgeSpacing).dp
+                        )
                         .background(color = COLOR_80BDBBBB)
                 )
             }
@@ -611,7 +617,11 @@ fun PriceLevelIndicator(
          val value = if (isTradingVolume) highlightPrice.numberWithCommas() else highlightPrice.formatRealPrice()
          Box(
              modifier = Modifier
-                 .offset(y = ((highlightPriceYOffset - (value.measuredTextHeight(fontSize = 8).pxToDp() / 2)) + tradeBadgeSpacing).dp)
+                 .offset(
+                     y = ((highlightPriceYOffset - (value
+                         .measuredTextHeight(fontSize = 8)
+                         .pxToDp() / 2)) + tradeBadgeSpacing).dp
+                 )
                  .fillMaxWidth()
                  .clip(shape = RoundedCornerShape(size = 4.dp))
                  .align(alignment = Alignment.TopStart)
@@ -714,15 +724,15 @@ fun CandleDateView(
 
 @Composable
 fun DateOverlay(
+    isAutoTradingView: Boolean,
     candleChartWidth: Float,
     candleChartHeight: Float,
     candleDateHeight: Int,
     tradingVolumeHeight: Float,
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(width = candleChartWidth.dp)
+        contentAlignment = Alignment.TopCenter,
+        modifier = Modifier.width(width = candleChartWidth.dp)
     ) {
         Column(
             modifier = Modifier
@@ -730,18 +740,21 @@ fun DateOverlay(
                 .offset(x = (candleChartWidth / 8).dp)
         ) {
             VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = candleChartHeight.dp))
-            candleDateHeight.HeightSpacer()
-            VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = tradingVolumeHeight.dp))
+            if (!isAutoTradingView) {
+                candleDateHeight.HeightSpacer()
+                VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = tradingVolumeHeight.dp))
+            }
         }
-
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.align(alignment = Alignment.Center)
         ) {
             VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = candleChartHeight.dp))
-            candleDateHeight.HeightSpacer()
-            VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = tradingVolumeHeight.dp))
+            if (!isAutoTradingView) {
+                candleDateHeight.HeightSpacer()
+                VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = tradingVolumeHeight.dp))
+            }
         }
 
         Column(
@@ -751,8 +764,10 @@ fun DateOverlay(
                 .offset(x = -(candleChartWidth / 8).dp)
         ) {
             VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = candleChartHeight.dp))
-            candleDateHeight.HeightSpacer()
-            VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = tradingVolumeHeight.dp))
+            if (!isAutoTradingView) {
+                candleDateHeight.HeightSpacer()
+                VerticalDashedLine(color = Color.LightGray, modifier = Modifier.height(height = tradingVolumeHeight.dp))
+            }
         }
     }
 }
@@ -798,7 +813,7 @@ fun invokeCandleDate(
                             || selectedTimeFrame == candleTimeFrames[2].first) {
 
                             val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                            val dateTime = LocalDateTime.parse(candleListType.candle.candleDateTimeUtc, inputFormatter)
+                            val dateTime = LocalDateTime.parse(candleListType.candle.candleDateTimeKst, inputFormatter)
 
                             val outputFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
                             val formattedTime = dateTime.format(outputFormatter)
@@ -806,7 +821,7 @@ fun invokeCandleDate(
 
                             "$formattedTime, ${dateTime.dayOfMonth}$daySuffix"
                         } else {
-                            candleListType.candle.candleDateTimeUtc.parseDateFormat(
+                            candleListType.candle.candleDateTimeKst.parseDateFormat(
                                 inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
                                 outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
                             )
@@ -877,7 +892,7 @@ fun TickerOverlayInfoPanel(
 
                     ) {
                         Text(
-                            candleType.candle.candleDateTimeUtc,
+                            candleType.candle.candleDateTimeKst,
                             style = TextStyle(
                                 fontSize = 9.textDp,
                                 fontWeight = FontWeight.SemiBold,
@@ -954,7 +969,7 @@ fun TickerOverlayInfoPanel(
                                 ),
                                 modifier = Modifier.weight(weight = 0.5f)
                             )
-                            Text((if (candleType.candle.candleDateTimeUtc.isToday() && selectedTimeFrame.isDaysCandle()) {
+                            Text((if (candleType.candle.candleDateTimeKst.isToday() && selectedTimeFrame.isDaysCandle()) {
                                 ticker.tradePrice
                             } else {
                                 candleType.candle.tradePrice

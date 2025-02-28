@@ -118,17 +118,19 @@ fun BackTestSettingsPanel(
                 isBlock = takeProfitValue.isNotEmpty() && takeProfitValue.text.toInt() > 0,
                 onTextChanged = {
                     val value = if (it.text.isNotEmpty() && it.text.length > 1 && it.text[0] == '0') {
-                        it.text.slice(1..<it.text.length)
+                        it.text.slice(1..<it.text.length).toInt()
+                    } else if(it.text.isEmpty()) {
+                        0
                     } else {
-                        it.text
+                        it.text.toInt()
                     }
                     try {
                         when {
-                            value.toInt() > 99 -> onStopLossChanged.invoke(TextFieldValue(text = "99", selection = TextRange(index = "99".length)))
-                            else -> onStopLossChanged.invoke(TextFieldValue(text = value, selection = TextRange(index = value.length)))
+                            value > 99 -> onStopLossChanged.invoke(TextFieldValue(text = "99", selection = TextRange(index = "99".length)))
+                            else -> onStopLossChanged.invoke(TextFieldValue(text = value.toString(), selection = TextRange(index = value.toString().length)))
                         }
                     } catch (e: Exception) {
-                        onStopLossChanged.invoke(TextFieldValue(text = value, selection = TextRange(index = value.length)))
+                        onStopLossChanged.invoke(TextFieldValue(text = value.toString(), selection = TextRange(index = value.toString().length)))
                     }
                 }
             )
@@ -142,17 +144,19 @@ fun BackTestSettingsPanel(
                 isBlock = stopLossValue.isNotEmpty() && stopLossValue.text.toInt() > 0,
                 onTextChanged = {
                     val value = if (it.text.isNotEmpty() && it.text.length > 1 && it.text[0] == '0') {
-                        it.text.slice(1..<it.text.length)
+                        it.text.slice(1..<it.text.length).toInt()
+                    } else if(it.text.isEmpty()) {
+                        0
                     } else {
-                        it.text
+                        it.text.toInt()
                     }
                     try {
                         when {
-                            value.toInt() > 99 -> onTakeProfitChanged.invoke(TextFieldValue(text = "99", selection = TextRange(index = "99".length)))
-                            else -> onTakeProfitChanged.invoke(TextFieldValue(text = value, selection = TextRange(index = value.length)))
+                            value > 99 -> onTakeProfitChanged.invoke(TextFieldValue(text = "99", selection = TextRange(index = "99".length)))
+                            else -> onTakeProfitChanged.invoke(TextFieldValue(text = value.toString(), selection = TextRange(index = value.toString().length)))
                         }
                     } catch (e: Exception) {
-                        onTakeProfitChanged.invoke(TextFieldValue(text = value, selection = TextRange(index = value.length)))
+                        onTakeProfitChanged.invoke(TextFieldValue(text = value.toString(), selection = TextRange(index = value.toString().length)))
                     }
                 }
             )

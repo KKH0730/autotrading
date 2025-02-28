@@ -24,7 +24,7 @@ const val tradeBadgeWidth = 10
 const val tradingViewToolbarHeight = 40
 const val tradingViewHeaderHeight = 100
 const val candleTimeframeHeight = 25
-const val candleDateHeight = 15
+const val candleDateHeight = 25
 const val bottomSpacerHeight = 10
 
 var candleChartHeight = (screenHeight.pxToDp() - tradingViewToolbarHeight - tradingViewHeaderHeight - candleTimeframeHeight) * 0.6f

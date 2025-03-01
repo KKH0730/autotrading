@@ -31,11 +31,24 @@ fun <T> Flow<Result<T>>.retry(tryCount: Int = 3, delay: Long = 1000): Flow<Resul
 
 suspend fun <T> T.catchError(dispatcher: CoroutineDispatcher): Result<T> {
     return try {
+        Timber.e("22")
         withContext(dispatcher) {
             Result.Success(this@catchError)
         }
     } catch (e: Exception) {
+        Timber.e("33")
         Timber.e(e)
         Result.Error(e)
     }
+}
+
+inline fun <T> safeCall(block: () -> T): Result<T> {
+    return runCatching { block() }
+        .fold(
+            onSuccess = { Result.Success(it) },
+            onFailure = {
+                Timber.e(it)
+                Result.Error(it)
+            }
+        )
 }

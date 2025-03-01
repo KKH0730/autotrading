@@ -300,17 +300,18 @@ class AutoTradingService : Service() {
         } else {
             // 변동성 돌파 전략 -> 오늘 시가 + (전일 고가와 저가 변동폭 * 보정계수) 도달 시 상승 신호로 판단하여 매수 진행
             val breakoutPrice = dayCandles[0].openingPrice + ((dayCandles[1].highPrice - dayCandles[1].lowPrice) * correctionValue)
+            Timber.e("breakoutPrice : $breakoutPrice")
             if (breakoutPrice <= dayCandles[0].tradePrice) {
                 val myAssets = getMyAssets()
                 myAssets?.firstOrNull { asset -> asset.currency.lowercase() == getString(R.string.krw) }?.let { krwAsset ->
-
-                    val price: Double = krwAsset.balance.toDouble() * quantityRatio / 100 * (1 + fee).truncateToXDecimalPlaces(x = 2.0)
+                    val price: Double = (krwAsset.balance.toDouble() * quantityRatio / 100.0) / (1.0 + fee)
+                    Timber.e("price : ${price.toInt()}")
                     if (price >= 5000.0) {
                         reqOrder(
                             marketId = marketId,
                             side = Side.BID.value,
                             volume = null,
-                            price = price.truncateToXDecimalPlaces(x = 2.0).toString(),
+                            price = price.toInt().toString(),
                             ordType = OrderType.PRICE.value
                         )
                     } else {

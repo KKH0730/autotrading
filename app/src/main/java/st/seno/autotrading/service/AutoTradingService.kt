@@ -304,14 +304,14 @@ class AutoTradingService : Service() {
             if (breakoutPrice <= dayCandles[0].tradePrice) {
                 val myAssets = getMyAssets()
                 myAssets?.firstOrNull { asset -> asset.currency.lowercase() == getString(R.string.krw) }?.let { krwAsset ->
-                    val price: Double = (krwAsset.balance.toDouble() * quantityRatio / 100.0) / (1.0 + fee)
-                    Timber.e("price : ${price.toInt()}")
-                    if (price >= 5000.0) {
+                    val price = ((krwAsset.balance.toDouble() * quantityRatio / 100.0) / (1.0 + fee)).toInt()
+                    Timber.e("price : $price")
+                    if (price >= 5000) {
                         reqOrder(
                             marketId = marketId,
                             side = Side.BID.value,
                             volume = null,
-                            price = price.toInt().toString(),
+                            price = price.toString(),
                             ordType = OrderType.PRICE.value
                         )
                     } else {

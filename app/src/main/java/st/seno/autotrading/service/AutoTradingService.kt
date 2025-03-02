@@ -267,20 +267,20 @@ class AutoTradingService : Service() {
     }
 
     private fun isBidTime(now: LocalDateTime): Boolean {
-        val start = now.withHour(7).withMinute(59).withSecond(59)
-        val end = now.withHour(9).withMinute(59).withSecond(59)
+        val start = now.withHour(8).withMinute(57).withSecond(59)
+        val end = now.withHour(9).withMinute(0).withSecond(0)
         return now.isBefore(start) || now.isAfter(end)
     }
 
     private fun isAskTime(now: LocalDateTime): Boolean {
-        val start = now.withHour(8).withMinute(0).withSecond(0)
+        val start = now.withHour(8).withMinute(58).withSecond(0)
         val end = now.withHour(8).withMinute(59).withSecond(59)
         return now.isAfter(start) && now.isBefore(end)
     }
 
     private fun isStopLossOrTakeProfitTime(now: LocalDateTime): Boolean {
-        val start = now.withHour(7).withMinute(59).withSecond(59)
-        val end = now.withHour(9).withMinute(59).withSecond(59)
+        val start = now.withHour(8).withMinute(57).withSecond(59)
+        val end = now.withHour(9).withMinute(0).withSecond(0)
         return start.isBefore(now) || end.isAfter(now)
     }
 

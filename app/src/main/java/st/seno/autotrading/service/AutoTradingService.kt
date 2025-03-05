@@ -228,12 +228,7 @@ class AutoTradingService : Service() {
                             bidPrice = it,
                             now = now,
                             endDateTime = endDateTime
-                        )?.run {
-                            isSkipBid = false
-                            bidOrder = null
-                            bidPrice = null
-                            dayCandles = listOf()
-                        }
+                        )
                     }
                 }
 
@@ -252,13 +247,15 @@ class AutoTradingService : Service() {
                                 uuid = askOrder.uuid,
                                 individualOrder = reqIndividualOrder(uuid = askOrder.uuid)
                             )
-
-                            bidOrder = null
-                            bidPrice = null
-                            dayCandles = listOf()
                         }
                     }
                     isSkipBid = false
+                }
+
+                if (isInitialTime(now = now)) {
+                    bidOrder = null
+                    bidPrice = null
+                    dayCandles = listOf()
                 }
                 delay(timeMillis = 1000)
             }
@@ -282,6 +279,12 @@ class AutoTradingService : Service() {
         val start = now.withHour(8).withMinute(57).withSecond(59)
         val end = now.withHour(9).withMinute(0).withSecond(0)
         return start.isBefore(now) || end.isAfter(now)
+    }
+
+    private fun isInitialTime(now: LocalDateTime): Boolean {
+        val start = now.withHour(8).withMinute(58).withSecond(58)
+        val end = now.withHour(8).withMinute(59).withSecond(59)
+        return now.isAfter(start) && now.isBefore(end)
     }
 
     private fun isCanBid(order: Order?) = order == null

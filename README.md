@@ -10,8 +10,8 @@
  - Gson
  - WebSocket
  - Lottie
- - OpenCV
- - Firebase(Firestore)
+ - Timber
+ - Firebase(Firestore, Crashlytics)
  - Figma
  - Git
  - Github

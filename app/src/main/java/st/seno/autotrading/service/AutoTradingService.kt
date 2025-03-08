@@ -12,10 +12,12 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -68,14 +70,19 @@ class AutoTradingService : Service() {
 
     private val CHANNEL_ID = "TradingServiceChannel"
     private val fee: Double = 0.0005 // 업비트 수수료
+    private var job: Job? = null
 
     override fun onDestroy() {
+        FirebaseCrashlytics.getInstance().recordException(Exception("destroy 22: $tradingStartDate"))
+
         isRunningAutoTradingService.value = false
         tradingStartDate = ""
         tradingEndDate = ""
         tradingStrategy = ""
         tradingStopLoss = "" to ""
         tradingTakeProfit = "" to ""
+        job?.cancel()
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
         super.onDestroy()
     }
@@ -184,7 +191,7 @@ class AutoTradingService : Service() {
         var dayCandles: List<Candle> = listOf()
         var isSkipBid = false
 
-        CoroutineScope(ioDispatcher).launch {
+        job = CoroutineScope(ioDispatcher).launch {
             while (true) {
                 Timber.e("endDateTime : ${endDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}")
                 val now = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
@@ -259,6 +266,8 @@ class AutoTradingService : Service() {
                 }
                 delay(timeMillis = 1000)
             }
+            FirebaseCrashlytics.getInstance().recordException(Exception("destroy 11: $tradingStartDate"))
+            stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
         }
     }

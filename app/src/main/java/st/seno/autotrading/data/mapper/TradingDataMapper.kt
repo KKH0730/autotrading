@@ -23,6 +23,7 @@ class TradingDataMapper @Inject constructor() : Mapper<QueryDocumentSnapshot, Tr
             }
             TradingData(
                 uuid = getString("uuid") ?: "",
+                bidUuid = getString("bidUuid") ?: "",
                 quantityRatio = getDouble("quantityRatio")?.toInt() ?: 0,
                 tradingStrategy = getString("tradingStrategy") ?: "",
                 stopLoss = getDouble("stopLoss")?.toInt() ?: 0,

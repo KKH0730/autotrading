@@ -15,7 +15,6 @@ import st.seno.autotrading.domain.TradingDataUseCase
 import st.seno.autotrading.extensions.truncateToXDecimalPlaces
 import st.seno.autotrading.model.Side
 import st.seno.autotrading.ui.base.BaseViewModel
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -83,24 +82,26 @@ class AutoTradingDashboardViewModel @Inject constructor(
                 _signedChangeRate.value = if (it.isEmpty()) {
                     0.0
                 } else {
-                    val isAlreadyAsk = it.firstOrNull { tradingData ->  tradingData.order.side == Side.ASK.value } != null
-                    if (isAlreadyAsk) {
-                        it.fold(0.0 to 0.0) { acc, tradingData ->
+                    it.groupBy { tradingData -> tradingData.bidUuid }
+                        .values
+                        .filter { tradingDatas -> tradingDatas.size == 2 }
+                        .takeIf { it.isNotEmpty() }
+                        ?.fold(0.0 to 0.0) { acc, tradingDataList ->
                             var totalBidPrice = acc.first
                             var totalAskPrice = acc.second
-                            if (tradingData.order.side == Side.BID.value) {
-                                totalBidPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() + tradingData.order.paidFee.toDouble() } ?: 0.0
-                            } else {
-                                totalAskPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() - tradingData.order.paidFee.toDouble() } ?: 0.0
-                            }
 
+                            tradingDataList.forEach { tradingData ->
+                                if (tradingData.order.side == Side.BID.value) {
+                                    totalBidPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() + tradingData.order.paidFee.toDouble() } ?: 0.0
+                                } else {
+                                    totalAskPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() - tradingData.order.paidFee.toDouble() } ?: 0.0
+                                }
+                            }
                             totalBidPrice to totalAskPrice
                         }
-                            .let { pair -> ((pair.second - pair.first) / pair.first) * 100 }
-                            .truncateToXDecimalPlaces(x = 2.0)
-                    } else {
-                        0.0
-                    }
+                        ?.let { pair -> ((pair.second - pair.first) / pair.first) * 100 }
+                        ?.truncateToXDecimalPlaces(x = 2.0)
+                        ?: 0.0
                 }
             }
         }

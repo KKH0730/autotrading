@@ -15,7 +15,6 @@ import st.seno.autotrading.data.network.response_model.Trade
 import st.seno.autotrading.di.Qualifiers
 import st.seno.autotrading.extensions.safeCall
 import st.seno.autotrading.model.CandleListType
-import timber.log.Timber
 import javax.inject.Inject
 
 class CandlePagingUseCase @Inject constructor(

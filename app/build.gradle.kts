@@ -54,17 +54,17 @@ android {
             isShrinkResources = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            manifestPlaceholders["enableCrashReporting"] = false
-            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
-                // If you don't need crash reporting for your debug build,
-                // you can speed up your build by disabling mapping file uploading.
-                mappingFileUploadEnabled = false
-            }
-
-            // crashlytics 플러그인을 사용하지 않음
-            extra.set("enableCrashlytics", false)
-            // crashlytics 빌드 ID 업데이트 막기
-            extra.set("alwaysUpdateBuildId", false)
+            manifestPlaceholders["enableCrashReporting"] = true
+//            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+//                // If you don't need crash reporting for your debug build,
+//                // you can speed up your build by disabling mapping file uploading.
+//                mappingFileUploadEnabled = false
+//            }
+//
+//            // crashlytics 플러그인을 사용하지 않음
+//            extra.set("enableCrashlytics", false)
+//            // crashlytics 빌드 ID 업데이트 막기
+//            extra.set("alwaysUpdateBuildId", false)
 
             buildConfigField("String", "SECRET_KEY", localProperties["SECRET_KEY"].toString())
             buildConfigField("String", "ACCESS_KEY", localProperties["ACCESS_KEY"].toString())

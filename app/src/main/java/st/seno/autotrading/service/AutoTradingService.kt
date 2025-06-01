@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
@@ -20,7 +19,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -36,14 +34,16 @@ import st.seno.autotrading.domain.CandleUseCase
 import st.seno.autotrading.domain.MyAssetsUseCase
 import st.seno.autotrading.domain.OrderUseCase
 import st.seno.autotrading.extensions.formatRealPrice
-import st.seno.autotrading.extensions.truncateToXDecimalPlaces
+import st.seno.autotrading.extensions.stringToLocalDateTime
+import st.seno.autotrading.extensions.toDate
+import st.seno.autotrading.extensions.toLocalDateTime
 import st.seno.autotrading.keyname.KeyName
 import st.seno.autotrading.model.OrderType
 import st.seno.autotrading.model.Side
+import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.ui.main.MainActivity
 import st.seno.autotrading.ui.main.MainViewModel
 import timber.log.Timber
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -73,69 +73,103 @@ class AutoTradingService : Service() {
     private var job: Job? = null
 
     override fun onDestroy() {
-        FirebaseCrashlytics.getInstance().recordException(Exception("destroy 22: $tradingStartDate"))
-
-        isRunningAutoTradingService.value = false
-        tradingStartDate = ""
-        tradingEndDate = ""
-        tradingStrategy = ""
-        tradingStopLoss = "" to ""
-        tradingTakeProfit = "" to ""
-        job?.cancel()
+        release()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
         super.onDestroy()
     }
 
+    private fun release() {
+        isRunningAutoTradingService.value = false
+        job?.cancel()
+
+        PrefsManager.AutoTrading.apply {
+            marketId = ""
+            quantityRatio = 0
+            tradingStrategy = ""
+            stopLoss = 0
+            stopLossPrice = ""
+            takeProfit = 0
+            takeProfitPrice = ""
+            correctionValue = 0f
+            startDate = 0L
+            endDate = 0L
+            tradingMode = ""
+        }
+        PrefsManager.Data.apply {
+            isSkipBid = false
+            tradePrice = 0.0
+            bidOrder = null
+            askOrder = null
+        }
+    }
+
     @SuppressLint("ForegroundServiceType", "ObsoleteSdkInt")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Timber.e("onStartCommand : ${isRunningAutoTradingService.value}")
         if (isRunningAutoTradingService.value) return START_STICKY
         isRunningAutoTradingService.value = true
 
 
-        intent?.let {
-            val marketId: String = it.getStringExtra(KeyName.Intent.MARKET_ID) ?: ""
-            val quantityRatio: Int = it.getIntExtra(KeyName.Intent.QUANTITY_RATIO, 0)
-            val tradingStrategy: String = it.getStringExtra(KeyName.Intent.TRADING_STRATEGY) ?: ""
-            val stopLoss: Int = it.getIntExtra(KeyName.Intent.STOP_LOSS, 0)
-            val takeProfit: Int = it.getIntExtra(KeyName.Intent.TAKE_PROFIT, 0)
-            val correctionValue: Float = it.getFloatExtra(KeyName.Intent.CORRECTION_VALUE, 0f)
-            val endDate: Long = it.getLongExtra(KeyName.Intent.END_DATE,0L)
-            val tradingMode: String = it.getStringExtra(KeyName.Intent.CURRNET_TRADING_MODE) ?: ""
+        val marketId = intent?.getStringExtra(KeyName.Intent.MARKET_ID)
+            ?.also { PrefsManager.AutoTrading.marketId = it }
+            ?: PrefsManager.AutoTrading.marketId
 
-            val endDateTime = Instant.ofEpochMilli(endDate)
-                .atZone(ZoneId.of("Asia/Seoul"))
-                .toLocalDateTime()
-                .plusDays(1)
-                .withHour(8)
-                .withMinute(59)
-                .withSecond(59)
+        val quantityRatio = intent?.getIntExtra(KeyName.Intent.QUANTITY_RATIO, 0)
+            ?.also { PrefsManager.AutoTrading.quantityRatio = it }
+            ?: PrefsManager.AutoTrading.quantityRatio
 
-            tradingMarketId = marketId
-            tradingStartDate = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-            tradingEndDate = endDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-            AutoTradingService.tradingStrategy = tradingStrategy
-            tradingStopLoss = stopLoss.toString() to ""
-            tradingTakeProfit = takeProfit.toString() to ""
+        val stopLoss = intent?.getIntExtra(KeyName.Intent.STOP_LOSS, 0)
+            ?.also { PrefsManager.AutoTrading.stopLoss = it }
+            ?: PrefsManager.AutoTrading.stopLoss
 
-            if (marketId.isNotEmpty() && endDate != 0L) {
-                createNotificationChannel()
-                val requestCode = (System.currentTimeMillis() / 1000).toInt()
-                val notification = createNotification(requestCode = requestCode)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    startForeground(requestCode, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-                } else {
-                    startForeground(requestCode, notification)
-                }
-                startTrading(
-                    marketId = marketId,
-                    quantityRatio = quantityRatio,
-                    stopLoss = stopLoss,
-                    takeProfit = takeProfit,
-                    correctionValue = correctionValue,
-                    endDateTime = endDateTime
-                )
+        val takeProfit = intent?.getIntExtra(KeyName.Intent.TAKE_PROFIT, 0)
+            ?.also { PrefsManager.AutoTrading.takeProfit = it }
+            ?: PrefsManager.AutoTrading.takeProfit
+
+        val correctionValue = intent?.getFloatExtra(KeyName.Intent.CORRECTION_VALUE, 0f)
+            ?.also { PrefsManager.AutoTrading.correctionValue = it }
+            ?: PrefsManager.AutoTrading.correctionValue
+
+        val startDate = intent?.getLongExtra(KeyName.Intent.START_DATE, 0L)
+            ?.also { PrefsManager.AutoTrading.startDate = it }
+            ?: PrefsManager.AutoTrading.startDate
+
+        val endDate = intent?.getLongExtra(KeyName.Intent.END_DATE, 0L)
+            ?.also { PrefsManager.AutoTrading.endDate = it }
+            ?: PrefsManager.AutoTrading.endDate
+
+        val tradingStrategy = intent?.getStringExtra(KeyName.Intent.TRADING_STRATEGY)
+            ?.also { PrefsManager.AutoTrading.tradingStrategy = it }
+            ?: PrefsManager.AutoTrading.tradingStrategy
+
+        val tradingMode = intent?.getStringExtra(KeyName.Intent.CURRNET_TRADING_MODE)
+            ?.also { PrefsManager.AutoTrading.tradingMode = it }
+            ?: PrefsManager.AutoTrading.tradingMode
+
+        Timber.e("takeProfit : $takeProfit")
+
+        if (marketId.isNotEmpty() && endDate != 0L) {
+            createNotificationChannel()
+
+            val requestCode = (System.currentTimeMillis() / 1000).toInt()
+            val notification = createNotification(requestCode = requestCode)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(requestCode, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            } else {
+                startForeground(requestCode, notification)
             }
+
+            startTrading(
+                marketId = marketId,
+                quantityRatio = quantityRatio,
+                stopLoss = stopLoss,
+                takeProfit = takeProfit,
+                correctionValue = correctionValue,
+                startDate = startDate.toDate("yyyy-MM-dd"),
+                endDateTime = endDate.toLocalDateTime(),
+                tradingStrategy = tradingStrategy
+            )
         }
 
         return START_STICKY
@@ -184,10 +218,12 @@ class AutoTradingService : Service() {
         stopLoss: Int,
         takeProfit: Int,
         correctionValue: Float,
+        startDate: String,
         endDateTime: LocalDateTime,
+        tradingStrategy: String,
     ) {
-        var bidOrder: Order? = null
-        var bidPrice: Double? = null
+        var bidOrder: Order? = PrefsManager.Data.bidOrder
+        var bidPrice: Double = PrefsManager.Data.tradePrice
         var dayCandles: List<Candle> = listOf()
         var isSkipBid = false
 
@@ -198,7 +234,16 @@ class AutoTradingService : Service() {
                 if (now.isAfter(endDateTime) && bidOrder == null) {
                     break
                 }
-                dayCandles = dayCandles.ifEmpty { getDayCandles(marketId = marketId) }
+
+                dayCandles = if (dayCandles.isEmpty() || dayCandles.firstOrNull()?.let { isRequestNewCandle(now, it) } == true) {
+                    getDayCandles(marketId)
+                } else {
+                    dayCandles
+                }
+
+                if (dayCandles.isNotEmpty()) {
+                    Timber.e("today -> ${dayCandles[0].candleDateTimeKst}")
+                }
 
                 // 매수 가능 체크
                 if (isBidTime(now = now) && isCanBid(order = bidOrder) && !isSkipBid) {
@@ -209,33 +254,47 @@ class AutoTradingService : Service() {
                         takeProfit = takeProfit,
                         correctionValue = correctionValue,
                         dayCandles = dayCandles,
+                        startDate = startDate,
                         endDateTime = endDateTime,
+                        tradingStrategy = tradingStrategy,
                         onSkipBid = { isSkipBid = true },
                     ) ?: Pair(null, null)
 
-                    bidOrder = order
-                    bidPrice = tradePrice
+                    bidOrder = order.also { PrefsManager.Data.bidOrder = it }
+                    bidPrice = (tradePrice ?: 0.0).also { PrefsManager.Data.tradePrice = it }
 
-                    bidPrice?.let {
-                        tradingStopLoss = stopLoss.toString() to (it * ((100 - stopLoss) / 100.0)).formatRealPrice()
-                        tradingTakeProfit = takeProfit.toString() to (it * (1 + (takeProfit / 100.0))).formatRealPrice()
+                    if (bidPrice != 0.0) {
+                        PrefsManager.AutoTrading.apply {
+                            this.stopLoss = stopLoss
+                            this.stopLossPrice = (bidPrice * ((100 - stopLoss) / 100.0)).formatRealPrice()
+                            this.takeProfit = takeProfit
+                            this.takeProfitPrice = (bidPrice * (1 + (takeProfit / 100.0))).formatRealPrice()
+                        }
                     }
                     Timber.e("bid : $bidOrder")
                 }
 
                 // StopLoss 혹은 TakeProfit 체크
-                if (isCanAsk(order = bidOrder) && bidPrice != null) {
-                    bidPrice?.let {
-                        executeSell(
-                            marketId = marketId,
-                            quantityRatio = quantityRatio,
-                            stopLoss = stopLoss,
-                            takeProfit = takeProfit,
-                            correctionValue = correctionValue,
-                            bidPrice = it,
-                            now = now,
-                            endDateTime = endDateTime
-                        )
+                if (isCanAsk(order = bidOrder) && bidPrice != 0.0) {
+                    executeSell(
+                        marketId = marketId,
+                        quantityRatio = quantityRatio,
+                        stopLoss = stopLoss,
+                        takeProfit = takeProfit,
+                        correctionValue = correctionValue,
+                        bidUuid = bidOrder?.uuid ?: "",
+                        bidPrice = bidPrice,
+                        now = now,
+                        startDate = startDate,
+                        endDateTime = endDateTime,
+                        tradingStrategy = tradingStrategy
+                    )?.also {
+                        bidOrder = null
+                        PrefsManager.Data.bidOrder = null
+
+                        isSkipBid = true.also { PrefsManager.Data.isSkipBid = true }
+                        bidPrice = 0.0.also { PrefsManager.Data.tradePrice = 0.0 }
+                        dayCandles = listOf()
                     }
                 }
 
@@ -250,51 +309,60 @@ class AutoTradingService : Service() {
                                 stopLoss = stopLoss,
                                 takeProfit = takeProfit,
                                 correctionValue = correctionValue,
+                                startDate = startDate,
                                 endDateTime = endDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                                 uuid = askOrder.uuid,
+                                bidUuid = bidOrder?.uuid ?: "",
                                 individualOrder = reqIndividualOrder(uuid = askOrder.uuid)
                             )
+
+                            bidOrder = null
+                            PrefsManager.Data.bidOrder = null
+
+                            bidPrice = 0.0.also { PrefsManager.Data.tradePrice = 0.0 }
+                            dayCandles = listOf()
                         }
                     }
-                    isSkipBid = false
+                    isSkipBid = false.also { PrefsManager.Data.isSkipBid = false }
                 }
 
-                if (isInitialTime(now = now)) {
-                    bidOrder = null
-                    bidPrice = null
-                    dayCandles = listOf()
-                }
                 delay(timeMillis = 1000)
             }
-            FirebaseCrashlytics.getInstance().recordException(Exception("destroy 11: $tradingStartDate"))
+
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
         }
     }
 
     private fun isBidTime(now: LocalDateTime): Boolean {
-        val start = now.withHour(8).withMinute(57).withSecond(59)
-        val end = now.withHour(9).withMinute(0).withSecond(0)
+        val start = now.withHour(8).withMinute(58).withSecond(59)
+        val end = now.withHour(9).withMinute(1).withSecond(0)
         return now.isBefore(start) || now.isAfter(end)
     }
 
+
     private fun isAskTime(now: LocalDateTime): Boolean {
-        val start = now.withHour(8).withMinute(58).withSecond(0)
+        val start = now.withHour(8).withMinute(59).withSecond(0)
         val end = now.withHour(8).withMinute(59).withSecond(59)
         return now.isAfter(start) && now.isBefore(end)
     }
 
     private fun isStopLossOrTakeProfitTime(now: LocalDateTime): Boolean {
-        val start = now.withHour(8).withMinute(57).withSecond(59)
-        val end = now.withHour(9).withMinute(0).withSecond(0)
+        val start = now.withHour(8).withMinute(58).withSecond(59)
+        val end = now.withHour(9).withMinute(2).withSecond(0)
         return start.isBefore(now) || end.isAfter(now)
     }
 
-    private fun isInitialTime(now: LocalDateTime): Boolean {
-        val start = now.withHour(8).withMinute(58).withSecond(58)
-        val end = now.withHour(8).withMinute(59).withSecond(59)
-        return now.isAfter(start) && now.isBefore(end)
+    private fun isRequestNewCandle(today: LocalDateTime, candle: Candle): Boolean {
+        val candleDate = candle.candleDateTimeKst.stringToLocalDateTime("yyyy-MM-dd HH:mm:ss")
+        return if (today.hour < 9) {
+            val yesterday = today.minusDays(1)
+            yesterday.toLocalDate() != candleDate.toLocalDate()
+        } else {
+            today.toLocalDate() != candleDate.toLocalDate()
+        }
     }
+
 
     private fun isCanBid(order: Order?) = order == null
 
@@ -312,8 +380,9 @@ class AutoTradingService : Service() {
         } else {
             // 변동성 돌파 전략 -> 오늘 시가 + (전일 고가와 저가 변동폭 * 보정계수) 도달 시 상승 신호로 판단하여 매수 진행
             val breakoutPrice = dayCandles[0].openingPrice + ((dayCandles[1].highPrice - dayCandles[1].lowPrice) * correctionValue)
-            Timber.e("breakoutPrice : $breakoutPrice")
-            if (breakoutPrice <= dayCandles[0].tradePrice) {
+            val tradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice ?: 0.0
+            Timber.e("tradePrice : $tradePrice, openingPrice : ${dayCandles[0].openingPrice}, highPrice : ${dayCandles[1].highPrice}, lowPrice : ${dayCandles[1].lowPrice}, breakoutPrice : $breakoutPrice")
+            if (breakoutPrice <= tradePrice) {
                 val myAssets = getMyAssets()
                 myAssets?.firstOrNull { asset -> asset.currency.lowercase() == getString(R.string.krw) }?.let { krwAsset ->
                     val price = ((krwAsset.balance.toDouble() * quantityRatio / 100.0) / (1.0 + fee)).toInt()
@@ -332,6 +401,7 @@ class AutoTradingService : Service() {
                     }
                 }
             } else {
+                Timber.e("555")
                 null
             }
         }
@@ -344,7 +414,9 @@ class AutoTradingService : Service() {
         takeProfit: Int,
         correctionValue: Float,
         dayCandles: List<Candle>,
+        startDate: String,
         endDateTime: LocalDateTime,
+        tradingStrategy: String,
         onSkipBid: () -> Unit,
     ): Pair<Order?, Double?>? {
         val bidOrder = buyCrypto(marketId, quantityRatio, correctionValue, dayCandles, onSkipBid)
@@ -358,8 +430,10 @@ class AutoTradingService : Service() {
                 stopLoss = stopLoss,
                 takeProfit = takeProfit,
                 correctionValue = correctionValue,
+                startDate = startDate,
                 endDateTime = endDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 uuid = bidOrder.uuid,
+                bidUuid = bidOrder.uuid,
                 individualOrder = reqIndividualOrder(uuid = bidOrder.uuid)
             )
             return bidOrder to tradePrice
@@ -393,9 +467,12 @@ class AutoTradingService : Service() {
         stopLoss: Int,
         takeProfit: Int,
         correctionValue: Float,
+        bidUuid: String,
         bidPrice: Double,
         now: LocalDateTime,
-        endDateTime: LocalDateTime
+        startDate: String,
+        endDateTime: LocalDateTime,
+        tradingStrategy: String
     ): Order? {
         var askOrder: Order? = null
 
@@ -422,8 +499,10 @@ class AutoTradingService : Service() {
                 stopLoss = stopLoss,
                 takeProfit = takeProfit,
                 correctionValue = correctionValue,
+                startDate = startDate,
                 endDateTime = endDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 uuid = it.uuid,
+                bidUuid = bidUuid,
                 individualOrder = reqIndividualOrder(uuid = it.uuid)
             )
         }
@@ -432,11 +511,11 @@ class AutoTradingService : Service() {
 
     private suspend fun isExecuteStopLoss(
         marketId: String,
-        bidPrice: Double?,
+        bidPrice: Double,
         stopLoss: Int
     ): Order? {
         val currentTradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice
-        return if (currentTradePrice != null && bidPrice != null && currentTradePrice <= (bidPrice * ((100 - stopLoss) / 100.0))) {
+        return if (currentTradePrice != null && bidPrice != 0.0 && currentTradePrice <= (bidPrice * ((100 - stopLoss) / 100.0))) {
             val askOrder = sellCrypto(marketId = marketId)
             return askOrder
         } else {
@@ -446,11 +525,11 @@ class AutoTradingService : Service() {
 
     private suspend fun isExecuteTakeProfit(
         marketId: String,
-        bidPrice: Double?,
+        bidPrice: Double,
         takeProfit: Int
     ): Order? {
         val currentTradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice
-        return if (currentTradePrice != null && bidPrice != null && currentTradePrice >= (bidPrice * (1 + (takeProfit / 100.0)))) {
+        return if (currentTradePrice != null && bidPrice != 0.0 && currentTradePrice >= (bidPrice * (1 + (takeProfit / 100.0)))) {
             val askOrder = sellCrypto(marketId = marketId)
             return askOrder
         } else {
@@ -510,13 +589,16 @@ class AutoTradingService : Service() {
         stopLoss: Int,
         takeProfit: Int,
         correctionValue: Float,
+        startDate: String,
         endDateTime: String,
         uuid: String,
+        bidUuid: String,
         individualOrder: IndividualOrder?
     ) {
         if (individualOrder != null) {
             val map = mapOf(
                 "uuid" to uuid,
+                "bidUuid" to bidUuid,
                 "order" to individualOrder,
                 "quantityRatio" to quantityRatio,
                 "tradingStrategy" to tradingStrategy,
@@ -527,7 +609,7 @@ class AutoTradingService : Service() {
             )
             firestore.collection(KeyName.Firestore.TRADING_COLLECTION)
                 .document(KeyName.Firestore.AUTO_TRADING_DOCUMENT)
-                .collection(tradingStartDate)
+                .collection(startDate)
                 .document(System.currentTimeMillis().toString())
                 .set(map)
                 .await()
@@ -536,11 +618,5 @@ class AutoTradingService : Service() {
 
     companion object {
         val isRunningAutoTradingService: MutableStateFlow<Boolean> = MutableStateFlow(false)
-        var tradingMarketId: String = ""
-        var tradingStartDate: String = ""
-        var tradingEndDate: String = ""
-        var tradingStrategy: String = ""
-        var tradingStopLoss: Pair<String, String> = "" to ""
-        var tradingTakeProfit: Pair<String, String> = "" to ""
     }
 }

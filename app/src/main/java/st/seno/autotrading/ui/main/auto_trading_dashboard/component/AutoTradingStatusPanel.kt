@@ -40,6 +40,8 @@ import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.WidthSpacer
 import st.seno.autotrading.extensions.textDp
+import st.seno.autotrading.extensions.toDate
+import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.service.AutoTradingService
 import st.seno.autotrading.theme.FF000000
 import st.seno.autotrading.theme.FF1F2937
@@ -173,28 +175,35 @@ fun AutoTradingStatus(isActivated: Boolean, signedChangeRate: Double) {
             }
         }
         if (isActivated) {
+            val tradingEndDate = try {
+                PrefsManager.AutoTrading.endDate.toDate("yyyy-MM-dd")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                ""
+            }
+
             TradeStatusInfo(
                 painter = painterResource(R.drawable.ic_strategy),
                 title = stringResource(R.string.auto_trading_trading_strategy),
-                content = AutoTradingService.tradingStrategy,
+                content = PrefsManager.AutoTrading.tradingStrategy,
             )
             TradeStatusInfo(
                 painter = painterResource(R.drawable.ic_calendar),
                 title = stringResource(R.string.auto_trading_trading_end_date),
-                content = AutoTradingService.tradingEndDate,
+                content = tradingEndDate,
             )
             TradeStatusPercentInfo(
                 painter = painterResource(R.drawable.ic_stop_loss),
                 title = stringResource(R.string.auto_trading_stop_loss),
-                percent = AutoTradingService.tradingStopLoss.first,
-                price = AutoTradingService.tradingStopLoss.second,
+                percent = PrefsManager.AutoTrading.stopLoss.toString(),
+                price = PrefsManager.AutoTrading.stopLossPrice,
                 isStopLoss = true
             )
             TradeStatusPercentInfo(
                 painter = painterResource(R.drawable.ic_take_profit),
                 title = stringResource(R.string.auto_trading_take_profit),
-                percent = AutoTradingService.tradingTakeProfit.first,
-                price = AutoTradingService.tradingTakeProfit.second,
+                percent = PrefsManager.AutoTrading.takeProfit.toString(),
+                price = PrefsManager.AutoTrading.takeProfitPrice,
                 isStopLoss = false
             )
         }

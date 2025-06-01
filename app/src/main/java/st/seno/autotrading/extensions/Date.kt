@@ -22,6 +22,16 @@ fun Long.toDate(pattern: String): String {
         .format(formatter)
 }
 
+fun Long.toLocalDateTime(): LocalDateTime {
+    return Instant.ofEpochMilli(this)
+        .atZone(ZoneId.of("Asia/Seoul"))
+        .toLocalDateTime()
+        .plusDays(1)
+        .withHour(8)
+        .withMinute(59)
+        .withSecond(59)
+}
+
 fun String.parseDateFormat(
     inputFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"),
     outputFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
@@ -42,10 +52,8 @@ fun String.isToday(): Boolean {
     return dateTime == LocalDate.now()
 }
 
-fun Calendar.calendarToLocalDateTime(zoneId: ZoneId): LocalDateTime {
-    val instant = this.toInstant()
-    return LocalDateTime.ofInstant(instant, zoneId)
-}
+fun String.stringToLocalDateTime(pattern: String): LocalDateTime = LocalDateTime.parse(this, DateTimeFormatter.ofPattern(pattern))
+
 
 fun String.formatedDate(): String {
     val localNow = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))

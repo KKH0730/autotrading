@@ -23,6 +23,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import st.seno.autotrading.extensions.HeightSpacer
+import st.seno.autotrading.extensions.toDate
+import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.service.AutoTradingService
 import st.seno.autotrading.theme.FFF9FAFB
 import st.seno.autotrading.ui.main.MainActivity
@@ -32,6 +34,9 @@ import st.seno.autotrading.ui.main.auto_trading_dashboard.component.AutoTradingS
 import st.seno.autotrading.ui.main.auto_trading_dashboard.component.BackTestPanel
 import st.seno.autotrading.ui.main.auto_trading_dashboard.component.TradingHistoryPanel
 import st.seno.autotrading.ui.main.trading_view.TradingViewActivity
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun AutoTradingDashboardScreen() {
@@ -42,33 +47,11 @@ fun AutoTradingDashboardScreen() {
     val selectedDate =  autoTradingDashboardViewModel.selectedDateToTradingHistory.collectAsStateWithLifecycle().value
     val tradingHistories = autoTradingDashboardViewModel.tradingHistories.collectAsStateWithLifecycle().value
     val signedChangeRate = autoTradingDashboardViewModel.signedChangeRate.collectAsStateWithLifecycle().value
-
-    BackHandler {  }
-
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-
-        val lifecycle = lifecycleOwner.lifecycle
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                AutoTradingService.tradingStartDate.takeIf { it.isNotEmpty() }?.let {
-                    autoTradingDashboardViewModel.reqTradingData(startDate = it)
-                }
-            }
-        }
-
-        lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycle.removeObserver(observer)
-        }
-    }
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                // try to consume before LazyColumn to collapse toolbar if needed, hence pre-scroll
-
                 return Offset.Zero
             }
         }
@@ -89,10 +72,14 @@ fun AutoTradingDashboardScreen() {
             signedChangeRate = signedChangeRate,
             onClickStopTrading = { stopService(context = context as MainActivity) },
             onClickViewTrading = {
-                val marketId = AutoTradingService.tradingMarketId
-                val startDate = AutoTradingService.tradingStartDate
-                if (marketId.isNotEmpty() && startDate.isNotEmpty()) {
-                    TradingViewActivity.start(context = context, tickerCode = marketId, autoTradingStartDate = startDate)
+                try {
+                    val marketId = PrefsManager.AutoTrading.marketId
+                    val startDate = PrefsManager.AutoTrading.startDate.toDate("yyyy-MM-dd")
+                    if (marketId.isNotEmpty() && startDate.isNotEmpty()) {
+                        TradingViewActivity.start(context = context, tickerCode = marketId, autoTradingStartDate = startDate)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             } ,
             onClickStartAutoTrading = { AutoTradingSettingActivity.start(context = context) }
@@ -107,6 +94,27 @@ fun AutoTradingDashboardScreen() {
             onClickApplyFilter = { autoTradingDashboardViewModel.reqClosedOrders() }
         )
         24.HeightSpacer()
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val lifecycle = lifecycleOwner.lifecycle
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                try {
+                    PrefsManager.AutoTrading.startDate.toDate("yyyy-MM-dd").takeIf { it.isNotEmpty() }?.let {
+                        autoTradingDashboardViewModel.reqTradingData(startDate = it)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycle.removeObserver(observer)
+        }
     }
 }
 

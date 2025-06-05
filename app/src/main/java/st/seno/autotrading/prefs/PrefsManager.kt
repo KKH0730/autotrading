@@ -55,6 +55,12 @@ object PrefsManager {
         }
 
     object AutoTrading {
+        var isRunningTradingService: Boolean
+            get() = Prefs.getBoolean("runningTradingService", false)
+            set(isRunning) {
+                Prefs.putBoolean("runningTradingService", isRunning)
+            }
+
         var marketId: String
             get() = Prefs.getString(KeyName.Intent.MARKET_ID, "")
             set(value) {

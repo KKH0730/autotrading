@@ -8,10 +8,12 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
@@ -26,17 +28,22 @@ import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.Asset
 import st.seno.autotrading.data.network.model.Candle
 import st.seno.autotrading.data.network.model.Order
+import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.data.network.model.isSuccess
 import st.seno.autotrading.data.network.model.successData
 import st.seno.autotrading.data.network.response_model.IndividualOrder
+import st.seno.autotrading.data.network.socket.RxSocketClient
+import st.seno.autotrading.data.network.socket.SockResponse
 import st.seno.autotrading.di.Qualifiers
 import st.seno.autotrading.domain.CandleUseCase
 import st.seno.autotrading.domain.MyAssetsUseCase
 import st.seno.autotrading.domain.OrderUseCase
 import st.seno.autotrading.extensions.formatRealPrice
+import st.seno.autotrading.extensions.parseDateFormat
 import st.seno.autotrading.extensions.stringToLocalDateTime
 import st.seno.autotrading.extensions.toDate
 import st.seno.autotrading.extensions.toLocalDateTime
+import st.seno.autotrading.extensions.toSeoulTime
 import st.seno.autotrading.keyname.KeyName
 import st.seno.autotrading.model.OrderType
 import st.seno.autotrading.model.Side
@@ -80,74 +87,52 @@ class AutoTradingService : Service() {
     }
 
     private fun release() {
-        isRunningAutoTradingService.value = false
         job?.cancel()
-
-        PrefsManager.AutoTrading.apply {
-            marketId = ""
-            quantityRatio = 0
-            tradingStrategy = ""
-            stopLoss = 0
-            stopLossPrice = ""
-            takeProfit = 0
-            takeProfitPrice = ""
-            correctionValue = 0f
-            startDate = 0L
-            endDate = 0L
-            tradingMode = ""
-        }
-        PrefsManager.Data.apply {
-            isSkipBid = false
-            tradePrice = 0.0
-            bidOrder = null
-            askOrder = null
-        }
     }
 
     @SuppressLint("ForegroundServiceType", "ObsoleteSdkInt")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Timber.e("onStartCommand : ${isRunningAutoTradingService.value}")
-        if (isRunningAutoTradingService.value) return START_STICKY
-        isRunningAutoTradingService.value = true
+        Timber.e("onStartCommand")
+        val now = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
+        val exception = Exception("onStartCommand --> date: ${now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}\n" +
+                "isRunningAutoTradingService : ${PrefsManager.AutoTrading.isRunningTradingService}\n" +
+                "marketId : ${intent?.getStringExtra(KeyName.Intent.MARKET_ID)}, marketId cache : ${PrefsManager.AutoTrading.marketId}\n" +
+                "correctionValue : ${intent?.getFloatExtra(KeyName.Intent.CORRECTION_VALUE, 0f)}, correctionValue cache : ${PrefsManager.AutoTrading.correctionValue}\n" +
+                "endDate : ${intent?.getLongExtra(KeyName.Intent.END_DATE, 0L)}, endDate cache : ${PrefsManager.AutoTrading.endDate}"
+        )
+        FirebaseCrashlytics.getInstance().recordException(exception)
+        FirebaseCrashlytics.getInstance().recordException(Exception("????"))
 
+        Timber.e("onStartCommand : ${PrefsManager.AutoTrading.isRunningTradingService}")
+        if (PrefsManager.AutoTrading.isRunningTradingService) return START_STICKY
+        PrefsManager.AutoTrading.isRunningTradingService = true
 
         val marketId = intent?.getStringExtra(KeyName.Intent.MARKET_ID)
-            ?.also { PrefsManager.AutoTrading.marketId = it }
             ?: PrefsManager.AutoTrading.marketId
 
         val quantityRatio = intent?.getIntExtra(KeyName.Intent.QUANTITY_RATIO, 0)
-            ?.also { PrefsManager.AutoTrading.quantityRatio = it }
             ?: PrefsManager.AutoTrading.quantityRatio
 
         val stopLoss = intent?.getIntExtra(KeyName.Intent.STOP_LOSS, 0)
-            ?.also { PrefsManager.AutoTrading.stopLoss = it }
             ?: PrefsManager.AutoTrading.stopLoss
 
         val takeProfit = intent?.getIntExtra(KeyName.Intent.TAKE_PROFIT, 0)
-            ?.also { PrefsManager.AutoTrading.takeProfit = it }
             ?: PrefsManager.AutoTrading.takeProfit
 
         val correctionValue = intent?.getFloatExtra(KeyName.Intent.CORRECTION_VALUE, 0f)
-            ?.also { PrefsManager.AutoTrading.correctionValue = it }
             ?: PrefsManager.AutoTrading.correctionValue
 
         val startDate = intent?.getLongExtra(KeyName.Intent.START_DATE, 0L)
-            ?.also { PrefsManager.AutoTrading.startDate = it }
             ?: PrefsManager.AutoTrading.startDate
 
         val endDate = intent?.getLongExtra(KeyName.Intent.END_DATE, 0L)
-            ?.also { PrefsManager.AutoTrading.endDate = it }
             ?: PrefsManager.AutoTrading.endDate
 
         val tradingStrategy = intent?.getStringExtra(KeyName.Intent.TRADING_STRATEGY)
-            ?.also { PrefsManager.AutoTrading.tradingStrategy = it }
             ?: PrefsManager.AutoTrading.tradingStrategy
 
         val tradingMode = intent?.getStringExtra(KeyName.Intent.CURRNET_TRADING_MODE)
-            ?.also { PrefsManager.AutoTrading.tradingMode = it }
             ?: PrefsManager.AutoTrading.tradingMode
-
-        Timber.e("takeProfit : $takeProfit")
 
         if (marketId.isNotEmpty() && endDate != 0L) {
             createNotificationChannel()
@@ -232,6 +217,7 @@ class AutoTradingService : Service() {
                 Timber.e("endDateTime : ${endDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}")
                 val now = LocalDateTime.now(ZoneId.of("Asia/Seoul"))
                 if (now.isAfter(endDateTime) && bidOrder == null) {
+                    Timber.e("end")
                     break
                 }
 
@@ -242,7 +228,7 @@ class AutoTradingService : Service() {
                 }
 
                 if (dayCandles.isNotEmpty()) {
-                    Timber.e("today -> ${dayCandles[0].candleDateTimeKst}")
+                    Timber.e("today -> ${dayCandles[0].candleDateTimeKst}, bidOrder: $bidOrder, bidPrice: $bidPrice, isSkipBid : $isSkipBid")
                 }
 
                 // 매수 가능 체크
@@ -381,7 +367,12 @@ class AutoTradingService : Service() {
             // 변동성 돌파 전략 -> 오늘 시가 + (전일 고가와 저가 변동폭 * 보정계수) 도달 시 상승 신호로 판단하여 매수 진행
             val breakoutPrice = dayCandles[0].openingPrice + ((dayCandles[1].highPrice - dayCandles[1].lowPrice) * correctionValue)
             val tradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice ?: 0.0
-            Timber.e("tradePrice : $tradePrice, openingPrice : ${dayCandles[0].openingPrice}, highPrice : ${dayCandles[1].highPrice}, lowPrice : ${dayCandles[1].lowPrice}, breakoutPrice : $breakoutPrice")
+            val dateFormat = "${MainViewModel.tickersMap.value[marketId]?.tradeDate} ${MainViewModel.tickersMap.value[marketId]?.tradeTime}".parseDateFormat(
+                DateTimeFormatter.ofPattern("yyyyMMdd HHmmss"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            )
+
+            Timber.e("time : ${dateFormat.toSeoulTime()} , tradePrice : $tradePrice, openingPrice : ${dayCandles[0].openingPrice}, highPrice : ${dayCandles[1].highPrice}, lowPrice : ${dayCandles[1].lowPrice}, breakoutPrice : $breakoutPrice")
             if (breakoutPrice <= tradePrice) {
                 val myAssets = getMyAssets()
                 myAssets?.firstOrNull { asset -> asset.currency.lowercase() == getString(R.string.krw) }?.let { krwAsset ->
@@ -614,9 +605,5 @@ class AutoTradingService : Service() {
                 .set(map)
                 .await()
         }
-    }
-
-    companion object {
-        val isRunningAutoTradingService: MutableStateFlow<Boolean> = MutableStateFlow(false)
     }
 }

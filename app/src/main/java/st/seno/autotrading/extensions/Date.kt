@@ -69,6 +69,14 @@ fun String.utcToKoreanTime(): String {
     return seoulTime.format(formatter)
 }
 
+fun String.toSeoulTime(): String {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    val localDateTime = LocalDateTime.parse(this, formatter)
+    val utcZoned = localDateTime.atZone(ZoneId.of("UTC"))
+    val seoulZoned = utcZoned.withZoneSameInstant(ZoneId.of("Asia/Seoul"))
+    return seoulZoned.format(formatter)
+}
+
 fun String.kstToKoreanTime(): String {
     // KST 시간 문자열을 LocalDateTime으로 파싱
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")

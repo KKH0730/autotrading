@@ -12,6 +12,9 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
 import st.seno.autotrading.BuildConfig
+import st.seno.autotrading.extensions.parseOrNull
+import st.seno.autotrading.model.PingResponse
+import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -64,12 +67,20 @@ class RxSocketClient {
                     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
                         super.onMessage(webSocket, bytes)
                         val message = bytes.utf8()
-                        trySend(SockResponse.Message(data = message))
+
+                        val pingResponse = message.parseOrNull<PingResponse>()
+                        if (pingResponse?.status != "UP") {
+                            trySend(SockResponse.Message(data = message))
+                        }
                     }
 
                     override fun onMessage(webSocket: WebSocket, text: String) {
-                        trySend(SockResponse.Message(data = text))
                         super.onMessage(webSocket, text)
+
+                        val pingResponse = text.parseOrNull<PingResponse>()
+                        if (pingResponse?.status != "UP") {
+                            trySend(SockResponse.Message(data = text))
+                        }
                     }
 
                     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
@@ -102,6 +113,11 @@ class RxSocketClient {
                 webSocket?.close(1000, null)
             }
         }
+    }
+
+    fun ping() {
+        val message = "PING"
+        webSocket?.send(message)
     }
 
     fun sendMessageDaysTicker(
@@ -167,7 +183,7 @@ class RxSocketClient {
 
     companion object {
         const val MAIN_SOCKET = "main_socket"
-        const val TRADING_VIEW_CANDLE_SOCKET = "tradingViewCandleSocket"
+        const val AUTO_TRADING_SERVICE_SOCKET = "autoTradingServiceSocket"
         private var instances = HashMap<String, RxSocketClient?>()
 
         fun getInstance(key: String?): RxSocketClient {

@@ -5,7 +5,6 @@ import android.content.ContextWrapper
 import com.pixplicity.easyprefs.library.Prefs
 import dagger.hilt.android.HiltAndroidApp
 import st.seno.autotrading.prefs.PrefsManager
-import st.seno.autotrading.service.AutoTradingService.Companion.isRunningAutoTradingService
 import st.seno.autotrading.util.BookmarkUtil
 import timber.log.Timber
 
@@ -25,9 +24,7 @@ class App : Application() {
         initTimber()
         initPrefs()
         initBookmark()
-        if (!isRunningAutoTradingService.value) {
-            release()
-        }
+        release()
     }
 
     private fun initTimber() {
@@ -60,6 +57,7 @@ class App : Application() {
             startDate = 0L
             endDate = 0L
             tradingMode = ""
+            isRunningTradingService = false
         }
         PrefsManager.Data.apply {
             isSkipBid = false

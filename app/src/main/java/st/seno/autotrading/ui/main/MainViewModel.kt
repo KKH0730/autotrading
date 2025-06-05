@@ -1,12 +1,15 @@
 package st.seno.autotrading.ui.main
 
 import androidx.lifecycle.SavedStateHandle
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.data.network.socket.RxSocketClient
@@ -14,7 +17,6 @@ import st.seno.autotrading.data.network.socket.SockResponse
 import st.seno.autotrading.extensions.getString
 import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.ui.base.BaseViewModel
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,67 +24,105 @@ class MainViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : BaseViewModel() {
 
-    private var rxSocketClient: RxSocketClient = RxSocketClient.getInstance(RxSocketClient.MAIN_SOCKET)
+    private var rxSocketClient: RxSocketClient? = RxSocketClient.getInstance(RxSocketClient.MAIN_SOCKET)
     private val _tabIndex: MutableStateFlow<Int> = MutableStateFlow(savedStateHandle["tabIndex"] ?: 0)
     val tabIndex: StateFlow<Int> get() = _tabIndex.asStateFlow()
+
+    private var repeatCount = 0
 
     fun updateTabIndex(index: Int) {
         _tabIndex.value = index
     }
 
     fun connectSocket() {
-        var isFirstCall = true
-        vmScopeJob {
-            rxSocketClient
-                .connect()
-                .collectLatest { socketResponse: SockResponse ->
-                    when(socketResponse) {
-                        is SockResponse.Open -> {
-                            rxSocketClient.sendMessageDaysTicker(
-                                cryptos = PrefsManager.marketIdList.split(","),
-                                isRealTime = true
-//                                isRealTime = !isFirstCall
-                            )
-                        }
-                        is SockResponse.Message -> {
-                            val ticker = Gson().fromJson(socketResponse.data, Ticker::class.java)
-                            val mutableTickersMap = tickersMap.value.toMutableMap()
-                            mutableTickersMap[ticker.code] = ticker
+        if (repeatCount == 5) {
+            RxSocketClient.releaseAllSocket()
+            rxSocketClient = null
+            return
+        }
 
-                            val codeList = ticker.code.split("-")
-                            if (codeList.size == 2) {
-                                when(codeList[0]) {
-                                    getString(R.string.KRW) -> {
-                                        krwTickers.value = krwTickers.value.toMutableMap().apply {
-                                            this[codeList[1]] = ticker
+//        var isFirstCall = true
+        vmScopeJob {
+            launch {
+                rxSocketClient
+                    ?.connect()
+                    ?.collectLatest { socketResponse: SockResponse ->
+                        when(socketResponse) {
+                            is SockResponse.Open -> {
+                                repeatCount = 0
+
+                                rxSocketClient?.sendMessageDaysTicker(
+                                    cryptos = PrefsManager.marketIdList.split(","),
+                                    isRealTime = true
+                                )
+//                                rxSocketClient?.sendMessageDaysTicker(
+//                                    cryptos = PrefsManager.marketIdList.split(","),
+//                                    isRealTime = true
+////                                isRealTime = !isFirstCall
+//                                )
+                            }
+                            is SockResponse.Message -> {
+                                val ticker = Gson().fromJson(socketResponse.data, Ticker::class.java)
+                                val mutableTickersMap = tickersMap.value.toMutableMap()
+                                mutableTickersMap[ticker.code] = ticker
+
+                                val codeList = ticker.code.split("-")
+                                if (codeList.size == 2) {
+                                    when(codeList[0]) {
+                                        getString(R.string.KRW) -> {
+                                            krwTickers.value = krwTickers.value.toMutableMap().apply {
+                                                this[codeList[1]] = ticker
+                                            }
                                         }
-                                    }
-                                    getString(R.string.BTC) -> {
-                                        btcTickers.value = btcTickers.value.toMutableMap().apply {
-                                            this[codeList[1]] = ticker
+                                        getString(R.string.BTC) -> {
+                                            btcTickers.value = btcTickers.value.toMutableMap().apply {
+                                                this[codeList[1]] = ticker
+                                            }
                                         }
-                                    }
-                                    else -> {
-                                        usdtTickers.value = usdtTickers.value.toMutableMap().apply {
-                                            this[codeList[1]] = ticker
+                                        else -> {
+                                            usdtTickers.value = usdtTickers.value.toMutableMap().apply {
+                                                this[codeList[1]] = ticker
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            _tickersMap.value = mutableTickersMap.toMap()
+                                _tickersMap.value = mutableTickersMap.toMap()
 
 //                            if (isFirstCall) {
 //                                isFirstCall = false
 //                                connectSocket()
 //                            }
-                        }
-                        else -> { // Closing, Closed, Failure
-                            isFirstCall = false
-                            Timber.e(socketResponse.toString())
+                            }
+                            is SockResponse.Closing -> {
+                                FirebaseCrashlytics.getInstance().recordException(Exception("Socket Closing -> code: ${socketResponse.code}, reason : ${socketResponse.reason}"))
+                                repeatCount += 1
+                                connectSocket()
+                            }
+                            is SockResponse.Closed -> {
+                                FirebaseCrashlytics.getInstance().recordException(Exception("Socket Closed -> code: ${socketResponse.code}, reason : ${socketResponse.reason}"))
+                                repeatCount += 1
+                                connectSocket()
+                            }
+                            is SockResponse.Failure -> {
+                                FirebaseCrashlytics.getInstance().recordException(Exception("Socket Failure -> t.message: ${socketResponse.t.message}, cause: ${socketResponse.t.cause}, code: ${socketResponse.response?.code}, response message : ${socketResponse.response?.message}"))
+                                repeatCount += 1
+                                connectSocket()
+                            }
+                            else -> { // Closing, Closed, Failure
+//                            isFirstCall = false
+//                            Timber.e(socketResponse.toString())
+                            }
                         }
                     }
+            }
+
+            launch {
+                while (rxSocketClient != null) {
+                    rxSocketClient?.ping()
+                    delay(120000)
                 }
+            }
         }
     }
 

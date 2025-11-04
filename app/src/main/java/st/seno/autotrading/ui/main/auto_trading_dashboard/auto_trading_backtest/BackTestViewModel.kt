@@ -65,7 +65,7 @@ class BackTestViewModel @Inject constructor(
                     candles.forEachIndexed { index, candle ->
                         if (index == 0) return@forEachIndexed
 
-                        if (index == candles.lastIndex || totalProfit <= 5000.0) {
+                        if (totalProfit <= 5000.0) {
                             return@candleLoop
                         }
 
@@ -81,8 +81,10 @@ class BackTestViewModel @Inject constructor(
                                 else -> candle.tradePrice
                             } // 매도 금액
 
-                            totalProfit = (((totalProfit * (1 - fee)) / breakoutPrice) * askPrice) * (1 - fee)
-                            val askFee = totalProfit * fee
+                            val askTotalProfit = ((totalProfit - bidFee) / breakoutPrice) * askPrice
+                            val askFee = askTotalProfit * fee
+
+                            totalProfit = askTotalProfit - askFee
                             totalFee += (bidFee + askFee)
 
                             val changePercent = (((askPrice - breakoutPrice) / breakoutPrice) * 100)
@@ -102,7 +104,7 @@ class BackTestViewModel @Inject constructor(
                     tradeCount = tradeCount,
                     totalFee = totalFee,
                     totalReturnRate = (((totalProfit - initialInvestment) / initialInvestment) * 100.0).truncateToXDecimalPlaces(x = 2.0),
-                    winRate = ((winCount / (sampleCount - 2.0)) * 100).truncateToXDecimalPlaces(x = 2.0),
+                    winRate = ((winCount / (sampleCount - 1.0)) * 100).truncateToXDecimalPlaces(x = 2.0),
                     maximumProfitRate = maxProfitPercent.truncateToXDecimalPlaces(x = 2.0),
                     maximumLossRate = maxLossPercent.truncateToXDecimalPlaces(x = 2.0),
                     trigger =_backTestResult.value?.let { result -> !result.trigger } ?: false

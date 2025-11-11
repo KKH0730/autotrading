@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -36,13 +35,13 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import st.seno.autotrading.R
+import st.seno.autotrading.data.network.model.TradingOptions
 import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
 import st.seno.autotrading.extensions.WidthSpacer
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.extensions.toDate
 import st.seno.autotrading.prefs.PrefsManager
-import st.seno.autotrading.service.AutoTradingService
 import st.seno.autotrading.theme.FF000000
 import st.seno.autotrading.theme.FF1F2937
 import st.seno.autotrading.theme.FF22C55E
@@ -60,6 +59,7 @@ import st.seno.autotrading.theme.FFFFFFFF
 fun AutoTradingStatusPanel(
     isRunningAutoTradingService: Boolean,
     signedChangeRate: Double,
+    tradingOptions: TradingOptions?,
     onClickStopTrading: () -> Unit,
     onClickViewTrading: () -> Unit,
     onClickStartAutoTrading: () -> Unit
@@ -78,7 +78,7 @@ fun AutoTradingStatusPanel(
         ) {
             16.HeightSpacer()
             AutoTradingStatusTitle()
-            AutoTradingStatus(isActivated = isRunningAutoTradingService, signedChangeRate = signedChangeRate)
+            AutoTradingStatus(isActivated = isRunningAutoTradingService, tradingOptions = tradingOptions, signedChangeRate = signedChangeRate)
             AutoTradingControlPanel(
                 isRunningAutoTradingService = isRunningAutoTradingService,
                 onClickStopTrading = onClickStopTrading,
@@ -107,7 +107,7 @@ fun AutoTradingStatusTitle() {
 }
 
 @Composable
-fun AutoTradingStatus(isActivated: Boolean, signedChangeRate: Double) {
+fun AutoTradingStatus(isActivated: Boolean, tradingOptions: TradingOptions?, signedChangeRate: Double) {
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.trading_ing)
     )
@@ -176,7 +176,7 @@ fun AutoTradingStatus(isActivated: Boolean, signedChangeRate: Double) {
         }
         if (isActivated) {
             val tradingEndDate = try {
-                PrefsManager.AutoTrading.endDate.toDate("yyyy-MM-dd")
+                tradingOptions?.endDateTime?.toDate("yyyy-MM-dd") ?:""
             } catch (e: Exception) {
                 e.printStackTrace()
                 ""
@@ -185,7 +185,7 @@ fun AutoTradingStatus(isActivated: Boolean, signedChangeRate: Double) {
             TradeStatusInfo(
                 painter = painterResource(R.drawable.ic_strategy),
                 title = stringResource(R.string.auto_trading_trading_strategy),
-                content = PrefsManager.AutoTrading.tradingStrategy,
+                content = tradingOptions?.tradingStrategy ?: "",
             )
             TradeStatusInfo(
                 painter = painterResource(R.drawable.ic_calendar),
@@ -195,15 +195,15 @@ fun AutoTradingStatus(isActivated: Boolean, signedChangeRate: Double) {
             TradeStatusPercentInfo(
                 painter = painterResource(R.drawable.ic_stop_loss),
                 title = stringResource(R.string.auto_trading_stop_loss),
-                percent = PrefsManager.AutoTrading.stopLoss.toString(),
-                price = PrefsManager.AutoTrading.stopLossPrice,
+                percent = tradingOptions?.stopLoss.toString(),
+                price = tradingOptions?.stopLossPrice ?: "",
                 isStopLoss = true
             )
             TradeStatusPercentInfo(
                 painter = painterResource(R.drawable.ic_take_profit),
                 title = stringResource(R.string.auto_trading_take_profit),
-                percent = PrefsManager.AutoTrading.takeProfit.toString(),
-                price = PrefsManager.AutoTrading.takeProfitPrice,
+                percent = tradingOptions?.takeProfit.toString(),
+                price = tradingOptions?.takeProfitPrice ?: "",
                 isStopLoss = false
             )
         }
@@ -310,7 +310,7 @@ fun TradeStatusPercentInfo(
                 Text(
                     "price: $price",
                     style = TextStyle(
-                        fontSize = 12.textDp,
+                        fontSize = 14.textDp,
                         fontWeight = FontWeight.Normal,
                         color = FF4B5563
                     )

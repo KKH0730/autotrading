@@ -1,21 +1,19 @@
 package st.seno.autotrading.data.network.socket
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
-import st.seno.autotrading.BuildConfig
 import st.seno.autotrading.extensions.parseOrNull
 import st.seno.autotrading.model.PingResponse
 import timber.log.Timber
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 const val NORMAL_CLOSURE_STATUS = 1000
@@ -23,95 +21,114 @@ const val NORMAL_CLOSURE_STATUS = 1000
 class RxSocketClient {
     private val client: OkHttpClient = OkHttpClient()
     private var webSocket: WebSocket? = null
-    val isConnected: Boolean get() = webSocket != null
+    private var isFinishReconnect = false
 
-    fun connect(): Flow<SockResponse> {
-        return channelFlow {
-            val url = "wss://api.upbit.com/websocket/v1"
+    val isConnected get() = webSocket != null
 
-            val algorithm: Algorithm = Algorithm.HMAC256(BuildConfig.SECRET_KEY)
+    fun connect(
+        url: String,
+        authenticationToken: String = "",
+        userKey: String = "",
+        maxRetries: Int = 5,
+        initialDelayMs: Long = 1000
+    ): Flow<SockResponse> = channelFlow {
+        isFinishReconnect = false
 
-            val jwtToken: String = JWT.create()
-                .withClaim("access_key", BuildConfig.ACCESS_KEY)
-                .withClaim("nonce", UUID.randomUUID().toString())
-                .sign(algorithm)
+        var retryCount = 0
+        var currentDelay = initialDelayMs
 
-            val authenticationToken = "Bearer $jwtToken"
+        fun attemptConnection() {
+            val builder = Request.Builder().url(url)
+            if (authenticationToken.isNotEmpty()) {
+                builder.addHeader("authorization", authenticationToken)
+            }
 
-            val request = Request.Builder()
-                .addHeader("authorization", authenticationToken)
-                .url(url)
-                .build()
+            if (userKey.isNotEmpty()) {
+                builder.addHeader("userKey", userKey)
+
+            }
+            val request = builder.build()
 
             try {
-                client.newBuilder()
+                val localClient = client.newBuilder()
                     .pingInterval(10, TimeUnit.SECONDS)
-                    .connectTimeout(60, TimeUnit.SECONDS)
-                    .readTimeout(60, TimeUnit.SECONDS)
-                    .writeTimeout(60, TimeUnit.SECONDS)
+                    .connectTimeout(20, TimeUnit.SECONDS)
+                    .readTimeout(20, TimeUnit.SECONDS)
+                    .writeTimeout(20, TimeUnit.SECONDS)
                     .retryOnConnectionFailure(true)
                     .addInterceptor { chain ->
-                        val chainRequest = chain.request()
-                        val response = chain.proceed(chainRequest)
-                        response
+                        chain.proceed(chain.request())
                     }
                     .build()
 
-                client.newWebSocket(request, object : WebSocketListener() {
+                webSocket = localClient.newWebSocket(request, object : WebSocketListener() {
                     override fun onOpen(webSocket: WebSocket, response: Response) {
-                        super.onOpen(webSocket, response)
-                        this@RxSocketClient.webSocket = webSocket
-                        trySend(SockResponse.Open(webSocket = webSocket, response = response))
+                        retryCount = 0
+                        currentDelay = initialDelayMs
+                        trySend(SockResponse.Open(webSocket, response))
                     }
 
                     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-                        super.onMessage(webSocket, bytes)
                         val message = bytes.utf8()
-
                         val pingResponse = message.parseOrNull<PingResponse>()
                         if (pingResponse?.status != "UP") {
-                            trySend(SockResponse.Message(data = message))
+                            trySend(SockResponse.Message(message))
                         }
                     }
 
                     override fun onMessage(webSocket: WebSocket, text: String) {
-                        super.onMessage(webSocket, text)
-
                         val pingResponse = text.parseOrNull<PingResponse>()
                         if (pingResponse?.status != "UP") {
-                            trySend(SockResponse.Message(data = text))
+                            trySend(SockResponse.Message(text))
                         }
                     }
 
                     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                        trySend(SockResponse.Closing(webSocket = webSocket, code = code, reason = reason))
-                        super.onClosing(webSocket, code, reason)
-                        disconnect()
+                        trySend(SockResponse.Closing(webSocket, code, reason))
+                        webSocket.close(1000, null)
                     }
 
                     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                        trySend(SockResponse.Closed(webSocket = webSocket, code = code, reason = reason))
-                        super.onClosed(webSocket, code, reason)
-                        disconnect()
+                        trySend(SockResponse.Closed(webSocket, code, reason))
+                        handleReconnect("Closed: $reason")
                     }
 
-                    override fun onFailure(
-                        webSocket: WebSocket,
-                        t: Throwable,
-                        response: Response?,
-                    ) {
-                        trySend(SockResponse.Failure(t = t))
-                        super.onFailure(webSocket, t, response)
-                        disconnect()
+                    override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                        trySend(SockResponse.Failure(t))
+                        handleReconnect("Failure: ${t.message}")
+                    }
+
+                    fun handleReconnect(reason: String) {
+                        if (isFinishReconnect) {
+                            retryCount = maxRetries
+                            return
+                        }
+
+                        if (retryCount >= maxRetries) {
+                            trySend(SockResponse.TerminationState("❌ 재연결 ${maxRetries}회 실패 — 중단"))
+                            return
+                        }
+
+                        retryCount++
+                        trySend(SockResponse.Reconnect("⚠️ 연결 끊김 ($reason). ${currentDelay}ms 후 재시도 (${retryCount}/$maxRetries)"))
+
+                        launch {
+                            delay(currentDelay)
+                            currentDelay = (currentDelay * 2).coerceAtMost(30_000)
+
+                            attemptConnection()
+                        }
                     }
                 })
             } catch (e: Exception) {
-                trySend(SockResponse.Failure(t = e))
+                trySend(SockResponse.Failure(e))
             }
+        }
 
-            awaitClose {
-                webSocket?.close(1000, null)
-            }
+        attemptConnection()
+
+        awaitClose {
+            webSocket?.close(1000, "Client closed")
         }
     }
 
@@ -174,16 +191,17 @@ class RxSocketClient {
     }
 
     fun release() {
+        isFinishReconnect = true
         webSocket?.run {
             close(NORMAL_CLOSURE_STATUS, null)
             cancel()
         }
-        client.dispatcher.executorService.shutdown()
+        webSocket = null
     }
 
     companion object {
         const val MAIN_SOCKET = "main_socket"
-        const val AUTO_TRADING_SERVICE_SOCKET = "autoTradingServiceSocket"
+        const val LOCAL_SOCKET = "local_socket"
         private var instances = HashMap<String, RxSocketClient?>()
 
         fun getInstance(key: String?): RxSocketClient {

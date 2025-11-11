@@ -1,6 +1,7 @@
 package st.seno.autotrading.util
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import st.seno.autotrading.App
 import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.extensions.getBookmarkInfo
 import st.seno.autotrading.extensions.gson
@@ -27,7 +28,7 @@ object BookmarkUtil {
     }
 
      fun convertSetToTickerList(bookmarkedTickerCodeSet: Set<String>): List<Ticker> {
-         val tickersMap = MainViewModel.tickersMap.value
+         val tickersMap = App.tickersMap.value
          return bookmarkedTickerCodeSet.mapNotNull { tickerCode -> tickersMap[tickerCode] }
      }
 }

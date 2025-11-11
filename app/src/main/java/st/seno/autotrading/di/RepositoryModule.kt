@@ -5,6 +5,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.components.SingletonComponent
+import st.seno.autotrading.data.network.repository.AutoTradingImpl
+import st.seno.autotrading.data.network.repository.AutoTradingRepository
 import st.seno.autotrading.data.network.repository.CandleImpl
 import st.seno.autotrading.data.network.repository.CandleRepository
 import st.seno.autotrading.data.network.repository.MarketImpl
@@ -42,4 +44,7 @@ abstract class SingletonRepositoryModule {
 
     @Binds
     abstract fun bindCandleRepository(candleImpl: CandleImpl) : CandleRepository
+
+    @Binds
+    abstract fun bindAutoTradingRepository(autoTradingImpl: AutoTradingImpl) : AutoTradingRepository
 }

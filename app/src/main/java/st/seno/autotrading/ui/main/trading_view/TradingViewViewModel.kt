@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import st.seno.autotrading.App
 import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.Result
 import st.seno.autotrading.data.network.model.Ticker
@@ -25,10 +26,11 @@ import st.seno.autotrading.domain.CandlePagingUseCase
 import st.seno.autotrading.domain.TradingDataUseCase
 import st.seno.autotrading.extensions.formatedDate
 import st.seno.autotrading.extensions.getString
+import st.seno.autotrading.extensions.isNotNullAndNotEmpty
 import st.seno.autotrading.ui.base.BaseViewModel
-import st.seno.autotrading.ui.main.MainViewModel
 import st.seno.autotrading.util.BookmarkUtil
 import st.seno.autotrading.util.BookmarkUtil.bookmarkedTickers
+import timber.log.Timber
 import javax.inject.Inject
 
 const val candleSpace = 1
@@ -60,7 +62,7 @@ class TradingViewViewModel @Inject constructor(
     private val _trades: MutableStateFlow<List<Trade>> = MutableStateFlow(listOf())
     val trades: StateFlow<List<Trade>> get() = _trades.asStateFlow()
 
-    val tickerInfos: StateFlow<CandleChartModel?> = combine(MainViewModel.tickersMap, bookmarkedTickers) { tickersMap, bookmarkedTickers ->
+    val tickerInfos: StateFlow<CandleChartModel?> = combine(App.tickersMap, bookmarkedTickers) { tickersMap, bookmarkedTickers ->
         val currentTicker: Ticker? = tickersMap[marketId]
         val favoriteTickers = BookmarkUtil.convertSetToTickerList(bookmarkedTickerCodeSet = bookmarkedTickers)
 
@@ -92,8 +94,39 @@ class TradingViewViewModel @Inject constructor(
         .cachedIn(viewModelScope)
         .stateIn(viewModelScope, SharingStarted.Lazily, PagingData.empty())
 
+//    init {
+//        if (autoTradingStartDate.isNotEmpty()) {
+//            reqTradingData(startDate = autoTradingStartDate)
+//        } else {
+//            _candleParams.value = CandlePagingUseCase.CandleParams(
+//                market = marketId,
+//                to = "yyyy-MM-dd HH:mm:ss".formatedDate(),
+//                count = 200,
+//                unit = null,
+//                timeFrame = (candleTimeFrames[3].first),
+//                trades = listOf()
+//            )
+//        }
+//    }
+
     init {
         if (autoTradingStartDate.isNotEmpty()) {
+            vmScopeJob {
+                App.autoTradingHistory.collectLatest { tradingDatas ->
+                    if (tradingDatas.isNotEmpty()) {
+                        _trades.value = tradingDatas.reversed().flatMap { trade -> trade.order.trades ?: listOf() }
+                    }
+
+                    _candleParams.value = CandlePagingUseCase.CandleParams(
+                        market = marketId,
+                        to = "yyyy-MM-dd HH:mm:ss".formatedDate(),
+                        count = 200,
+                        unit = null,
+                        timeFrame = (candleTimeFrames[3].first),
+                        trades = trades.value,
+                    )
+                }
+            }
             reqTradingData(startDate = autoTradingStartDate)
         } else {
             _candleParams.value = CandlePagingUseCase.CandleParams(
@@ -106,7 +139,6 @@ class TradingViewViewModel @Inject constructor(
             )
         }
     }
-
 
     fun reqCandles(timeFrameName: String, unit: Int = 0) {
         _candleParams.value = when(timeFrameName) {

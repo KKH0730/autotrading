@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import st.seno.autotrading.App
 import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.Asset
 import st.seno.autotrading.data.network.model.Ticker
@@ -34,7 +35,7 @@ class HomeViewModel @Inject constructor(
     init {
         vmScopeJob {
             reqMyAssets()
-            combine(myAssets, MainViewModel.tickersMap, bookmarkedTickers) { a, b, c -> Triple(a, b, c) }
+            combine(myAssets, App.tickersMap, bookmarkedTickers) { a, b, c -> Triple(a, b, c) }
                 .collectLatest {
                     val myAssets = it.first
                     val favorites =  BookmarkUtil.convertSetToTickerList(bookmarkedTickerCodeSet = it.third)
@@ -50,7 +51,7 @@ class HomeViewModel @Inject constructor(
                     }
 
                     val assets = myAssets.map { asset ->
-                        val tickersMap = MainViewModel.tickersMap.value
+                        val tickersMap = App.tickersMap.value
 
                         tickersMap["${getString(R.string.KRW)}-${asset.currency}"]?.let { ticker ->
                             val avgEvaluatedPrice = asset.avgBuyPrice.toDouble() * asset.balance.toDouble()

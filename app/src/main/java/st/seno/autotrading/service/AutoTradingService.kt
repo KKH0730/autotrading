@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import st.seno.autotrading.App
 import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.Asset
 import st.seno.autotrading.data.network.model.Candle
@@ -366,8 +367,8 @@ class AutoTradingService : Service() {
         } else {
             // 변동성 돌파 전략 -> 오늘 시가 + (전일 고가와 저가 변동폭 * 보정계수) 도달 시 상승 신호로 판단하여 매수 진행
             val breakoutPrice = dayCandles[0].openingPrice + ((dayCandles[1].highPrice - dayCandles[1].lowPrice) * correctionValue)
-            val tradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice ?: 0.0
-            val dateFormat = "${MainViewModel.tickersMap.value[marketId]?.tradeDate} ${MainViewModel.tickersMap.value[marketId]?.tradeTime}".parseDateFormat(
+            val tradePrice = App.tickersMap.value[marketId]?.tradePrice ?: 0.0
+            val dateFormat = "${App.tickersMap.value[marketId]?.tradeDate} ${App.tickersMap.value[marketId]?.tradeTime}".parseDateFormat(
                 DateTimeFormatter.ofPattern("yyyyMMdd HHmmss"),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             )
@@ -505,7 +506,7 @@ class AutoTradingService : Service() {
         bidPrice: Double,
         stopLoss: Int
     ): Order? {
-        val currentTradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice
+        val currentTradePrice = App.tickersMap.value[marketId]?.tradePrice
         return if (currentTradePrice != null && bidPrice != 0.0 && currentTradePrice <= (bidPrice * ((100 - stopLoss) / 100.0))) {
             val askOrder = sellCrypto(marketId = marketId)
             return askOrder
@@ -519,7 +520,7 @@ class AutoTradingService : Service() {
         bidPrice: Double,
         takeProfit: Int
     ): Order? {
-        val currentTradePrice = MainViewModel.tickersMap.value[marketId]?.tradePrice
+        val currentTradePrice = App.tickersMap.value[marketId]?.tradePrice
         return if (currentTradePrice != null && bidPrice != 0.0 && currentTradePrice >= (bidPrice * (1 + (takeProfit / 100.0)))) {
             val askOrder = sellCrypto(marketId = marketId)
             return askOrder

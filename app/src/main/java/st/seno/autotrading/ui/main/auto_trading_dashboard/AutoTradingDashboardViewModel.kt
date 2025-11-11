@@ -7,20 +7,24 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import st.seno.autotrading.App
+import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.ClosedOrder
 import st.seno.autotrading.data.network.model.isSuccess
 import st.seno.autotrading.data.network.model.successData
+import st.seno.autotrading.domain.AutoTradingUseCase
 import st.seno.autotrading.domain.OrderUseCase
-import st.seno.autotrading.domain.TradingDataUseCase
+import st.seno.autotrading.extensions.getString
 import st.seno.autotrading.extensions.truncateToXDecimalPlaces
 import st.seno.autotrading.model.Side
 import st.seno.autotrading.ui.base.BaseViewModel
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class AutoTradingDashboardViewModel @Inject constructor(
     private val orderUseCase: OrderUseCase,
-    private val tradingDataUseCase: TradingDataUseCase
+    private val autoTradingUseCase: AutoTradingUseCase
 ) : BaseViewModel() {
 
     private val _selectedCryptoToTradingHistory: MutableStateFlow<String> =
@@ -38,6 +42,39 @@ class AutoTradingDashboardViewModel @Inject constructor(
     private val _signedChangeRate: MutableStateFlow<Double> = MutableStateFlow(0.0)
     val signedChangeRate: StateFlow<Double> get() = _signedChangeRate.asStateFlow()
 
+    init {
+        vmScopeJob {
+            App.autoTradingHistory.collectLatest { tradingDatas ->
+                if (tradingDatas.isEmpty()) return@collectLatest
+
+                _signedChangeRate.value = if (tradingDatas.isEmpty()) {
+                    0.0
+                } else {
+                    val value = tradingDatas.groupBy { tradingData -> tradingData.bidUuid }
+                        .values
+                        .filter { tradingDatas -> tradingDatas.size == 2 }
+                        .takeIf { it.isNotEmpty() }
+                        ?.fold(0.0 to 0.0) { acc, tradingDataList ->
+                            var totalBidPrice = acc.first
+                            var totalAskPrice = acc.second
+                            tradingDataList.forEach { tradingData ->
+                                if (tradingData.order.side == Side.BID.value) {
+                                    totalBidPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() + tradingData.order.paidFee.toDouble() } ?: 0.0
+                                } else {
+                                    totalAskPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() - tradingData.order.paidFee.toDouble() } ?: 0.0
+                                }
+                            }
+                            totalBidPrice to totalAskPrice
+                        }
+                        ?.let { pair -> ((pair.second - pair.first) / pair.first) * 100 }
+                        ?.truncateToXDecimalPlaces(x = 2.0)
+                        ?: 0.0
+
+                    value
+                }
+            }
+        }
+    }
 
     fun updateTradeHistorySelectedCrypto(newSelectedCrypto: String) {
         _selectedCryptoToTradingHistory.value = newSelectedCrypto
@@ -48,9 +85,7 @@ class AutoTradingDashboardViewModel @Inject constructor(
     }
 
     /**
-     * startTime은 정의하지 않고 endTime만 정의함
-     * endTime만 정의할 경우 최대 7일전까지 조회함
-     *
+     * startTime은 정의하지 않고 endTime만 정의함(endTime만 정의할 경우 최대 7일전까지 조회함)
      */
     fun reqClosedOrders() {
         val timeInMillis = _selectedDateToTradingHistory.value
@@ -76,33 +111,17 @@ class AutoTradingDashboardViewModel @Inject constructor(
         }
     }
 
-    fun reqTradingData(startDate: String) {
+    fun reqStopAutoTrading() {
         vmScopeJob {
-            tradingDataUseCase.reqTradingData(startDate = startDate).collectLatest {
-                _signedChangeRate.value = if (it.isEmpty()) {
-                    0.0
+            val serviceResponse = autoTradingUseCase.stopAutoTrading(userKey = "1")
+            if (serviceResponse.isSuccess()) {
+                if (!serviceResponse.successData().isRunning) {
+                    showMessage(getString(R.string.auto_trading_stop_1))
                 } else {
-                    it.groupBy { tradingData -> tradingData.bidUuid }
-                        .values
-                        .filter { tradingDatas -> tradingDatas.size == 2 }
-                        .takeIf { it.isNotEmpty() }
-                        ?.fold(0.0 to 0.0) { acc, tradingDataList ->
-                            var totalBidPrice = acc.first
-                            var totalAskPrice = acc.second
-
-                            tradingDataList.forEach { tradingData ->
-                                if (tradingData.order.side == Side.BID.value) {
-                                    totalBidPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() + tradingData.order.paidFee.toDouble() } ?: 0.0
-                                } else {
-                                    totalAskPrice += tradingData.order.trades?.sumOf { trade -> trade.tradesFunds.toDouble() - tradingData.order.paidFee.toDouble() } ?: 0.0
-                                }
-                            }
-                            totalBidPrice to totalAskPrice
-                        }
-                        ?.let { pair -> ((pair.second - pair.first) / pair.first) * 100 }
-                        ?.truncateToXDecimalPlaces(x = 2.0)
-                        ?: 0.0
+                    showMessage(message = serviceResponse.successData().message)
                 }
+            } else {
+                showMessage(getString(R.string.network_request_error))
             }
         }
     }

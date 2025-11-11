@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
+import st.seno.autotrading.data.network.service.AutoTradingService
 import st.seno.autotrading.data.network.service.CandleService
 import st.seno.autotrading.data.network.service.MarketService
 import st.seno.autotrading.data.network.service.MyAssetsService
@@ -35,4 +36,8 @@ object ServiceModule {
     @Provides
     fun provideCandleService(@Qualifiers.BaseUrlRetrofit retrofit: Retrofit): CandleService =
         retrofit.create(CandleService::class.java)
+
+    @Provides
+    fun provideAutoTradingService(@Qualifiers.LocalUrlRetrofit retrofit: Retrofit): AutoTradingService =
+        retrofit.create(AutoTradingService::class.java)
 }

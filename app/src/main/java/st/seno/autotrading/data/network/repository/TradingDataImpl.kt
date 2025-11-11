@@ -22,14 +22,14 @@ class TradingDataImpl @Inject constructor(
                 .document(KeyName.Firestore.AUTO_TRADING_DOCUMENT)
                 .collection(startDate)
                 .addSnapshotListener { value, error ->
-                    if (error != null) {
-                        Timber.e("error : $error")
-                        close(error) // Flow 종료
-                        return@addSnapshotListener
-                    }
-
-                    val data = value?.map { mapper.fromRemote(model = it) } ?: emptyList()
-                    trySend(data)
+//                    if (error != null) {
+//                        Timber.e("error : $error")
+//                        close(error) // Flow 종료
+//                        return@addSnapshotListener
+//                    }
+//
+//                    val data = value?.map { mapper.fromRemote(model = it) } ?: emptyList()
+//                    trySend(data)
                 }
 
         awaitClose { listenerRegistration.remove() }

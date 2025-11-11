@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "autotrading"
 include(":app")
+include(":server")

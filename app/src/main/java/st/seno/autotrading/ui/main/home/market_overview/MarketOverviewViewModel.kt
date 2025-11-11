@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import st.seno.autotrading.App
 import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.extensions.getBookmarkInfo
 import st.seno.autotrading.extensions.gson
@@ -21,7 +22,7 @@ class MarketOverviewViewModel @Inject constructor() : BaseViewModel() {
 
     init {
         vmScopeJob {
-            MainViewModel.tickersMap.collectLatest { tickersMap ->
+            App.tickersMap.collectLatest { tickersMap ->
                 val favorites = gson.getBookmarkInfo().entries
                     .filter { it.value }
                     .mapNotNull { (key, _) -> tickersMap[key] }

@@ -19,11 +19,13 @@
     <string name="krw">krw</string>
 
     <!--dialog-->
-    <string name="network_error_title">네트워크 오류</string>
-    <string name="network_error">네트워크 연결 상태를 확인해 주세요.</string>
-    <string name="alert_dialog_restart">재시작</string>
-    <string name="unknown_error_title">작업 요청 실패</string>
-    <string name="unknown_error_content">네트워크 상태나 api 요청 한도를 확인하고 다시 시도해 주세요.</string>
+    <string name="network_error_title">Network Error</string>
+    <string name="network_error">Please check your network connection.</string>
+    <string name="network_error_retry">Retry</string>
+    <string name="check_network_settings">If the problem persists,\nplease check your network settings.</string>
+    <string name="alert_dialog_restart">Restart</string>
+    <string name="unknown_error_title">Request Failed</string>
+    <string name="unknown_error_content">Please check your network status or API request limit, and try again.</string>
 
     <!--auto trading service-->
     <string name="auto_trading_service_notification_title">📊 Auto Trading Started</string>
@@ -96,6 +98,7 @@
     <string name="auto_trading_date_alert">The end date must be set after the start date.</string>
     <string name="auto_trading_not_enough">A minimum amount of 5,000 KRW is required</string>
     <string name="auto_trading_start">Automated trading has been executed</string>
+    <string name="auto_trading_stop_1">Automated trading has been stopped</string>
     <string name="auto_trading_back_test_setting">Backtest settings</string>
     <string name="auto_trading_back_test_price">Initial investment</string>
     <string name="auto_trading_back_test_sample_count">Sample count(3 ~ 200)</string>

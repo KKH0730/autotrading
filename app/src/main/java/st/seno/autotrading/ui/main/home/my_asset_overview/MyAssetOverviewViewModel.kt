@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import st.seno.autotrading.App
 import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.Asset
 import st.seno.autotrading.data.network.model.isSuccess
@@ -29,7 +30,7 @@ class MyAssetOverviewViewModel @Inject constructor(
 
     init {vmScopeJob {
             reqMyAssets()
-            combine(myAssets, MainViewModel.tickersMap) { a, b ->
+            combine(myAssets, App.tickersMap) { a, b ->
                 a to b
             }
                 .collectLatest {

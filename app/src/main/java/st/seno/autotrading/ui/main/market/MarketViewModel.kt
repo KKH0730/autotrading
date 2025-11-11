@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import st.seno.autotrading.App
 import st.seno.autotrading.data.network.model.Ticker
 import st.seno.autotrading.model.MarketTickers
 import st.seno.autotrading.ui.base.BaseViewModel
@@ -22,9 +23,9 @@ class MarketViewModel @Inject constructor() : BaseViewModel() {
     init {
         vmScopeJob {
             combine(
-                MainViewModel.krwTickers,
-                MainViewModel.btcTickers,
-                MainViewModel.usdtTickers,
+                App.krwTickers,
+                App.btcTickers,
+                App.usdtTickers,
                 bookmarkedTickers
             ) { a, b, c, d -> MarketDataModel(krwTickers = a, btcTickers = b, usdtTickers = c, bookmarkedTickers = d) }
                 .collectLatest {

@@ -2,20 +2,74 @@ package st.seno.autotrading
 
 import android.app.Application
 import android.content.ContextWrapper
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.gson.Gson
 import com.pixplicity.easyprefs.library.Prefs
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import org.json.JSONObject
+import st.seno.autotrading.data.network.model.Ticker
+import st.seno.autotrading.data.network.response_model.ServiceResponse
+import st.seno.autotrading.data.network.response_model.ServiceSocketResponse
+import st.seno.autotrading.data.network.response_model.TradingData
+import st.seno.autotrading.data.network.response_model.TradingHistoryResponse
+import st.seno.autotrading.data.network.response_model.TradingHistorySocketResponse
+import st.seno.autotrading.data.network.socket.RxSocketClient
+import st.seno.autotrading.data.network.socket.SockResponse
+import st.seno.autotrading.extensions.parseOrNull
 import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.util.BookmarkUtil
 import timber.log.Timber
+import java.util.UUID
 
 @HiltAndroidApp
-class App : Application() {
+class App : Application(), LifecycleObserver {
+
+    private var rxSocketClient: RxSocketClient? = RxSocketClient.getInstance(RxSocketClient.MAIN_SOCKET)
+    private var rxLocalSocketClient: RxSocketClient? = RxSocketClient.getInstance(RxSocketClient.LOCAL_SOCKET)
+    var appScope: CoroutineScope? = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     
     companion object {
         private lateinit var instance: App
+
+        private val _tickersMap: MutableStateFlow<Map<String, Ticker>> = MutableStateFlow(mutableMapOf())
+        val tickersMap: StateFlow<Map<String, Ticker>> get() = _tickersMap.asStateFlow()
+
+        private val _autoTradingServiceStatus: MutableStateFlow<ServiceSocketResponse?> = MutableStateFlow(null)
+        val autoTradingServiceStatus: StateFlow<ServiceSocketResponse?> get() = _autoTradingServiceStatus.asStateFlow()
+
+        private val _autoTradingHistory: MutableStateFlow<List<TradingData>> = MutableStateFlow(listOf())
+        val autoTradingHistory: StateFlow<List<TradingData>> get() = _autoTradingHistory.asStateFlow()
+
+        private val _isConnectedWithLocalSocket: MutableStateFlow<Boolean> = MutableStateFlow(false)
+        val isConnectedWithLocalSocket: StateFlow<Boolean> get() = _isConnectedWithLocalSocket.asStateFlow()
+
+        private val _isConnectedWithUpbitSocket: MutableStateFlow<Boolean> = MutableStateFlow(false)
+        val isConnectedWithUpbitSocket: StateFlow<Boolean> get() = _isConnectedWithUpbitSocket.asStateFlow()
+
+        val krwTickers: MutableStateFlow<MutableMap<String, Ticker>> = MutableStateFlow(mutableMapOf())
+        val btcTickers: MutableStateFlow<MutableMap<String, Ticker>> = MutableStateFlow(mutableMapOf())
+        val usdtTickers: MutableStateFlow<MutableMap<String, Ticker>> = MutableStateFlow(mutableMapOf())
+
         fun getInstance(): App = instance
     }
-
 
     override fun onCreate() {
         super.onCreate()
@@ -24,7 +78,26 @@ class App : Application() {
         initTimber()
         initPrefs()
         initBookmark()
-        release()
+
+        ProcessLifecycleOwner.get().lifecycle.addObserver(
+            object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) {
+                    super.onStart(owner)
+                    appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+                    connectLocalWebSocket()
+                    connectUpbitSocket()
+                }
+
+                override fun onStop(owner: LifecycleOwner) {
+                    super.onStop(owner)
+                    appScope?.cancel()
+                    appScope = null
+
+                    RxSocketClient.releaseAllSocket()
+                }
+            }
+        )
     }
 
     private fun initTimber() {
@@ -34,7 +107,7 @@ class App : Application() {
     private fun initPrefs() {
         Prefs.Builder()
             .setContext(this)
-            .setMode(ContextWrapper.MODE_PRIVATE)
+            .setMode(MODE_PRIVATE)
             .setPrefsName(packageName)
             .setUseDefaultSharedPreference(true)
             .build()
@@ -44,26 +117,160 @@ class App : Application() {
         BookmarkUtil.init()
     }
 
-    private fun release() {
-        PrefsManager.AutoTrading.apply {
-            marketId = ""
-            quantityRatio = 0
-            tradingStrategy = ""
-            stopLoss = 0
-            stopLossPrice = ""
-            takeProfit = 0
-            takeProfitPrice = ""
-            correctionValue = 0f
-            startDate = 0L
-            endDate = 0L
-            tradingMode = ""
-            isRunningTradingService = false
+    fun connectLocalWebSocket() {
+        if (rxLocalSocketClient?.isConnected == true) {
+            return
         }
-        PrefsManager.Data.apply {
-            isSkipBid = false
-            tradePrice = 0.0
-            bidOrder = null
-            askOrder = null
+
+        appScope?.launch {
+            rxLocalSocketClient
+                ?.connect(url = "ws://110.9.68.93:8080/ws/trading", userKey = "1")
+                ?.collectLatest { socketResponse: SockResponse ->
+                    when(socketResponse) {
+                        is SockResponse.Open -> {
+                            _isConnectedWithLocalSocket.value = true
+                        }
+                        is SockResponse.Message -> {
+                            val json = JSONObject(socketResponse.data)
+                            val mode = json.get("mode") as? String
+                            Timber.e("mode : $mode")
+                            when(mode) {
+                                "operation" -> {
+                                    val serviceSocketResponse = socketResponse.data.parseOrNull<ServiceSocketResponse>()
+                                    _autoTradingServiceStatus.value = serviceSocketResponse
+                                }
+                                "history" -> {
+                                    val tradingHistorySocketResponse = socketResponse.data.parseOrNull<TradingHistorySocketResponse>()
+                                    _autoTradingHistory.value = tradingHistorySocketResponse?.data ?: emptyList()
+
+                                }
+                                else -> {}
+                            }
+                            _isConnectedWithLocalSocket.value = true
+                        }
+                        is SockResponse.Closing -> {
+                            FirebaseCrashlytics.getInstance().recordException(Exception("Socket Closing -> code: ${socketResponse.code}, reason : ${socketResponse.reason}"))
+                            _isConnectedWithLocalSocket.value = false
+                        }
+                        is SockResponse.Closed -> {
+                            FirebaseCrashlytics.getInstance().recordException(Exception("Socket Closed -> code: ${socketResponse.code}, reason : ${socketResponse.reason}"))
+                            _isConnectedWithLocalSocket.value = false
+                        }
+                        is SockResponse.Failure -> {
+                            FirebaseCrashlytics.getInstance().recordException(Exception("Socket Failure -> t.message: ${socketResponse.t.message}, cause: ${socketResponse.t.cause}"))
+                            _isConnectedWithLocalSocket.value = false
+                        }
+                        is SockResponse.Reconnect -> {
+                            _isConnectedWithLocalSocket.value = false
+                        }
+                        is SockResponse.TerminationState -> {
+                            _isConnectedWithLocalSocket.value = false
+                            rxLocalSocketClient?.release()
+                            rxLocalSocketClient = null
+                            RxSocketClient.releaseSocket(RxSocketClient.LOCAL_SOCKET)
+                        }
+                    }
+                }
+        }
+    }
+
+    fun connectUpbitSocket() {
+        if (rxSocketClient?.isConnected == true) {
+            return
+        }
+
+//        var isFirstCall = true
+        appScope?.launch {
+            launch {
+                val jwtToken: String = JWT.create()
+                    .withClaim("access_key", BuildConfig.ACCESS_KEY)
+                    .withClaim("nonce", UUID.randomUUID().toString())
+                    .sign(Algorithm.HMAC256(BuildConfig.SECRET_KEY))
+
+                val authenticationToken = "Bearer $jwtToken"
+
+                rxSocketClient
+                    ?.connect(url = "wss://api.upbit.com/websocket/v1", authenticationToken = authenticationToken)
+                    ?.collectLatest { socketResponse: SockResponse ->
+                        when(socketResponse) {
+                            is SockResponse.Open -> {
+                                rxSocketClient?.sendMessageDaysTicker(
+                                    cryptos = PrefsManager.marketIdList.split(","),
+                                    isRealTime = true
+                                )
+                                _isConnectedWithUpbitSocket.value = true
+//                                rxSocketClient?.sendMessageDaysTicker(
+//                                    cryptos = PrefsManager.marketIdList.split(","),
+//                                    isRealTime = true
+////                                isRealTime = !isFirstCall
+//                                )
+                            }
+                            is SockResponse.Message -> {
+                                val ticker = Gson().fromJson(socketResponse.data, Ticker::class.java)
+                                val mutableTickersMap = tickersMap.value.toMutableMap()
+                                mutableTickersMap[ticker.code] = ticker
+
+                                val codeList = ticker.code.split("-")
+                                if (codeList.size == 2) {
+                                    when(codeList[0]) {
+                                        st.seno.autotrading.extensions.getString(R.string.KRW) -> {
+                                            krwTickers.value = krwTickers.value.toMutableMap().apply {
+                                                this[codeList[1]] = ticker
+                                            }
+                                        }
+                                        st.seno.autotrading.extensions.getString(R.string.BTC) -> {
+                                            btcTickers.value = btcTickers.value.toMutableMap().apply {
+                                                this[codeList[1]] = ticker
+                                            }
+                                        }
+                                        else -> {
+                                            usdtTickers.value = usdtTickers.value.toMutableMap().apply {
+                                                this[codeList[1]] = ticker
+                                            }
+                                        }
+                                    }
+                                }
+
+                                _tickersMap.value = mutableTickersMap.toMap()
+                                _isConnectedWithUpbitSocket.value = true
+
+//                            if (isFirstCall) {
+//                                isFirstCall = false
+//                                connectSocket()
+//                            }
+                            }
+                            is SockResponse.Closing -> {
+                                FirebaseCrashlytics.getInstance().recordException(Exception("Socket Closing -> code: ${socketResponse.code}, reason : ${socketResponse.reason}"))
+                                _isConnectedWithUpbitSocket.value = false
+                            }
+                            is SockResponse.Closed -> {
+                                FirebaseCrashlytics.getInstance().recordException(Exception("Socket Closed -> code: ${socketResponse.code}, reason : ${socketResponse.reason}"))
+                                _isConnectedWithUpbitSocket.value = false
+                            }
+                            is SockResponse.Failure -> {
+                                FirebaseCrashlytics.getInstance().recordException(Exception("Socket Failure -> t.message: ${socketResponse.t.message}, cause: ${socketResponse.t.cause}"))
+                                _isConnectedWithUpbitSocket.value = false
+                            }
+                            is SockResponse.Reconnect -> {
+                                _isConnectedWithUpbitSocket.value = false
+
+                            }
+                            is SockResponse.TerminationState -> {
+                                _isConnectedWithUpbitSocket.value = false
+                                rxSocketClient?.release()
+                                rxSocketClient = null
+                                RxSocketClient.releaseSocket(RxSocketClient.MAIN_SOCKET)
+                            }
+                        }
+                    }
+            }
+
+            launch {
+                while (rxSocketClient != null) {
+                    rxSocketClient?.ping()
+                    delay(120000)
+                }
+            }
         }
     }
 }

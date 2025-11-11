@@ -10,6 +10,18 @@ object Qualifiers {
 
     @Qualifier
     @Retention(AnnotationRetention.BINARY)
+    annotation class LocalUrlRetrofit
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class BaseUrlOkHttpClient
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class LocalUrlOkHttpClient
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
     annotation class IOCoroutineScope
 
     @Qualifier

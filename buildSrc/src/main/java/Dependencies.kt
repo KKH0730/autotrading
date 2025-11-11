@@ -2,7 +2,8 @@ object Dependencies {
 
     object AndroidX {
         const val ANDROID_CORE = "androidx.core:core-ktx:1.13.1"
-        const val ANDROID_LIFECYCLE = "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
+        const val ANDROID_LIFECYCLE_RUNTIME = "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
+        const val ANDROID_LIFECYCLE_PROCESS = "androidx.lifecycle:lifecycle-process:2.8.7"
         const val ANDROID_ACTIVITY_COMPOSE = "androidx.activity:activity-compose:1.9.3"
         const val COMPOSE_BOM = "androidx.compose:compose-bom:2024.01.00"
         const val COMPOSE_UI = "androidx.compose.ui:ui"

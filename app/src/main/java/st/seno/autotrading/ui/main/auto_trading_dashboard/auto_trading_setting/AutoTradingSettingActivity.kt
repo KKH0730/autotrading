@@ -39,20 +39,16 @@ class AutoTradingSettingActivity : ComponentActivity() {
                         myKrw = autoTradingSettingViewModel.myKrw.collectAsStateWithLifecycle().value,
                         onClickBack = { finish() },
                         onClickStartAutoTrading = {
-                            val intent = Intent().apply {
-                                putExtra(KeyName.Intent.MARKET_ID, it.selectedAutoTradingCryptoState.value )
-                                putExtra(KeyName.Intent.QUANTITY_RATIO, rationQuantities[it.quantityRatioIndexState.value].toInt() )
-                                putExtra(KeyName.Intent.TRADING_STRATEGY, it.tradingStrategyState.value )
-                                putExtra(KeyName.Intent.STOP_LOSS, it.stopLossState.value.text.toInt() )
-                                putExtra(KeyName.Intent.TAKE_PROFIT, it.takeProfitState.value.text.toInt() )
-                                putExtra(KeyName.Intent.CORRECTION_VALUE, it.correctionValueState.value.text.toFloat() )
-                                putExtra(KeyName.Intent.START_DATE, it.startDateState.longValue )
-                                putExtra(KeyName.Intent.END_DATE, it.endDateState.longValue )
-                                putExtra(KeyName.Intent.CURRNET_TRADING_MODE, it.currentTradingModeState.value )
-                            }
-                            setResult(RESULT_OK, intent)
-                            Toast.makeText(this@AutoTradingSettingActivity, getString(R.string.auto_trading_start), Toast.LENGTH_LONG).show()
-                            finish()
+                            autoTradingSettingViewModel.startAutoTrading(
+                                marketId = it.selectedAutoTradingCryptoState.value,
+                                quantityRatio = rationQuantities[it.quantityRatioIndexState.value].toInt(),
+                                stopLoss = it.stopLossState.value.text.toInt(),
+                                takeProfit = it.takeProfitState.value.text.toInt(),
+                                correctionValue = it.correctionValueState.value.text.toFloat(),
+                                startDate = it.startDateState.longValue,
+                                endDateTime = it.endDateState.longValue,
+                                tradingStrategy = it.tradingStrategyState.value
+                            )
                         }
                     )
                 }
@@ -68,6 +64,13 @@ class AutoTradingSettingActivity : ComponentActivity() {
                 launch { autoTradingSettingViewModel.message.collectLatest { toast(message = it) } }
 
                 launch { autoTradingSettingViewModel.finish.collectLatest { finish() } }
+
+                launch {
+                    autoTradingSettingViewModel.startAutoTrading.collectLatest { tradingOptions ->
+                        toast(message = getString(R.string.auto_trading_start))
+                        finish()
+                    }
+                }
             }
         }
     }
@@ -75,10 +78,6 @@ class AutoTradingSettingActivity : ComponentActivity() {
     companion object {
         fun start(context: Context) {
             context.startActivity(AutoTradingSettingActivity::class.java)
-        }
-
-        fun start(context: Context, launcher: ActivityResultLauncher<Intent>) {
-            context.startActivity(AutoTradingSettingActivity::class.java, launcher)
         }
     }
 }

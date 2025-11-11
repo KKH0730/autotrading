@@ -15,6 +15,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import st.seno.autotrading.App
 import st.seno.autotrading.extensions.startActivity
 import st.seno.autotrading.theme.AutotradingTheme
 import st.seno.autotrading.ui.main.home.HomeViewModel
@@ -32,13 +33,10 @@ class MainActivity : ComponentActivity() {
 
         installSplashScreen()
 
-
         if (!intent.getBooleanExtra("isSplashFinish", false)) {
             SplashActivity.start(context = this@MainActivity, intent.getIntExtra("tabIndex", 0))
             finish()
         } else {
-            mainViewModel.connectSocket()
-
             setContent {
                 AutotradingTheme {
                     Surface(modifier = Modifier.fillMaxSize()) {

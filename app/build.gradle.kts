@@ -109,7 +109,8 @@ android {
 dependencies {
     // AndroidX
     implementation(Dependencies.AndroidX.ANDROID_CORE)
-    implementation(Dependencies.AndroidX.ANDROID_LIFECYCLE)
+    implementation(Dependencies.AndroidX.ANDROID_LIFECYCLE_RUNTIME)
+    implementation(Dependencies.AndroidX.ANDROID_LIFECYCLE_PROCESS)
     implementation(Dependencies.AndroidX.ANDROID_ACTIVITY_COMPOSE)
     implementation(platform(Dependencies.AndroidX.COMPOSE_BOM))
     implementation(Dependencies.AndroidX.COMPOSE_UI)

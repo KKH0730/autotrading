@@ -1,6 +1,8 @@
 package st.seno.autotrading.ui.navigation
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
@@ -23,7 +25,14 @@ enum class NavigationRoute(val routeName: String) {
 fun NavigationGraph(startRoute: NavigationRoute = NavigationRoute.DASHBOARD, navController: NavHostController) {
     val routeAction = remember(navController) { RouteAction(navController) }
 
-    NavHost(navController = navController, startDestination = startRoute.routeName) {
+    NavHost(
+        navController = navController,
+        startDestination = startRoute.routeName,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None },
+    ) {
         composable(NavigationRoute.DASHBOARD.routeName) {
             HomeScreen()
         }

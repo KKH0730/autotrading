@@ -50,7 +50,6 @@ fun String.isDaysCandle() = this == candleTimeFrames[3].first
 @HiltViewModel
 class TradingViewViewModel @Inject constructor(
     private val candlePagingUseCase: CandlePagingUseCase,
-    private val tradingDataUseCase: TradingDataUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
     private val marketId = savedStateHandle[TradingViewActivity.TICKER_CODE] ?: ""
@@ -94,21 +93,6 @@ class TradingViewViewModel @Inject constructor(
         .cachedIn(viewModelScope)
         .stateIn(viewModelScope, SharingStarted.Lazily, PagingData.empty())
 
-//    init {
-//        if (autoTradingStartDate.isNotEmpty()) {
-//            reqTradingData(startDate = autoTradingStartDate)
-//        } else {
-//            _candleParams.value = CandlePagingUseCase.CandleParams(
-//                market = marketId,
-//                to = "yyyy-MM-dd HH:mm:ss".formatedDate(),
-//                count = 200,
-//                unit = null,
-//                timeFrame = (candleTimeFrames[3].first),
-//                trades = listOf()
-//            )
-//        }
-//    }
-
     init {
         if (autoTradingStartDate.isNotEmpty()) {
             vmScopeJob {
@@ -127,7 +111,6 @@ class TradingViewViewModel @Inject constructor(
                     )
                 }
             }
-            reqTradingData(startDate = autoTradingStartDate)
         } else {
             _candleParams.value = CandlePagingUseCase.CandleParams(
                 market = marketId,
@@ -191,28 +174,6 @@ class TradingViewViewModel @Inject constructor(
                     timeFrame = timeFrameName,
                     trades = trades.value,
                 )
-            }
-        }
-    }
-
-    private fun reqTradingData(startDate: String) {
-        vmScopeJob(
-            coroutineExceptionHandler = CoroutineExceptionHandler { _, _ ->
-                _trades.value = listOf()
-            }
-        ) {
-            tradingDataUseCase.reqTradingData(startDate = startDate).collectLatest {
-                _trades.value = it.reversed().flatMap { trade -> trade.order.trades ?: listOf() }
-
-                _candleParams.value = CandlePagingUseCase.CandleParams(
-                    market = marketId,
-                    to = "yyyy-MM-dd HH:mm:ss".formatedDate(),
-                    count = 200,
-                    unit = null,
-                    timeFrame = (candleTimeFrames[3].first),
-                    trades = trades.value,
-                )
-
             }
         }
     }

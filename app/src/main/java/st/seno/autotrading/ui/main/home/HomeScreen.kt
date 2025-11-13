@@ -38,7 +38,7 @@ fun HomeScreen() {
         lifecycleOwner = LocalContext.current as MainActivity,
         minActiveState = Lifecycle.State.STARTED,
     ).value
-    val isConnectedWithUpbitSocket = App.isConnectedWithUpbitSocket.collectAsStateWithLifecycle().value
+    val isConnectedWithUpbitSocket = App.isConnectedWithLocalSocket.collectAsStateWithLifecycle().value
 
     BackHandler { }
 
@@ -83,7 +83,7 @@ fun HomeScreen() {
     } else {
         AutoTradingNetworkErrorOverlay(
             onClickRetry = {
-                App.getInstance().connectUpbitSocket()
+                App.getInstance().connectLocalWebSocket()
             }
         )
     }

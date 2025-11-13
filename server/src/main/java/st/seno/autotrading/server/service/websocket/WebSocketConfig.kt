@@ -11,28 +11,16 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.*
 import org.springframework.web.socket.handler.TextWebSocketHandler
 import st.seno.autotrading.server.controller.AutoTradingController
-import st.seno.autotrading.server.model.AutoTradingConstants
-import st.seno.autotrading.server.service.rest_api.AutoTradingApiService
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 
 @Configuration
 @EnableWebSocket
 class WebSocketConfig(
-    private val handler: MySocketHandler,
     private val autoTradingHandler: AutoTradingSocketHandler
 ) : WebSocketConfigurer {
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
-        registry.addHandler(handler, "/ws").setAllowedOrigins("*")
         registry.addHandler(autoTradingHandler, "/ws/trading").setAllowedOrigins("*")
-    }
-}
-
-@Component
-class MySocketHandler : TextWebSocketHandler() {
-    override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
-        println("📩 Received from client: ${message.payload}")
-        session.sendMessage(TextMessage("서버 응답: ${message.payload}"))
     }
 }
 
@@ -87,5 +75,15 @@ class AutoTradingSocketHandler(
             ?.run {
                 sendMessage(TextMessage(mapper.writeValueAsString(map)))
             }
+    }
+
+    fun sendMessageToAllClient(map: Map<String, Any?>) {
+        val mapper = jacksonObjectMapper().apply { registerKotlinModule() }
+
+        sessions.values.forEach {  s ->
+            if (s.isOpen) {
+                s.sendMessage(TextMessage(mapper.writeValueAsString(map)))
+            }
+        }
     }
 }

@@ -13,7 +13,6 @@ import okhttp3.WebSocketListener
 import okio.ByteString
 import st.seno.autotrading.extensions.parseOrNull
 import st.seno.autotrading.model.PingResponse
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 const val NORMAL_CLOSURE_STATUS = 1000
@@ -85,7 +84,7 @@ class RxSocketClient {
 
                     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                         trySend(SockResponse.Closing(webSocket, code, reason))
-                        webSocket.close(1000, null)
+                        handleReconnect("onClosing: $reason")
                     }
 
                     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
@@ -200,7 +199,6 @@ class RxSocketClient {
     }
 
     companion object {
-        const val MAIN_SOCKET = "main_socket"
         const val LOCAL_SOCKET = "local_socket"
         private var instances = HashMap<String, RxSocketClient?>()
 

@@ -1,6 +1,7 @@
 package st.seno.autotrading.server.core.data.network.model
 
 import com.google.gson.annotations.SerializedName
+import kotlin.reflect.full.memberProperties
 
 
 data class Ticker (
@@ -62,4 +63,38 @@ data class Ticker (
     val timestamp: Long, // 타임스탬프 (millisecond)
     @SerializedName("st")
     val streamType: String, // 스트림 타입(SNAPSHOT : 스냅샷, REALTIME : 실시간)
-)
+) {
+    fun Ticker.toMapSerializedName(): Map<String, Any> {
+        return mapOf(
+            "cd" to code,
+            "op" to openingPrice,
+            "hp" to highPrice,
+            "lp" to lowPrice,
+            "tp" to tradePrice,
+            "pcp" to prevClosingPrice,
+            "c" to change,
+            "cp" to changePrice,
+            "scp" to signedChangePrice,
+            "cr" to changeRate,
+            "scr" to signedChangeRate,
+            "tv" to tradeVolume,
+            "atv" to accTradeVolume,
+            "atv24h" to accTradeVolume24h,
+            "atp" to accTradePrice,
+            "atp24h" to accTradePrice24h,
+            "tdt" to tradeDate,
+            "ttm" to tradeTime,
+            "ttms" to tradeTimestamp,
+            "ab" to askBid,
+            "aav" to accAskVolume,
+            "abv" to accBidVolume,
+            "h52wp" to highest52WeekPrice,
+            "h52wdt" to highest52WeekDate,
+            "l52wp" to lowest52WeekPrice,
+            "l52wdt" to lowest52WeekDate,
+            "mw" to marketWarning,
+            "tms" to timestamp,
+            "st" to streamType
+        )
+    }
+}

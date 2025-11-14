@@ -1,6 +1,7 @@
 package st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest
 
 import android.annotation.SuppressLint
+import android.icu.util.Calendar
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.background
@@ -25,6 +26,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -52,15 +55,35 @@ import st.seno.autotrading.theme.FFFFFFFF
 import st.seno.autotrading.ui.common.CommonToolbar
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest.component.BackTestResultPanel
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest.component.BackTestSettingsPanel
+import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.TradeDate
+import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.TradeDateType
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition", "UnrememberedMutableState")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun BacktestScreen(
     onClickBack: () -> Unit
 ) {
+    val todayCal = Calendar.getInstance().apply {
+        set(java.util.Calendar.HOUR_OF_DAY, 0)
+        set(java.util.Calendar.MINUTE, 0)
+        set(java.util.Calendar.SECOND, 0)
+        set(java.util.Calendar.MILLISECOND, 0)
+    }
+    val yesterdayCal = Calendar.getInstance().apply {
+        set(Calendar.DAY_OF_MONTH , todayCal.get(Calendar.DAY_OF_MONTH) - 1)
+        set(java.util.Calendar.HOUR_OF_DAY, 0)
+        set(java.util.Calendar.MINUTE, 0)
+        set(java.util.Calendar.SECOND, 0)
+        set(java.util.Calendar.MILLISECOND, 0)
+    }
+
     val backTestViewModel = hiltViewModel<BackTestViewModel>()
-    val backTestState = rememberBackTestState()
+    val backTestState = rememberBackTestState(
+        startDateState = mutableLongStateOf(yesterdayCal.timeInMillis),
+        endDateState = mutableLongStateOf(todayCal.timeInMillis),
+        tradeDateState = mutableStateOf(TradeDate(isShowDatePicker = false, tradeDateType = TradeDateType.START, selectedDate = todayCal.timeInMillis))
+    )
     val backTestResult = backTestViewModel.backTestResult.collectAsStateWithLifecycle().value
     val bookmarkedTickers = backTestViewModel.bookmarkedTickers.collectAsStateWithLifecycle().value
     val isLoading = backTestViewModel.isLoading.collectAsStateWithLifecycle().value
@@ -121,29 +144,56 @@ fun BacktestScreen(
                             isExpandCryptoDropDownMenu = backTestState.expandCryptoDropDownMenuState.value,
                             bookmarkedTickers = bookmarkedTickers,
                             initialInvestment = backTestState.initialInvestment.value,
-                            sampleCountValue = backTestState.sampleCountState.value,
                             stopLossValue = backTestState.stopLossState.value,
                             takeProfitValue = backTestState.takeProfitState.value,
                             correctionValue = backTestState.correctionValueState.value,
+                            startDateValue = backTestState.startDateState.longValue,
+                            endDateValue = backTestState.endDateState.longValue,
+                            tradeDateValue = backTestState.tradeDateState.value,
                             onClickCryptoText = { backTestState.expandCryptoDropDownMenuState.update(value = !backTestState.expandCryptoDropDownMenuState.value) },
                             onClickCryptoDropdownMenu = { backTestState.expandCryptoDropDownMenuState.update(value = it) },
                             onClickCryptoDropdownMenuItem = { backTestState.selectedBackTestCryptoState.update(value = it) },
-                            onSampleCountChanged = { backTestState.sampleCountState.update(value = it) },
                             onStopLossChanged = { backTestState.stopLossState.update(value = it) },
                             onTakeProfitChanged = { backTestState.takeProfitState.update(value = it) },
                             onInitialInvestmentChanged = { backTestState.initialInvestment.update(value = it) },
-                            onCorrectionValueChanged = { backTestState.correctionValueState.update(value = it) }
+                            onCorrectionValueChanged = { backTestState.correctionValueState.update(value = it) },
+                            onClickStartDatePicker = { backTestState.tradeDateState.update(value = TradeDate(isShowDatePicker = true, tradeDateType = TradeDateType.START, selectedDate = it)) },
+                            onClickEndDatePicker = { backTestState.tradeDateState.update(value = TradeDate(isShowDatePicker = true, tradeDateType = TradeDateType.END, selectedDate = it)) },
+                            onChangeDate = { tradeDate ->
+                                val todayDate = todayCal.timeInMillis
+                                val type = tradeDate.tradeDateType
+                                val selectedDate = tradeDate.selectedDate
+                                val startDate = backTestState.startDateState.longValue
+                                val endDate = backTestState.endDateState.longValue
+
+                                val (alert, fixedDate) = when {
+                                    type == TradeDateType.END && selectedDate > todayDate -> R.string.auto_trading_date_alert_limit_today to endDate
+                                    type == TradeDateType.START && selectedDate >= endDate -> R.string.auto_trading_date_alert to startDate
+                                    type == TradeDateType.END && selectedDate <= startDate -> R.string.auto_trading_date_alert to endDate
+
+                                    else -> null to null
+                                }
+
+                                if (alert != null && fixedDate != null) {
+                                    backTestState.showSnackBar(getString(alert))
+                                    TradeDate(isShowDatePicker = false, tradeDateType = type, selectedDate = fixedDate)
+                                } else {
+                                    if (tradeDate.tradeDateType.name == TradeDateType.START.name) {
+                                        backTestState.startDateState.update(value = tradeDate.selectedDate)
+                                    } else {
+                                        backTestState.endDateState.update(value = tradeDate.selectedDate)
+                                    }
+                                    tradeDate
+                                }.also {
+                                    backTestState.tradeDateState.update(value = it)
+                                }
+                            }
                         )
                         30.HeightSpacer()
                         StartBackTestButton(
                             onClickStartBackTest = {
                                 if (backTestState.initialInvestment.value.text == "0" || backTestState.initialInvestment.value.isEmpty()) {
                                     backTestState.showSnackBar(text = getString(R.string.auto_trading_back_test_check_initial_investment))
-                                    return@StartBackTestButton
-                                }
-
-                                if (backTestState.sampleCountState.value.isEmpty()) {
-                                    backTestState.showSnackBar(text = getString(R.string.auto_trading_back_test_check_sample_count))
                                     return@StartBackTestButton
                                 }
 
@@ -163,7 +213,9 @@ fun BacktestScreen(
                                     sampleCount = backTestState.sampleCountState.value.text.toInt(),
                                     stopLoss = backTestState.stopLossState.value.text.toInt(),
                                     takeProfit = backTestState.takeProfitState.value.text.toInt(),
-                                    correctionValue = backTestState.correctionValueState.value.text.toDouble()
+                                    correctionValue = backTestState.correctionValueState.value.text.toDouble(),
+                                    startDate = backTestState.startDateState.longValue,
+                                    endDate = backTestState.endDateState.longValue,
                                 )
                             }
                         )

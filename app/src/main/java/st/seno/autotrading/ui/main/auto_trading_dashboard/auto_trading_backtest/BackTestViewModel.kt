@@ -4,12 +4,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.isSuccess
 import st.seno.autotrading.data.network.model.successData
 import st.seno.autotrading.domain.CandleUseCase
-import st.seno.autotrading.extensions.formatedDate
+import st.seno.autotrading.extensions.daysBetween
 import st.seno.autotrading.extensions.getString
 import st.seno.autotrading.extensions.truncateToXDecimalPlaces
 import st.seno.autotrading.model.BackTestResult
@@ -41,15 +40,23 @@ class BackTestViewModel @Inject constructor(
         sampleCount: Int,
         stopLoss: Int,
         takeProfit: Int,
-        correctionValue: Double
+        correctionValue: Double,
+        startDate: Long,
+        endDate: Long
     ) {
+        val dayBetween = (startDate to endDate).daysBetween().toInt()
+        if (dayBetween > 2000) {
+            showSnackbar(message = "You can set up to a maximum of 2000 days")
+            return
+        }
+
         vmScopeJob {
             showLoading()
 
             val response = candleUseCase.reqDaysCandle(
                 market = marketId,
-                to = "yyyy-MM-dd HH:mm:ss".formatedDate(),
-                count = sampleCount
+                dayBetween = dayBetween,
+                endDate = endDate
             )
             if (response.isSuccess()) {
                 val fee = 0.0005 // 거래 수수료

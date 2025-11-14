@@ -84,3 +84,30 @@ fun String.kstToKoreanTime(): String {
     val zonedDateTime = ZonedDateTime.of(localDateTime, ZoneId.of("Asia/Seoul"))
     return zonedDateTime.format(formatter)
 }
+
+fun Pair<Long, Long>.daysBetween(): Long {
+    val startDate = Calendar.getInstance().apply {
+        timeInMillis = this@daysBetween.first
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+
+    val endDate = Calendar.getInstance().apply {
+        timeInMillis = this@daysBetween.second
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+
+    return (endDate.timeInMillis - startDate.timeInMillis) / (1000 * 60 * 60 * 24)
+}
+
+fun Long.formatDate(): String  {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        .withZone(ZoneId.systemDefault()) // 로컬 시간대 사용
+    val instant = Instant.ofEpochMilli(this)
+    return formatter.format(instant)
+}

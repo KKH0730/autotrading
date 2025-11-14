@@ -1,5 +1,7 @@
 package st.seno.autotrading.data.network.repository
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import st.seno.autotrading.data.mapper.DaysCandleMapper
 import st.seno.autotrading.data.mapper.MinutesCandleMapper
 import st.seno.autotrading.data.mapper.MonthsCandleMapper
@@ -8,7 +10,7 @@ import st.seno.autotrading.data.mapper.WeeksCandleMapper
 import st.seno.autotrading.data.mapper.YearsCandleMapper
 import st.seno.autotrading.data.network.model.Candle
 import st.seno.autotrading.data.network.service.CandleService
-import st.seno.autotrading.extensions.utcToKoreanTime
+import st.seno.autotrading.extensions.formatDate
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -72,6 +74,36 @@ class CandleImpl @Inject constructor(
             convertingPriceUnit = null
         )
         return response.map { daysCandleMapper.fromRemote(it) }
+    }
+
+    override suspend fun reqDaysCandle(
+        market: String,
+        dayBetween: Int,
+        endDate: Long
+    ): List<Candle> = withContext(Dispatchers.IO) {
+        Timber.e("dayBetween : $dayBetween")
+        val candles  = mutableListOf<Candle>()
+        var remainingDays = dayBetween
+        var currentEndDate = endDate
+
+        while (remainingDays > 0) {
+            val sampleCount = minOf(remainingDays, 200)
+            val to = currentEndDate.formatDate()
+            Timber.e("sampleCount : $sampleCount, to : $to")
+
+            candleService.reqDaysCandle(
+                market = market,
+                to = to,
+                count = sampleCount,
+                convertingPriceUnit = null
+            )
+                .map { daysCandleMapper.fromRemote(it) }
+                .also { candles.addAll(it) }
+
+            currentEndDate -= sampleCount * 24 * 60 * 60 * 1000L
+            remainingDays -= sampleCount
+        }
+        candles
     }
 
     override suspend fun reqMinutesCandle(

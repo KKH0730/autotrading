@@ -28,7 +28,11 @@ import st.seno.autotrading.theme.FF000000
 import st.seno.autotrading.theme.FFFFFFFF
 import st.seno.autotrading.ui.common.CommonInputContainer
 import st.seno.autotrading.ui.common.CryptoDropDown
+import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.TradeDate
+import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.component.TradingDate
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.component.TradingStrategy
+import st.seno.autotrading.ui.main.auto_trading_dashboard.component.CalendarPicker
+import java.util.Calendar
 
 @Composable
 fun BackTestSettingsPanel(
@@ -36,18 +40,23 @@ fun BackTestSettingsPanel(
     isExpandCryptoDropDownMenu: Boolean,
     bookmarkedTickers: List<String>,
     initialInvestment: TextFieldValue,
-    sampleCountValue: TextFieldValue,
     stopLossValue: TextFieldValue,
     takeProfitValue: TextFieldValue,
     correctionValue: TextFieldValue,
+    startDateValue: Long,
+    endDateValue: Long,
+    tradeDateValue: TradeDate,
     onClickCryptoText: () -> Unit,
     onClickCryptoDropdownMenu: (Boolean) -> Unit,
     onClickCryptoDropdownMenuItem: (String) -> Unit,
     onInitialInvestmentChanged: (TextFieldValue) -> Unit,
-    onSampleCountChanged: (TextFieldValue) -> Unit,
     onStopLossChanged: (TextFieldValue) -> Unit,
     onTakeProfitChanged: (TextFieldValue) -> Unit,
     onCorrectionValueChanged: (TextFieldValue) -> Unit,
+    onClickStartDatePicker: (Long) -> Unit,
+    onClickEndDatePicker: (Long) -> Unit,
+    onChangeDate: (TradeDate) -> Unit
+
 ) {
     Card(
         elevation = 2.dp,
@@ -84,28 +93,6 @@ fun BackTestSettingsPanel(
                         text
                     }
                     onInitialInvestmentChanged.invoke(TextFieldValue(text = value, selection = TextRange(index = value.length)))
-                }
-            )
-            18.HeightSpacer()
-            CommonInputContainer(
-                title = stringResource(R.string.auto_trading_back_test_sample_count),
-                textValue = sampleCountValue,
-                keyboardType = KeyboardType.NumberPassword,
-                helperText = stringResource(R.string.auto_trading_back_test_sample_count_helper_text),
-                onTextChanged = {
-                    val value = if (it.text.isNotEmpty() && it.text.length > 1 && it.text[0] == '0') {
-                        it.text.slice(1..<it.text.length)
-                    } else {
-                        it.text
-                    }
-                    try {
-                        when {
-                            value.toInt() > 200 -> onSampleCountChanged.invoke(TextFieldValue(text = "200", selection = TextRange(index = "200".length)))
-                            else -> onSampleCountChanged.invoke(TextFieldValue(text = value, selection = TextRange(index = value.length)))
-                        }
-                    } catch (e: Exception) {
-                        onSampleCountChanged.invoke(TextFieldValue(text = value, selection = TextRange(index = value.length)))
-                    }
                 }
             )
             18.HeightSpacer()
@@ -171,8 +158,39 @@ fun BackTestSettingsPanel(
                     }
                 }
             )
+            18.HeightSpacer()
+            TradingDate(
+                date = startDateValue,
+                title = stringResource(R.string.auto_trading_start_date),
+                onClickDatePicker = onClickStartDatePicker
+            )
+            18.HeightSpacer()
+            TradingDate(
+                date = endDateValue,
+                title = stringResource(R.string.auto_trading_end_date),
+                onClickDatePicker = onClickEndDatePicker
+            )
             24.HeightSpacer()
         }
+    }
+
+    if (tradeDateValue.isShowDatePicker) {
+        CalendarPicker(
+            selectedDate = tradeDateValue.selectedDate,
+            onConfirm = {
+                val cal = Calendar.getInstance().apply {
+                    timeInMillis = it
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                onChangeDate.invoke(TradeDate(isShowDatePicker = false, tradeDateType = tradeDateValue.tradeDateType, selectedDate = cal.timeInMillis))
+            },
+            onDismissed = {
+                onChangeDate.invoke(TradeDate(isShowDatePicker = false, tradeDateType = tradeDateValue.tradeDateType, selectedDate = tradeDateValue.selectedDate))
+            }
+        )
     }
 }
 

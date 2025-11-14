@@ -532,16 +532,17 @@ class AutoTradingService : Service() {
     private suspend fun getDayCandles(
         marketId: String
     ): List<Candle> {
-        return withContext(ioDispatcher) {
-            val response =  candleUseCase.reqDaysCandle(
-                market = marketId,
-                to = null,
-                count = 2
-            )
-            response.takeIf { it.isSuccess() }
-                ?.successData()
-                ?: listOf()
-        }
+        return listOf()
+//        return withContext(ioDispatcher) {
+//            val response =  candleUseCase.reqDaysCandle(
+//                market = marketId,
+//                to = null,
+//                count = 2
+//            )
+//            response.takeIf { it.isSuccess() }
+//                ?.successData()
+//                ?: listOf()
+//        }
     }
 
     private suspend fun getMyAssets(): List<Asset>? {

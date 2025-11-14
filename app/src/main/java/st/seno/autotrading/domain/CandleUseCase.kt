@@ -59,14 +59,14 @@ class CandleUseCase @Inject constructor(
 ){
     suspend fun reqDaysCandle(
         market: String,
-        to: String?,
-        count: Int
+        dayBetween: Int,
+        endDate: Long
     ): Result<List<Candle>> {
         return safeCall {
             candleRepository.reqDaysCandle(
                 market = market,
-                to = to,
-                count = count
+                dayBetween = dayBetween,
+                endDate = endDate
             )
         }
     }

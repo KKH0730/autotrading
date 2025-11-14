@@ -64,13 +64,6 @@
             </intent-filter>
         </activity>
 
-
-        <service
-            android:name=".service.AutoTradingService"
-            android:exported="false"
-            android:enabled="true"
-            android:foregroundServiceType="dataSync"/>
-
         <meta-data
             android:name="firebase_crashlytics_collection_enabled"
             android:value="${enableCrashReporting}"/>

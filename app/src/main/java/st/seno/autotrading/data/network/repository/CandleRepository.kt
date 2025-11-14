@@ -25,7 +25,13 @@ interface CandleRepository  {
     suspend fun reqDaysCandle(
         market: String,
         to: String?,
-        count: Int
+        count: Int,
+    ): List<Candle>
+
+    suspend fun reqDaysCandle(
+        market: String,
+        dayBetween: Int,
+        endDate: Long
     ): List<Candle>
 
     suspend fun reqMinutesCandle(

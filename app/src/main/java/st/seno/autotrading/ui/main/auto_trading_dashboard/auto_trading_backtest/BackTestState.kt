@@ -6,6 +6,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,6 +15,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.TradeDate
 
 class BackTestState @OptIn(ExperimentalMaterial3Api::class) constructor(
     val selectedBackTestCryptoState: MutableState<String>,
@@ -23,6 +25,9 @@ class BackTestState @OptIn(ExperimentalMaterial3Api::class) constructor(
     val stopLossState: MutableState<TextFieldValue>,
     val takeProfitState: MutableState<TextFieldValue>,
     val correctionValueState: MutableState<TextFieldValue>,
+    val startDateState: MutableLongState,
+    val endDateState: MutableLongState,
+    val tradeDateState: MutableState<TradeDate>,
     val bottomSheetScaffoldState: BottomSheetScaffoldState,
     val coroutineScope: CoroutineScope,
     val snackbarHostState: SnackbarHostState
@@ -62,11 +67,14 @@ class BackTestState @OptIn(ExperimentalMaterial3Api::class) constructor(
 fun rememberBackTestState(
     selectedBackTestCryptoState: MutableState<String> = mutableStateOf("KRW-BTC"),
     expandCryptoDropDownMenuState: MutableState<Boolean> = mutableStateOf(false),
-    initialInvestment: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "0", selection = TextRange(index = "0".length))),
+    initialInvestment: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "1000000", selection = TextRange(index = "1000000".length))),
     sampleCountState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "200", selection = TextRange(index = "200".length))),
     stopLossState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "0", selection = TextRange(index = "0".length))),
     takeProfitState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "0", selection = TextRange(index = "0".length))),
     correctionValueState: MutableState<TextFieldValue> = mutableStateOf(TextFieldValue(text = "0.0", selection = TextRange(index = "0.0".length))),
+    startDateState: MutableLongState,
+    endDateState: MutableLongState,
+    tradeDateState: MutableState<TradeDate>,
     bottomSheetScaffoldState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
@@ -79,6 +87,9 @@ fun rememberBackTestState(
         stopLossState = stopLossState,
         takeProfitState = takeProfitState,
         correctionValueState = correctionValueState,
+        startDateState = startDateState,
+        endDateState = endDateState,
+        tradeDateState = tradeDateState,
         bottomSheetScaffoldState = bottomSheetScaffoldState,
         coroutineScope = coroutineScope,
         snackbarHostState = snackbarHostState

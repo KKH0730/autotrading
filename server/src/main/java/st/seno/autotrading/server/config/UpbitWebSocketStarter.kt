@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 import st.seno.autotrading.server.core.data.network.model.Ticker
 import st.seno.autotrading.server.core.data.network.model.isSuccess
 import st.seno.autotrading.server.core.data.network.model.successData
-import st.seno.autotrading.server.core.data.network.socket.UpbitWebSocketClient
+import st.seno.autotrading.server.service.websocket.UpbitWebSocketClient
 import st.seno.autotrading.server.core.domain.MarketUseCase
 
 @Component

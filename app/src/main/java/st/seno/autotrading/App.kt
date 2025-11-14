@@ -118,7 +118,7 @@ class App : Application(), LifecycleObserver {
                         is SockResponse.Message -> {
                             val json = JSONObject(socketResponse.data)
                             val mode = json.get("mode") as? String
-                            Timber.e("mode : $mode")
+
                             when(mode) {
                                 "operation" -> {
                                     val serviceSocketResponse = socketResponse.data.parseOrNull<ServiceSocketResponse>()
@@ -131,11 +131,9 @@ class App : Application(), LifecycleObserver {
                                 }
                                 "upbit" -> {
                                     val upbitSocketResponse = socketResponse.data.parseOrNull<UpbitSocketResponse>()
-                                    Timber.e("upbit upbitSocketResponse : ${upbitSocketResponse}")
                                     if (upbitSocketResponse == null) return@collectLatest
 
                                     val ticker = upbitSocketResponse.data
-                                    Timber.e("upbit ticker : ${ticker}")
                                     val mutableTickersMap = tickersMap.value.toMutableMap()
                                     mutableTickersMap[ticker.code] = ticker
 

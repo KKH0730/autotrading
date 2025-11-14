@@ -1,6 +1,5 @@
-package st.seno.autotrading.server.core.data.network.socket
+package st.seno.autotrading.server.service.websocket
 
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -17,106 +16,8 @@ import st.seno.autotrading.server.config.UpbitWebSocketStarter
 import st.seno.autotrading.server.core.data.network.model.PingResponse
 import st.seno.autotrading.server.core.data.network.model.Ticker
 import st.seno.autotrading.server.core.extension.parseOrNull
-import st.seno.autotrading.server.service.websocket.AutoTradingSocketHandler
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
-
-//@Component
-//class UpbitWebSocketClient(
-//    private val upbitProperties: UpbitProperties
-//) {
-//    private val client: OkHttpClient = OkHttpClient.Builder()
-//        .pingInterval(10, TimeUnit.SECONDS)
-//        .retryOnConnectionFailure(true)
-//        .build()
-//
-//    private var webSocket: WebSocket? = null
-//    private var cryptos: List<String> = listOf()
-//
-//    /**
-//     * @param cryptos KRW-BTC, KRW-ETH, KRW-XRP
-//     */
-//    fun connect(cryptos: List<String>) {
-//        this.cryptos = cryptos
-//        val url = "wss://api.upbit.com/websocket/v1"
-//
-//        val request = Request.Builder()
-//            .url(url)
-//            .build()
-//
-//        client.newBuilder()
-//            .pingInterval(10, TimeUnit.SECONDS)
-//            .connectTimeout(60, TimeUnit.SECONDS)
-//            .readTimeout(60, TimeUnit.SECONDS)
-//            .writeTimeout(60, TimeUnit.SECONDS)
-//            .retryOnConnectionFailure(true)
-//            .addInterceptor { chain ->
-//                val chainRequest = chain.request()
-//                val response = chain.proceed(chainRequest)
-//                response
-//            }
-//            .build()
-//
-//        webSocket = client.newWebSocket(request, object : WebSocketListener() {
-//
-//            override fun onOpen(webSocket: WebSocket, response: Response) {
-//                println("✅ [Upbit WebSocket] 연결 성공")
-//                val cryptoCodes = cryptos.joinToString(separator = ",", prefix = "[", postfix = "]") { "\"$it\"" }
-//                sendTickerSubscribe(cryptos)
-//            }
-//
-//            override fun onMessage(webSocket: WebSocket, text: String) {
-//                super.onMessage(webSocket, text)
-//
-//                val ticker = Gson().fromJson(text, Ticker::class.java)
-//                UpbitWebSocketStarter.tickersMap[ticker.code] = ticker
-//            }
-//
-//            override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-//                val text = bytes.utf8()
-//
-//                val ticker = Gson().fromJson(text, Ticker::class.java)
-//                UpbitWebSocketStarter.tickersMap[ticker.code] = ticker
-//            }
-//
-//            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-//                println("⚠️ [Upbit WebSocket] 닫는 중: $reason")
-//                webSocket.close(1000, null)
-//            }
-//
-//            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-//                println("❌ [Upbit WebSocket] 실패: ${t.message}")
-//                reconnect()
-//            }
-//        })
-//    }
-//
-//    private fun reconnect() {
-//        println("🔁 재연결 시도중...")
-//        Thread.sleep(3000)
-//        connect(cryptos)
-//    }
-//
-//    private fun sendTickerSubscribe(markets: List<String>) {
-//        val codes = markets.joinToString(",", "[", "]") { "\"$it\"" }
-//
-//        val message = """
-//            [
-//              {"ticket":"server"},
-//              {"type":"ticker","codes":$codes,"is_only_realtime":true},
-//              {"format":"SIMPLE"}
-//            ]
-//        """.trimIndent()
-//
-//        webSocket?.send(message)
-//        println("📡 구독요청 전송: $message")
-//    }
-//
-//    fun disconnect() {
-//        webSocket?.close(1000, null)
-//        webSocket = null
-//    }
-//}
 
 @Component
 class UpbitWebSocketClient(
@@ -177,7 +78,7 @@ class UpbitWebSocketClient(
                                 val pingResponse = text.parseOrNull<PingResponse>()
                                 if (pingResponse?.status != "UP") {
                                     text.parseOrNull<Ticker>()?.run {
-                                        UpbitWebSocketStarter.tickersMap[this.code] = this
+                                        UpbitWebSocketStarter.Companion.tickersMap[this.code] = this
                                         autoTradingHandler.sendMessageToAllClient(
                                             mapOf(
                                                 "mode" to "upbit",
@@ -193,7 +94,7 @@ class UpbitWebSocketClient(
                                 val pingResponse = text.parseOrNull<PingResponse>()
                                 if (pingResponse?.status != "UP") {
                                     text.parseOrNull<Ticker>()?.run {
-                                        UpbitWebSocketStarter.tickersMap[this.code] = this
+                                        UpbitWebSocketStarter.Companion.tickersMap[this.code] = this
                                         autoTradingHandler.sendMessageToAllClient(
                                             mapOf(
                                                 "mode" to "upbit",

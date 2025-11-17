@@ -54,10 +54,13 @@ import st.seno.autotrading.R
 import st.seno.autotrading.data.network.model.ClosedOrder
 import st.seno.autotrading.extensions.FullWidthSpacer
 import st.seno.autotrading.extensions.HeightSpacer
+import st.seno.autotrading.extensions.formatDate
 import st.seno.autotrading.extensions.formatPrice
+import st.seno.autotrading.extensions.kstToUtc
 import st.seno.autotrading.extensions.parseDateFormat
 import st.seno.autotrading.extensions.textDp
 import st.seno.autotrading.extensions.toDate
+import st.seno.autotrading.extensions.utcToKst
 import st.seno.autotrading.prefs.PrefsManager
 import st.seno.autotrading.theme.FF000000
 import st.seno.autotrading.theme.FF16A34A
@@ -70,6 +73,7 @@ import st.seno.autotrading.theme.FFE5E7EB
 import st.seno.autotrading.theme.FFFFFFFF
 import st.seno.autotrading.ui.common.CircleRippleButton
 import st.seno.autotrading.ui.common.CircleRippleNotFormatSizedButton
+import timber.log.Timber
 import java.util.Calendar
 
 @Composable
@@ -561,14 +565,14 @@ fun CalendarPicker(
     val datePickerState = rememberDatePickerState(
         yearRange = 1900..Calendar.getInstance().get(Calendar.YEAR),
         initialDisplayMode = DisplayMode.Picker,
-        initialSelectedDateMillis = selectedDate
+        initialSelectedDateMillis = selectedDate.utcToKst()
     )
 
     DatePickerDialog(
         onDismissRequest = onDismissed,
         confirmButton = {
             CircleRippleNotFormatSizedButton(
-                onClick = { datePickerState.selectedDateMillis?.let { onConfirm.invoke(it) } },
+                onClick = { datePickerState.selectedDateMillis?.kstToUtc()?.let { onConfirm.invoke(it) } },
                 content = { modifier ->
                     Text(
                         stringResource(R.string.confirm),
@@ -604,7 +608,7 @@ fun CalendarPicker(
     ) {
         DatePicker(
             state = datePickerState,
-            title = { Text("") },
+            title = {},
             colors = DatePickerDefaults.colors(
                 containerColor = FFFFFFFF,
                 todayContentColor = FF2563EB,

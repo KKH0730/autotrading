@@ -178,14 +178,7 @@ fun BackTestSettingsPanel(
         CalendarPicker(
             selectedDate = tradeDateValue.selectedDate,
             onConfirm = {
-                val cal = Calendar.getInstance().apply {
-                    timeInMillis = it
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                onChangeDate.invoke(TradeDate(isShowDatePicker = false, tradeDateType = tradeDateValue.tradeDateType, selectedDate = cal.timeInMillis))
+                onChangeDate.invoke(TradeDate(isShowDatePicker = false, tradeDateType = tradeDateValue.tradeDateType, selectedDate = it))
             },
             onDismissed = {
                 onChangeDate.invoke(TradeDate(isShowDatePicker = false, tradeDateType = tradeDateValue.tradeDateType, selectedDate = tradeDateValue.selectedDate))

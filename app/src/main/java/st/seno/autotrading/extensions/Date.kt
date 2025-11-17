@@ -32,6 +32,14 @@ fun Long.toLocalDateTime(): LocalDateTime {
         .withSecond(59)
 }
 
+fun Long.kstToUtc(): Long {
+    return this - 9 * 60 * 60 * 1000L
+}
+
+fun Long.utcToKst(): Long {
+    return this + 9 * 60 * 60 * 1000L
+}
+
 fun String.parseDateFormat(
     inputFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"),
     outputFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),

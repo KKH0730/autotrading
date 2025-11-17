@@ -2,6 +2,7 @@ package st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest
 
 import android.annotation.SuppressLint
 import android.icu.util.Calendar
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.background
@@ -44,6 +45,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import st.seno.autotrading.R
 import st.seno.autotrading.extensions.HeightSpacer
+import st.seno.autotrading.extensions.formatDate
 import st.seno.autotrading.extensions.getString
 import st.seno.autotrading.extensions.isEmpty
 import st.seno.autotrading.extensions.textDp
@@ -57,6 +59,7 @@ import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest.
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_backtest.component.BackTestSettingsPanel
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.TradeDate
 import st.seno.autotrading.ui.main.auto_trading_dashboard.auto_trading_setting.TradeDateType
+import timber.log.Timber
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition", "UnrememberedMutableState")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -101,6 +104,10 @@ fun BacktestScreen(
                 backTestState.showSnackBar(text = it)
             }
         }
+    }
+
+    BackHandler {
+        backTestState.partialExpand()
     }
 
     CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
@@ -160,38 +167,19 @@ fun BacktestScreen(
                             onClickStartDatePicker = { backTestState.tradeDateState.update(value = TradeDate(isShowDatePicker = true, tradeDateType = TradeDateType.START, selectedDate = it)) },
                             onClickEndDatePicker = { backTestState.tradeDateState.update(value = TradeDate(isShowDatePicker = true, tradeDateType = TradeDateType.END, selectedDate = it)) },
                             onChangeDate = { tradeDate ->
-                                val todayDate = todayCal.timeInMillis
-                                val type = tradeDate.tradeDateType
-                                val selectedDate = tradeDate.selectedDate
-                                val startDate = backTestState.startDateState.longValue
-                                val endDate = backTestState.endDateState.longValue
-
-                                val (alert, fixedDate) = when {
-                                    type == TradeDateType.END && selectedDate > todayDate -> R.string.auto_trading_date_alert_limit_today to endDate
-                                    type == TradeDateType.START && selectedDate >= endDate -> R.string.auto_trading_date_alert to startDate
-                                    type == TradeDateType.END && selectedDate <= startDate -> R.string.auto_trading_date_alert to endDate
-
-                                    else -> null to null
-                                }
-
-                                if (alert != null && fixedDate != null) {
-                                    backTestState.showSnackBar(getString(alert))
-                                    TradeDate(isShowDatePicker = false, tradeDateType = type, selectedDate = fixedDate)
+                                if (tradeDate.tradeDateType.name == TradeDateType.START.name) {
+                                    backTestState.startDateState.update(value = tradeDate.selectedDate)
                                 } else {
-                                    if (tradeDate.tradeDateType.name == TradeDateType.START.name) {
-                                        backTestState.startDateState.update(value = tradeDate.selectedDate)
-                                    } else {
-                                        backTestState.endDateState.update(value = tradeDate.selectedDate)
-                                    }
-                                    tradeDate
-                                }.also {
-                                    backTestState.tradeDateState.update(value = it)
+                                    backTestState.endDateState.update(value = tradeDate.selectedDate)
                                 }
+                                backTestState.tradeDateState.update(value = tradeDate)
                             }
                         )
                         30.HeightSpacer()
                         StartBackTestButton(
                             onClickStartBackTest = {
+                                val todayDate = todayCal.timeInMillis
+
                                 if (backTestState.initialInvestment.value.text == "0" || backTestState.initialInvestment.value.isEmpty()) {
                                     backTestState.showSnackBar(text = getString(R.string.auto_trading_back_test_check_initial_investment))
                                     return@StartBackTestButton
@@ -204,6 +192,14 @@ fun BacktestScreen(
 
                                 if (backTestState.correctionValueState.value.isEmpty()) {
                                     backTestState.showSnackBar(text = getString(R.string.auto_trading_back_test_check_correction_value))
+                                    return@StartBackTestButton
+                                }
+
+                                if (backTestState.startDateState.longValue >= backTestState.endDateState.longValue) {
+                                    backTestState.showSnackBar(getString(R.string.auto_trading_date_alert))
+                                    return@StartBackTestButton
+                                } else if (backTestState.endDateState.longValue > todayDate) {
+                                    backTestState.showSnackBar(getString(R.string.auto_trading_date_alert_limit_today))
                                     return@StartBackTestButton
                                 }
 

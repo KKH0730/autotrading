@@ -33,7 +33,7 @@ import timber.log.Timber
 class App : Application(), LifecycleObserver {
 
     private var rxLocalSocketClient: RxSocketClient? = RxSocketClient.getInstance(RxSocketClient.LOCAL_SOCKET)
-    var appScope: CoroutineScope? = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    var appScope: CoroutineScope? = null
     
     companion object {
         private lateinit var instance: App
@@ -103,6 +103,14 @@ class App : Application(), LifecycleObserver {
     }
 
     fun connectLocalWebSocket() {
+        if (appScope == null) {
+            appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        }
+
+        if (rxLocalSocketClient == null) {
+            rxLocalSocketClient = RxSocketClient.getInstance(RxSocketClient.LOCAL_SOCKET)
+        }
+
         if (rxLocalSocketClient?.isConnected == true) {
             return
         }
@@ -184,6 +192,8 @@ class App : Application(), LifecycleObserver {
                             rxLocalSocketClient?.release()
                             rxLocalSocketClient = null
                             RxSocketClient.releaseSocket(RxSocketClient.LOCAL_SOCKET)
+                            appScope?.cancel()
+                            appScope = null
                         }
                     }
                 }

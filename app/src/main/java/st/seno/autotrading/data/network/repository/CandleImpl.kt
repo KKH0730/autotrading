@@ -81,7 +81,6 @@ class CandleImpl @Inject constructor(
         dayBetween: Int,
         endDate: Long
     ): List<Candle> = withContext(Dispatchers.IO) {
-        Timber.e("dayBetween : $dayBetween")
         val candles  = mutableListOf<Candle>()
         var remainingDays = dayBetween
         var currentEndDate = endDate
@@ -89,7 +88,6 @@ class CandleImpl @Inject constructor(
         while (remainingDays > 0) {
             val sampleCount = minOf(remainingDays, 200)
             val to = currentEndDate.formatDate()
-            Timber.e("sampleCount : $sampleCount, to : $to")
 
             candleService.reqDaysCandle(
                 market = market,

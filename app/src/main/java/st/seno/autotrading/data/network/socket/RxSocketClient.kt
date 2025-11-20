@@ -114,7 +114,6 @@ class RxSocketClient {
                         launch {
                             delay(currentDelay)
                             currentDelay = (currentDelay * 2).coerceAtMost(30_000)
-
                             attemptConnection()
                         }
                     }
@@ -179,14 +178,6 @@ class RxSocketClient {
                 }
             ]"""
         webSocket?.send(message)
-    }
-
-    fun disconnect() {
-        webSocket?.run {
-            close(NORMAL_CLOSURE_STATUS, null)
-            cancel()
-        }
-        webSocket = null
     }
 
     fun release() {
